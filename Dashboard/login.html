@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFMMS - Login</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow-x: hidden;
+        }
+
+        /* MAIN SPLIT CONTAINER WINDOW */
+        .login-wrapper {
+            background: #ffffff;
+            width: 100%;
+            max-width: 1050px;
+            height: 640px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            display: flex;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* LEFT SIDE - BRAND LOGO DISPLAY AREA */
+        .login-left {
+            flex: 1.1;
+            background: #1b365d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 48px;
+            overflow: hidden;
+        }
+
+        /* Ambient subtle light glow behind corporate insignia image */
+        .login-left::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(234, 170, 0, 0.15) 0%, rgba(27, 54, 93, 0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .logo-container {
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
+            z-index: 2;
+        }
+
+        .brand-logo-img {
+            width: 100%;
+            height: auto;
+            max-height: 240px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .brand-logo-img:hover {
+            transform: scale(1.03);
+        }
+
+        .vector-text {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.6;
+            letter-spacing: 0.5px;
+            max-width: 300px;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            padding-top: 16px;
+        }
+
+        /* RIGHT SIDE - LUXURIOUS GRADIENT CANVAS */
+        .login-right {
+            flex: 0.9;
+            background: linear-gradient(135deg, #eAAA00 0%, #c69200 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 48px;
+        }
+
+        /* Abstract aesthetic curve overlays mirroring picture grid guides */
+        .login-right::after {
+            content: '';
+            position: absolute;
+            bottom: -60px;
+            right: -60px;
+            width: 260px;
+            height: 260px;
+            border: 2px dashed rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .login-right::before {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 180px;
+            height: 180px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* CENTRAL WHITE CARD BLOCK */
+        .login-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 20px;
+            padding: 44px 36px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            z-index: 5;
+            transition: transform 0.3s ease;
+        }
+
+        .login-card h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-card p {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 400;
+            margin-bottom: 32px;
+        }
+
+        /* CONTAINER FORM INPUT FIELDS */
+        .input-group {
+            position: relative;
+            margin-bottom: 22px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px; /* Smoother modern rounded corner geometry */
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            color: #0f172a;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus {
+            background: #ffffff;
+            border-color: #1b365d;
+            box-shadow: 0 0 0 4px rgba(27, 54, 93, 0.1);
+        }
+
+        .input-group input:focus + .input-icon {
+            color: #1b365d;
+        }
+
+        .input-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        /* BUTTON SUBMIT ACTION */
+        .btn-submit {
+            width: 100%;
+            background: #1b365d;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(27, 54, 93, 0.2), 0 2px 4px -1px rgba(27, 54, 93, 0.1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 8px;
+            margin-bottom: 24px;
+        }
+
+        .btn-submit:hover {
+            background: #0f2038;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(27, 54, 93, 0.3), 0 4px 6px -2px rgba(27, 54, 93, 0.1);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0px);
+        }
+
+        .forgot-link {
+            display: block;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-link:hover {
+            color: #1b365d;
+        }
+
+        /* ERROR TOAST MESSAGE POPUP */
+        .error-toast {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            display: none;
+            font-weight: 500;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        /* RESPONSIVE BREAKPOINT DESIGN */
+        @media (max-width: 850px) {
+            .login-left {
+                display: none;
+            }
+            .login-wrapper {
+                max-width: 460px;
+                height: auto;
+            }
+            .login-right {
+                flex: 1;
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-wrapper">
+
+    <!-- LEFT COMPARTMENT (Branded Theme Column) -->
+    <div class="login-left">
+        <div class="logo-container">
+            <img src="UMCVision.webp" alt="Church Insignia Logo" class="brand-logo-img">
+            <div class="vector-text">Church Funds & Management Monitoring System Workspace</div>
+        </div>
+    </div>
+
+    <!-- RIGHT COMPARTMENT CANVASES -->
+    <div class="login-right">
+        
+        <div class="login-card">
+            <h1>Hello!</h1>
+            <p>Sign Up to Get Started</p>
+
+            <div class="error-toast" id="errorBlock"></div>
+
+            <form id="authLoginForm">
+                
+                <!-- Vector Embedded Inline Email Field Box -->
+                <div class="input-group">
+                    <input type="text" id="userEmail" placeholder="Email Address" required>
+                    <span class="input-icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </span>
+                </div>
+
+                <!-- Vector Embedded Inline Password Field Box -->
+                <div class="input-group">
+                    <input type="password" id="userPassword" placeholder="Password" required>
+                    <span class="input-icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </span>
+                </div>
+
+                <button type="submit" class="btn-submit">Login</button>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+// AUTO-FORWARD GUARD: If a token exists, route them to their proper page
+(function() {
+    const token = sessionStorage.getItem("token");
+    const role = sessionStorage.getItem("role") ? sessionStorage.getItem("role").toLowerCase() : "";
+    
+    if (token && token !== "undefined" && token !== "null") {
+        if (role === 'admin' || role === 'pastor' || role === 'secretary') {
+            window.location.href = "index.html";
+        } else {
+            window.location.href = "member_portal.html";
+        }
+    }
+})();
+
+document.getElementById("authLoginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const username = document.getElementById("userEmail").value.trim();
+    const password = document.getElementById("userPassword").value;
+    const errorBlock = document.getElementById("errorBlock");
+
+    if (errorBlock) {
+        errorBlock.style.display = "none";
+        errorBlock.innerText = "";
+    }
+
+    try {
+        const res = await fetch("http://localhost:3000/api/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        console.log("LOGIN RESPONSE:", data);
+
+        if (!res.ok || !data.token) {
+            if (errorBlock) {
+                errorBlock.innerText = data.message || "Invalid credentials.";
+                errorBlock.style.display = "block";
+            } else {
+                alert(data.message || "Login failed");
+            }
+            return;
+        }
+
+        // Store session tokens safely in temporary storage
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("role", data.role);
+        sessionStorage.setItem("username", data.username);
+
+        // 🔥 ROLE-BASED REDIRECT (The Traffic Controller)
+        const userRole = data.role ? data.role.toLowerCase() : "member";
+        
+        if (userRole === 'admin' || userRole === 'pastor' || userRole === 'secretary') {
+            window.location.href = "index.html"; // Send management to Dashboard
+        } else {
+            window.location.href = "member_portal.html"; // Send regular users to Portal
+        }
+
+    } catch (err) {
+        console.error("Login client error:", err);
+        if (errorBlock) {
+            errorBlock.innerText = "Server connection failure.";
+            errorBlock.style.display = "block";
+        } else {
+            alert("Server connection failure.");
+        }
+    }
+});
+</script>
+
+</body>
+</html>
+
+  
