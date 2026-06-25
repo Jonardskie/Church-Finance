@@ -3,13 +3,16 @@ const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
 
-// 1. IMPORT ROUTES (These are just definitions, they don't run yet)
+// 1. IMPORT ROUTES (All at the top)
 const authRoutes = require("./Routes/auth");
 const collectionRoutes = require("./Routes/collection");
 const collectionTypeRoutes = require("./Routes/collectionType");
 const memberRoutes = require("./Routes/member");
+const reportRoutes = require("./Routes/report");
+// Change this line in your server.js
+const expenseRoutes = require("./Routes/expenses"); 
 
-// 2. INIT APP (This must come before you use app.use)
+// 2. INIT APP
 const app = express();
 
 // 3. MIDDLEWARE
@@ -17,19 +20,20 @@ app.use(cors());
 app.use(express.json());
 app.use(fileUpload()); 
 
-// 4. USE ROUTES (Now 'app' exists, so this is safe)
+// 4. USE ROUTES (All after app is initialized)
 app.use("/api/members", memberRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/collections", collectionRoutes);
 app.use("/api/collection-types", collectionTypeRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/reports", reportRoutes);
 
-// 🔥 SECURITY: Force root traffic straight to login
+// 5. STATIC FILES & ROOT REDIRECT
+app.use(express.static("Dashboard"));
+
 app.get("/", (req, res) => {
     res.redirect("/login.html");
 });
-
-// STATIC FILES
-app.use(express.static("Dashboard"));
 
 // DATABASE INIT
 require("./Database/db");

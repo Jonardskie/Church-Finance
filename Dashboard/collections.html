@@ -413,53 +413,42 @@
     🔥 4. RECORD, VERIFY, & DELETE (API CONNECTED)
     ========================================================================== */
     // POST: Submit New Collection
-    document.getElementById("collectionForm").addEventListener("submit", async function(e) {
-        e.preventDefault();
-        const token = sessionStorage.getItem("token");
+        document.getElementById("collectionForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const token = sessionStorage.getItem("token");
 
-        // 🔥 This is updated to grab the dropdown value (member_id)
-        const payload = {
-            date: document.getElementById("collectionDate").value,
-            member: document.getElementById("collectionMemberId").value, 
-            type: document.getElementById("collectionType").value,
-            fund: document.getElementById("fundCategory").value,
-            amount: document.getElementById("collectionAmount").value,
-            status: document.getElementById("verificationStatus").value
-        };
+            // 🔥 Get the dropdown elements
+            const memberDropdown = document.getElementById("collectionMemberId");
+            const selectedOption = memberDropdown.options[memberDropdown.selectedIndex];
+                const payload = {
+                    date: document.getElementById("collectionDate").value,
+                    member_id: memberDropdown.value, 
+                    member_name: selectedOption.text.split('(')[0].trim(),
+                    type: document.getElementById("collectionType").value,
+                    fund: document.getElementById("fundCategory").value,
+                    amount: document.getElementById("collectionAmount").value,
+                    status: document.getElementById("verificationStatus").value
+                };
 
-        try {
-            const res = await fetch("http://localhost:3000/api/collections", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + token
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            if (!res.ok) throw new Error("Failed to save to database");
-            
-            document.getElementById("collectionForm").reset();
-            closeModal();
-            loadCollectionsFromDB(); // Refresh table from DB
-        } catch (err) {
-            alert(err.message);
-        }
-    });
-
-    // PUT: Verify Collection Status
-    async function verifyCollection(id) {
-        const token = sessionStorage.getItem("token");
-        try {
-            await fetch(`http://localhost:3000/api/collections/verify/${id}`, {
-                method: "PUT",
-                headers: { "Authorization": "Bearer " + token }
-            });
-            loadCollectionsFromDB(); // Refresh table
-        } catch (err) {
-            console.error(err);
-        }
-    }
+            try {
+                const res = await fetch("http://localhost:3000/api/collections", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) throw new Error("Failed to save to database");
+                
+                document.getElementById("collectionForm").reset();
+                closeModal();
+                loadCollectionsFromDB(); 
+            } catch (err) {
+                alert(err.message);
+            }
+        });
 
     // DELETE: Remove Collection
     async function deleteCollection(id) {

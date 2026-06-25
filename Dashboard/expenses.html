@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFMMS - Expenses & Vouchers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f4f6f8; }
+        .container { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: linear-gradient(180deg, #1b365d 0%, #0f2038 100%); color: white; padding: 30px 20px; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu a { color: #a4bcd4; text-decoration: none; display: block; padding: 10px; border-radius: 8px; }
+        .sidebar-menu a:hover { background: rgba(255, 255, 255, .1); color: white; }
+        .content { flex: 1; padding: 30px; }
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .08); }
+        .btn-add { background: #1b365d; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px; }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; width: 400px; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+
+        /* Table Styling */
+.table-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse; /* This removes the gaps between cells */
+    margin-top: 10px;
+}
+
+thead {
+    background-color: #f8f9fa; /* Light grey header */
+    border-bottom: 2px solid #e9ecef;
+}
+
+th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    color: #555;
+    font-size: 14px;
+}
+
+/* Add a hover effect for better readability */
+tbody tr:hover {
+    background-color: #f1f4f9;
+    cursor: pointer;
+}
+
+/* Format specific columns */
+td:nth-child(4) { /* Target the Amount column */
+    font-weight: 600;
+    color: #1b365d;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h2>CFMMS</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="index.html"><span class="icon">📊</span> <span class="nav-text">Dashboard</span></a></li>
+            <li><a href="members.html"><span class="icon">👥</span> <span class="nav-text">Members</span></a></li>
+            <li class="mobile-hide"><a href="collections.html"><span class="icon">📥</span> <span class="nav-text">Collections</span></a></li>
+            <li><a href="funds.html"><span class="icon">💰</span> <span class="nav-text">Funds</span></a></li>
+            <li class="active"><a href="expenses.html"><span class="icon">📤</span> <span class="nav-text">Expenses</span></a></li>
+            <li class="mobile-hide"><a href="vouchers.html"><span class="icon">🎫</span> <span class="nav-text">Vouchers</span></a></li>
+            <li class="mobile-hide"><a href="reports.html"><span class="icon">📈</span> <span class="nav-text">Reports</span></a></li>
+            <li class="mobile-hide"><a href="audit.html"><span class="icon">🛡️</span> <span class="nav-text">Audit Trail</span></a></li>
+            <li class="mobile-hide"><a href="users.html"><span class="icon">👤</span> <span class="nav-text">Users</span></a></li>
+            <li><a href="settings.html"><span class="icon">⚙️</span> <span class="nav-text">Settings</span></a></li>
+            <li style="margin-top: 20px;"><a href="#" onclick="handleLogout(event)" style="background: rgba(179, 32, 52, 0.15); color: #ffe0e0; border: 1px solid rgba(179, 32, 52, 0.3);"><span class="icon">🚪</span> <span class="nav-text">Logout</span></a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <h1>Expense Management</h1>
+        <button class="btn-add" onclick="document.getElementById('expModal').style.display='flex'">+ Log New Expense</button>
+
+        <section class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Date</th><th>Voucher #</th><th>Category</th><th>Amount</th><th>Description</th></tr>
+                </thead>
+                <tbody id="expenseTableBody"></tbody>
+            </table>
+        </section>
+    </main>
+</div>
+
+<div class="modal" id="expModal">
+    <div class="modal-content">
+        <h3>New Expense</h3>
+        <form id="expenseForm">
+            <input type="date" id="expDate" required>
+            <input type="text" id="expCategory" placeholder="Category (e.g. Utility, Repairs)" required>
+            <input type="number" id="expAmount" placeholder="Amount" required>
+            <input type="text" id="expDesc" placeholder="Description">
+            <button type="submit" class="btn-add">Save Expense</button>
+            <button type="button" onclick="document.getElementById('expModal').style.display='none'">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const token = sessionStorage.getItem("token");
+
+    // Load Expenses
+    async function loadExpenses() {
+        const res = await fetch("http://localhost:3000/api/expenses", {
+            headers: { "Authorization": "Bearer " + token }
+        });
+        const data = await res.json();
+        document.getElementById("expenseTableBody").innerHTML = data.map(e => `
+            <tr>
+                <td>${e.date.split('T')[0]}</td>
+                <td>${e.voucher_number}</td>
+                <td>${e.category}</td>
+                <td>₱${parseFloat(e.amount).toLocaleString()}</td>
+                <td>${e.description}</td>
+            </tr>
+        `).join('');
+    }
+
+    // Submit Expense Form
+    document.getElementById("expenseForm").onsubmit = async (e) => {
+        e.preventDefault();
+        
+        // Payload matches backend expectations
+        const payload = {
+            date: document.getElementById("expDate").value,
+            category: document.getElementById("expCategory").value,
+            amount: document.getElementById("expAmount").value,
+            description: document.getElementById("expDesc").value
+        };
+
+        const res = await fetch("http://localhost:3000/api/expenses", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": "Bearer " + token 
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            alert("Expense Saved and Voucher Generated!");
+            location.reload(); 
+        } else {
+            alert("Failed to save expense.");
+        }
+    };
+
+    // 🔥 NEWLY ADDED LOGOUT FUNCTION
+function handleLogout(event) {
+    event.preventDefault();
+    if (confirm("Are you sure you want to log out?")) {
+        sessionStorage.clear();
+        window.location.replace("login.html"); // 🔥 FIXED: Removed space
+    }
+}
+    window.onload = loadExpenses;
+</script>
+</body>
+</html>
