@@ -1,7 +1,11 @@
 const pool = require("../Database/db");
 const generateMemberId = require("../utils/memberIdGenerator");
 const XLSX = require("xlsx");
-const bcrypt = require("bcryptjs"); // 🔥 Added bcrypt to secure the passwords
+const bcrypt = require("bcryptjs");
+
+// 🔥 Helpers to prevent database crashes on empty text boxes or dropdowns
+const cleanDate = (dateString) => (dateString && dateString.trim() !== "") ? dateString : null;
+const cleanChoice = (val) => (val && val.trim() !== "") ? val : null;
 
 // GET ALL
 exports.getMembers = async (req, res) => {
@@ -26,51 +30,57 @@ exports.getMemberById = async (req, res) => {
     }
 };
 
-// CREATE WITH AUTO ID & USER LOGIN
+// CREATE WITH AUTO ID & ALL NEW FIELDS
 exports.createMember = async (req, res) => {
-    // 🔥 Now extracting member_id, login_id, and password from the frontend
-    const { member_id, official_name, phone, address, role, status, join_date, login_id, password } = req.body;
+    const { 
+        member_id, official_name, phone, address, role, status, join_date, login_id, password,
+        gender, name_1, gov_id, name_2, marital_status, dob, occupation, education, hobbies, tel_2, email, baptist_date 
+    } = req.body;
     
     try {
-        // Use the frontend-generated member_id if provided, otherwise generate a fallback
         const finalMemberId = member_id || await generateMemberId(pool); 
         const finalLoginId = login_id || finalMemberId;
 
-        // 1. Insert into the MEMBERS table
         const insertMemberQuery = `
-            INSERT INTO members (member_id, official_name, phone, address, role, status, join_date, login_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO members (
+                member_id, official_name, phone, address, role, status, join_date, login_id,
+                gender, name_1, gov_id, name_2, marital_status, dob, occupation, education, hobbies, tel_2, email, baptist_date
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
             RETURNING id;
         `;
-        const memberValues = [finalMemberId, official_name, phone, address, role, status || "Active", join_date, finalLoginId];
+        
+        // Notice we are wrapping gender and marital_status in cleanChoice()
+        const memberValues = [
+            finalMemberId, official_name, phone, address, role, status || "Active", 
+            cleanDate(join_date) || new Date().toISOString().split('T')[0], finalLoginId,
+            cleanChoice(gender), name_1, gov_id, name_2, cleanChoice(marital_status), cleanDate(dob), occupation, education, hobbies, tel_2, email, cleanDate(baptist_date)
+        ];
+        
         const result = await pool.query(insertMemberQuery, memberValues);
 
-        // 2. Insert into the USERS table (So they can actually log in!)
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
-            
-            // Note: We use finalLoginId as their 'username' in the users table
             await pool.query(
                 "INSERT INTO users (username, password, role, name) VALUES ($1, $2, $3, $4)",
                 [finalLoginId, hashedPassword, role || "member", official_name]
             );
         }
 
-        res.json({
-            message: "Member and Login created successfully",
-            id: result.rows[0].id,
-            member_id: finalMemberId
-        });
+        res.json({ message: "Member created successfully", id: result.rows[0].id, member_id: finalMemberId });
     } catch (err) {
         console.error("❌ CREATE ERROR:", err.message);
         res.status(500).json({ error: err.message });
     }
 };
 
-// UPDATE WITH SAFE DATES, ROLES, & OPTIONAL PASSWORD RESET
+// UPDATE WITH ALL NEW FIELDS
 exports.updateMember = async (req, res) => {
     const id = req.params.id;
-    const { official_name, phone, address, role, status, join_date, login_id, password } = req.body;
+    const { 
+        official_name, phone, address, role, status, join_date, login_id, password,
+        gender, name_1, gov_id, name_2, marital_status, dob, occupation, education, hobbies, tel_2, email, baptist_date 
+    } = req.body;
     
     try {
         let formattedRole = role || "member";
@@ -79,35 +89,29 @@ exports.updateMember = async (req, res) => {
         else if (formattedRole.toLowerCase() === "secretary") formattedRole = "Secretary";
         else if (formattedRole.toLowerCase() === "treasurer") formattedRole = "Treasurer";
 
-        const validatedDate = (join_date && join_date.trim() !== "") ? join_date : new Date().toISOString().split('T')[0];
-
-        // 1. Update the MEMBERS table
         const updateQuery = `
             UPDATE members 
-            SET official_name = $1, phone = $2, address = $3, role = $4, status = $5, join_date = $6, login_id = $7 
-            WHERE id = $8
+            SET official_name = $1, phone = $2, address = $3, role = $4, status = $5, join_date = $6, login_id = $7,
+                gender = $8, name_1 = $9, gov_id = $10, name_2 = $11, marital_status = $12, dob = $13, 
+                occupation = $14, education = $15, hobbies = $16, tel_2 = $17, email = $18, baptist_date = $19
+            WHERE id = $20
         `;
-        const values = [official_name, phone, address, formattedRole, status, validatedDate, login_id, id];
+        
+        const values = [
+            official_name, phone, address, formattedRole, status, cleanDate(join_date) || new Date().toISOString().split('T')[0], login_id,
+            cleanChoice(gender), name_1, gov_id, name_2, cleanChoice(marital_status), cleanDate(dob), occupation, education, hobbies, tel_2, email, cleanDate(baptist_date),
+            id
+        ];
+        
         await pool.query(updateQuery, values);
 
-        // 2. Update the USERS table if they typed a NEW password
         if (password && password.trim() !== "") {
             const hashedPassword = await bcrypt.hash(password, 10);
-            // Check if the user exists in the users table first
             const userCheck = await pool.query("SELECT * FROM users WHERE username = $1", [login_id]);
-            
             if (userCheck.rows.length > 0) {
-                // Update existing login
-                await pool.query(
-                    "UPDATE users SET password = $1, role = $2 WHERE username = $3",
-                    [hashedPassword, formattedRole, login_id]
-                );
+                await pool.query("UPDATE users SET password = $1, role = $2 WHERE username = $3", [hashedPassword, formattedRole, login_id]);
             } else {
-                // Create login if it was missing
-                await pool.query(
-                    "INSERT INTO users (username, password, role, name) VALUES ($1, $2, $3, $4)",
-                    [login_id, hashedPassword, formattedRole, official_name]
-                );
+                await pool.query("INSERT INTO users (username, password, role, name) VALUES ($1, $2, $3, $4)", [login_id, hashedPassword, formattedRole, official_name]);
             }
         }
 
@@ -118,18 +122,15 @@ exports.updateMember = async (req, res) => {
     }
 };
 
-// DELETE (Will cascade or delete from members)
+// DELETE
 exports.deleteMember = async (req, res) => {
     try {
-        // Fetch the login_id before we delete the member so we can delete their login too
         const member = await pool.query("SELECT login_id FROM members WHERE id = $1", [req.params.id]);
-        
         await pool.query("DELETE FROM members WHERE id = $1", [req.params.id]);
         
         if (member.rows.length > 0 && member.rows[0].login_id) {
             await pool.query("DELETE FROM users WHERE username = $1", [member.rows[0].login_id]);
         }
-
         res.json({ message: "Deleted successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -152,15 +153,20 @@ exports.importMembers = async (req, res) => {
             const role = row["Role"] || "member";
             const status = row["Status"] || "Active";
             const join_date = row["Join Date"] || new Date().toISOString().split('T')[0];
+            
+            const gender = row["Gender"] === "Male" || row["Gender"] === "Female" ? row["Gender"] : null;
+            const marital_status = ["Single", "Married", "Widowed"].includes(row["Marital Status"]) ? row["Marital Status"] : null;
 
             if (!official_name || !address) continue;
             
             const member_id = await generateMemberId(pool);
-            const defaultPassword = await bcrypt.hash("123456", 10); // Default password for excel imports
+            const defaultPassword = await bcrypt.hash("123456", 10); 
             
             await pool.query(
-                "INSERT INTO members (member_id, official_name, phone, address, role, status, join_date, login_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-                [member_id, official_name, phone, address, role, status, join_date, member_id]
+                `INSERT INTO members (
+                    member_id, official_name, phone, address, role, status, join_date, login_id, gender, marital_status
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+                [member_id, official_name, phone, address, role, status, join_date, member_id, gender, marital_status]
             );
             
             await pool.query(

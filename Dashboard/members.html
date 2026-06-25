@@ -715,13 +715,13 @@
 
 // GLOBAL VARIABLES
 let selectedEditId = null;
-let allMembersData = []; // 🔥 NEW: Master list to hold data for instant filtering
+let allMembersData = []; 
 
 /* =========================
    ROLE CONTROL & PAGE PROTECTION
 ========================= */
 function checkPageAccess() {
-const token = sessionStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const role = sessionStorage.getItem("role") ? sessionStorage.getItem("role").toLowerCase() : "";
 
     if (!token) {
@@ -760,21 +760,19 @@ function openModal() {
     document.getElementById("modalTitle").innerText = "Add Member";
     document.getElementById("memberForm").reset();
 
-    // 🔥 Calculate the next available ID based on your current member list
     let nextIdNum = 1;
     if (allMembersData.length > 0) {
         nextIdNum = Math.max(...allMembersData.map(m => m.id || 0)) + 1;
     }
 
-    // Format it nicely (e.g., MEM-0001, MEM-0002)
     const generatedMemberId = "MEM-" + nextIdNum.toString().padStart(4, '0');
 
-    // Auto-fill BOTH the Member ID and Login ID fields
     document.getElementById("memberId").value = generatedMemberId;
     document.getElementById("loginId").value = generatedMemberId;
 
     document.getElementById("memberModal").style.display = "flex";
 }
+
 /* =========================
    FETCH DATA FROM BACKEND
 ========================= */
@@ -797,7 +795,6 @@ async function loadMembers() {
             return;
         }
 
-        // Store the raw data into our global array, then render the UI
         allMembersData = Array.isArray(data) ? data : [];
         renderMembers(); 
 
@@ -812,15 +809,11 @@ async function loadMembers() {
 ========================= */
 function renderMembers() {
     const userRole = sessionStorage.getItem("role") ? sessionStorage.getItem("role").toLowerCase() : "";
-    
-    // Grab the current values from your search box and dropdown
     const searchQuery = document.querySelector(".search-box").value.toLowerCase().trim();
     const filterStatus = document.querySelector(".filter-select").value.toLowerCase();
-
     const table = document.getElementById("memberTableBody");
     table.innerHTML = "";
 
-    // 1. Calculate the total counts based on ALL data (not just what is visible)
     let activeCount = 0;
     let inactiveCount = 0;
     allMembersData.forEach(m => {
@@ -832,12 +825,8 @@ function renderMembers() {
     document.getElementById("activeMembersCount").innerText = activeCount;
     document.getElementById("inactiveMembersCount").innerText = inactiveCount;
 
-    // 2. Filter the master array based on user input
     const filteredData = allMembersData.filter(m => {
-        // Status check
         const matchesStatus = filterStatus === "all" || (m.status || "").toLowerCase() === filterStatus;
-        
-        // Search check (looks at Name, ID, or Phone)
         const matchesSearch = 
             (m.official_name || "").toLowerCase().includes(searchQuery) ||
             (m.member_id || "").toLowerCase().includes(searchQuery) ||
@@ -846,7 +835,6 @@ function renderMembers() {
         return matchesStatus && matchesSearch;
     });
 
-    // 3. Render the filtered data to the table
     if (filteredData.length === 0) {
         table.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#94a3b8; padding: 20px;">No matching members found.</td></tr>`;
         return;
@@ -858,9 +846,9 @@ function renderMembers() {
         const canDelete = ["admin", "pastor"].includes(userRole);
 
         if (canEdit) {
-            actionButtons = `<button onclick="editMember(${m.id})">✏️</button>`;
+            actionButtons = `<button onclick="editMember(${m.id})" class="action-btn">✏️</button>`;
             if (canDelete) {
-                actionButtons += ` <button onclick="deleteMember(${m.id})">🗑️</button>`;
+                actionButtons += ` <button onclick="deleteMember(${m.id})" class="action-btn">🗑️</button>`;
             }
         }
 
@@ -872,7 +860,7 @@ function renderMembers() {
                 <td>${m.address ?? ""}</td>
                 <td><span class="badge role-${m.role ? m.role.toLowerCase() : "member"}">${m.role ?? "member"}</span></td>
                 <td>${m.login_id ?? "-"}</td>
-                <td>${m.join_date ?? ""}</td>
+                <td>${m.join_date ? m.join_date.split('T')[0] : ""}</td>
                 <td><span class="status ${m.status === "Active" ? "active-status" : "inactive-status"}">${m.status ?? ""}</span></td>
                 <td>${actionButtons}</td>
             </tr>
@@ -880,13 +868,11 @@ function renderMembers() {
     });
 }
 
-// 🔥 EVENT LISTENERS FOR SEARCH AND FILTER
-// These trigger the render function instantly whenever you type or click the dropdown
 document.querySelector(".search-box").addEventListener("input", renderMembers);
 document.querySelector(".filter-select").addEventListener("change", renderMembers);
 
 /* =========================
-   EDIT MEMBER
+   EDIT MEMBER (🔥 NOW LOADED WITH NEW FIELDS)
 ========================= */
 async function editMember(id) {
     const token = getToken();
@@ -900,17 +886,31 @@ async function editMember(id) {
         selectedEditId = id;
 
         document.getElementById("modalTitle").innerText = "Edit Member";
+        
+        // Old Fields
         document.getElementById("memberId").value = m.member_id ?? "";
         document.getElementById("officialName").value = m.official_name ?? "";
         document.getElementById("tel1").value = m.phone ?? "";
         document.getElementById("address").value = m.address ?? "";
         document.getElementById("memberRole").value = m.role ?? "member";
         document.getElementById("memberStatus").value = m.status ?? "Active";
-        document.getElementById("joinChurchDate").value = m.join_date ?? "";
-        
-        // 🔥 Load the Login ID, but leave password blank for security
-        document.getElementById("loginId").value = m.login_id ?? "";
+        document.getElementById("joinChurchDate").value = m.join_date ? m.join_date.split('T')[0] : "";
+        document.getElementById("loginId").value = m.login_id || m.member_id || "";
         document.getElementById("password").value = ""; 
+
+        // 🔥 NEW FIELDS SYNCED
+        document.getElementById("gender").value = m.gender ?? "";
+        document.getElementById("name1").value = m.name_1 ?? "";
+        document.getElementById("name2").value = m.name_2 ?? "";
+        document.getElementById("govId").value = m.gov_id ?? "";
+        document.getElementById("maritalStatus").value = m.marital_status ?? "";
+        document.getElementById("dob").value = m.dob ? m.dob.split('T')[0] : "";
+        document.getElementById("occupation").value = m.occupation ?? "";
+        document.getElementById("education").value = m.education ?? "";
+        document.getElementById("hobbies").value = m.hobbies ?? "";
+        document.getElementById("tel2").value = m.tel_2 ?? "";
+        document.getElementById("email").value = m.email ?? "";
+        document.getElementById("baptistDate").value = m.baptist_date ? m.baptist_date.split('T')[0] : "";
 
         document.getElementById("memberModal").style.display = "flex";
     } catch (err) {
@@ -918,6 +918,7 @@ async function editMember(id) {
         alert(err.message);
     }
 }
+
 /* =========================
    DELETE MEMBER
 ========================= */
@@ -930,34 +931,29 @@ async function deleteMember(id) {
             headers: { "Authorization": "Bearer " + token }
         });
         if (!res.ok) throw new Error("Delete failed");
-        loadMembers(); // Refresh the list from backend
+        loadMembers(); 
     } catch (err) {
         console.error(err);
         alert(err.message);
     }
 }
 
-// LOGOUT
 function handleLogout(event) {
     event.preventDefault();
     if (confirm("Are you sure you want to log out?")) {
        sessionStorage.clear();
-        window.location.replace("login.html"); 
+       window.location.replace("login.html"); 
     }
 }
 
-
 /* =========================
-   SAVE (CREATE / UPDATE)
+   SAVE (CREATE / UPDATE) (🔥 NOW SENDS ALL NEW FIELDS)
 ========================= */
 document.getElementById("memberForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    
-    // I noticed getToken() might have been accidentally deleted in your paste, 
-    // so I'm using sessionStorage directly here just to be incredibly safe!
     const token = sessionStorage.getItem("token");
 
-    // 🔥 THIS IS THE FIX: We added member_id, login_id, and password to the payload
+    // 🔥 THIS IS THE FIX: We are capturing every single new HTML field here
     const data = {
         member_id: document.getElementById("memberId").value,
         official_name: document.getElementById("officialName").value,
@@ -967,7 +963,21 @@ document.getElementById("memberForm").addEventListener("submit", async (e) => {
         status: document.getElementById("memberStatus").value,
         join_date: document.getElementById("joinChurchDate").value,
         login_id: document.getElementById("loginId").value,
-        password: document.getElementById("password").value
+        password: document.getElementById("password").value,
+        
+        // Capturing the new extra fields
+        gender: document.getElementById("gender").value,
+        name_1: document.getElementById("name1").value,
+        name_2: document.getElementById("name2").value,
+        gov_id: document.getElementById("govId").value,
+        marital_status: document.getElementById("maritalStatus").value,
+        dob: document.getElementById("dob").value,
+        occupation: document.getElementById("occupation").value,
+        education: document.getElementById("education").value,
+        hobbies: document.getElementById("hobbies").value,
+        tel_2: document.getElementById("tel2").value,
+        email: document.getElementById("email").value,
+        baptist_date: document.getElementById("baptistDate").value
     };
 
     try {
@@ -991,64 +1001,49 @@ document.getElementById("memberForm").addEventListener("submit", async (e) => {
         if (!res.ok) throw new Error("Save failed");
 
         closeModal();
-        loadMembers(); // Fetch fresh data and re-render
+        loadMembers(); 
 
     } catch (err) {
         console.error(err);
         alert(err.message);
     }
 });
-// Run load on boot
+
 /* =========================
-   📥 EXCEL IMPORT FUNCTION
+   EXCEL IMPORT FUNCTION
 ========================= */
 async function handleExcelUpload(inputElement) {
     const file = inputElement.files[0];
-    
-    // If user cancels the file dialog, do nothing
     if (!file) return; 
 
-    // Bundle the file into a FormData object (required for file uploads)
     const formData = new FormData();
-    formData.append("excelFile", file); // 'excelFile' matches your backend controller exactly
-
+    formData.append("excelFile", file); 
     const token = getToken();
 
     try {
-        // Optional: Let the user know it's working
         console.log("Uploading Excel file...");
-
         const res = await fetch("http://localhost:3000/api/members/import", {
             method: "POST",
-            headers: {
-                "Authorization": "Bearer " + token
-                // ⚠️ NOTE: Do NOT set "Content-Type" here. 
-                // The browser automatically sets it to "multipart/form-data" when sending FormData.
-            },
+            headers: { "Authorization": "Bearer " + token },
             body: formData
         });
 
         const data = await res.json();
-
-        if (!res.ok) {
-            throw new Error(data.message || data.error || "Import failed");
-        }
+        if (!res.ok) throw new Error(data.message || data.error || "Import failed");
 
         alert(data.message || "Import successful!");
-        
-        // Refresh the table instantly to show the new members
         loadMembers(); 
 
     } catch (err) {
         console.error("Import Error:", err);
         alert("Upload failed: " + err.message);
     } finally {
-        // Clear the file input so the user can select the same file again if they want
         inputElement.value = ""; 
     }
 }
-loadMembers();
 
+// Initial Boot Call
+loadMembers();
 </script>
 </body>
 </html>

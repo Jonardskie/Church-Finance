@@ -200,9 +200,10 @@
                 <input type="date" id="collectionDate" required>
             </div>
             <div class="form-group">
-                <label>Member Name</label>
-                <input type="text" id="memberName" required placeholder="Type name to lookup registered members...">
-                <ul class="suggestions-dropdown" id="memberLookupMenu"></ul>
+                <label>Select Member *</label>
+                <select id="collectionMemberId" required>
+                    <option value="" disabled selected>Loading members...</option>
+                </select>
             </div>
             <div class="form-group">
                 <label>Collection Type</label>
@@ -237,323 +238,291 @@
     </div>
 </div>
 
-<script>
-// 1. 🔥 SECURITY NAV GUARD
-(() => {
-    const token = sessionStorage.getItem("token");
-    if (!token || token === "undefined" || token === "null") {
-       sessionStorage.clear();
-        document.documentElement.style.display = "none"; 
-        alert("Access Denied: Please log in first.");
-        window.location.replace("login.html");
-        throw new Error("Unauthenticated session intercepted."); 
-    }
-})();
-
-// LOGOUT FUNCTION
-function handleLogout(event) {
-    event.preventDefault();
-    if (confirm("Are you sure you want to log out?")) {
+    <script>
+    // 1. 🔥 SECURITY NAV GUARD
+    (() => {
+        const token = sessionStorage.getItem("token");
+        if (!token || token === "undefined" || token === "null") {
         sessionStorage.clear();
-        window.location.replace("login.html");
-    }
-}
-
-/* ==========================================================================
-   🔥 1. FETCH MEMBERS FOR AUTOCOMPLETE
-========================================================================== */
-let registeredMembers = []; 
-
-async function fetchMembersList() {
-    const token = sessionStorage.getItem("token");
-    try {
-        const res = await fetch("http://localhost:3000/api/members", {
-            method: "GET",
-            headers: { "Authorization": "Bearer " + token }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        registeredMembers = (Array.isArray(data) ? data : [])
-            .filter(m => m.status === "Active")
-            .map(m => m.official_name)
-            .filter(name => name && name.trim() !== "");
-    } catch (err) {
-        console.error("Error fetching members:", err);
-    }
-}
-fetchMembersList(); // Trigger on load
-
-/* ==========================================================================
-   🔥 DYNAMIC DROPDOWN PULLING FROM DATABASE
-========================================================================== */
-async function populateCollectionTypes() {
-    const selectDropdown = document.getElementById("collectionType");
-    const token = sessionStorage.getItem("token");
-    
-    try {
-        const res = await fetch("http://localhost:3000/api/collection-types", {
-            headers: { "Authorization": "Bearer " + token }
-        });
-        
-        if (!res.ok) return;
-        const typesArray = await res.json();
-        
-        selectDropdown.innerHTML = ""; 
-        
-        // Loop through Active types from DB
-        typesArray.forEach(type => {
-            if (type.status === "Active") {
-                const option = document.createElement("option");
-                option.value = type.name;
-                option.textContent = type.name;
-                selectDropdown.appendChild(option);
-            }
-        });
-        
-        // Failsafe
-        if (selectDropdown.options.length === 0) {
-            selectDropdown.innerHTML = `<option value="General Collection">General Collection</option>`;
+            document.documentElement.style.display = "none"; 
+            alert("Access Denied: Please log in first.");
+            window.location.replace("login.html");
+            throw new Error("Unauthenticated session intercepted."); 
         }
-    } catch (err) {
-        console.error("Dropdown fetch error:", err);
-    }
-}
+    })();
 
-/* ==========================================================================
-   🔥 3. DATABASE INTEGRATION & RENDERING
-========================================================================== */
-let collectionsData = []; // Master memory array for filtering
-
-// Fetch Collections from the PostgreSQL Database
-async function loadCollectionsFromDB() {
-    const token = sessionStorage.getItem("token");
-    try {
-        const res = await fetch("http://localhost:3000/api/collections", {
-            headers: { "Authorization": "Bearer " + token }
-        });
-        if (!res.ok) throw new Error("Failed to load records");
-        
-        collectionsData = await res.json();
-        renderCollectionsTable();
-    } catch (err) {
-        console.error("DB Fetch Error:", err);
-    }
-}
-
-// Render the table, handle Searching, and handle Filtering
-function renderCollectionsTable() {
-    const tableBody = document.getElementById("collectionTableBody");
-    const searchInput = document.getElementById("searchInput").value.toLowerCase().trim();
-    const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
-    
-    tableBody.innerHTML = "";
-
-    // Apply Filters
-    const filteredData = collectionsData.filter(item => {
-        // Search checks Member Name or Date
-        const matchesSearch = item.member_name.toLowerCase().includes(searchInput) || item.date.includes(searchInput);
-        // Status checks Dropdown
-        const matchesStatus = statusFilter === "all status" || item.status.toLowerCase() === statusFilter;
-        
-        return matchesSearch && matchesStatus;
-    });
-
-    if (filteredData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding: 20px;">No matching collections found.</td></tr>`;
-        recalculateCollectionMetrics();
-        return;
-    }
-
-    filteredData.forEach(item => {
-        const cleanDate = item.date.split('T')[0]; // Format DB timestamp
-        
-        let actionButtonsMarkup = ``;
-        if (item.status === 'pending') {
-            actionButtonsMarkup = `
-                <button class="action-btn" onclick="verifyCollection(${item.id})" title="Verify">✅</button>
-                <button class="action-btn btn-delete" onclick="deleteCollection(${item.id})" title="Delete">🗑️</button>
-            `;
-        } else {
-            actionButtonsMarkup = `
-                <button class="action-btn btn-delete" onclick="deleteCollection(${item.id})" title="Delete">🗑️</button>
-            `;
+    // LOGOUT FUNCTION
+    function handleLogout(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            sessionStorage.clear();
+            window.location.replace("login.html");
         }
+    }
 
-        tableBody.innerHTML += `
-            <tr>
-                <td>${cleanDate}</td>
-                <td class="text-bold">${item.member_name}</td>
-                <td>${item.type}</td>
-                <td>${item.fund_category}</td>
-                <td class="text-amount">₱${parseFloat(item.amount).toLocaleString()}</td>
-                <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-                <td>${actionButtonsMarkup}</td>
-            </tr>
-        `;
-    });
-
-    recalculateCollectionMetrics();
-}
-
-// 🔥 Trigger Search/Filter instantly on type/change
-document.getElementById("searchInput").addEventListener("input", renderCollectionsTable);
-document.getElementById("statusFilter").addEventListener("change", renderCollectionsTable);
-
-/* ==========================================================================
-   🔥 4. RECORD, VERIFY, & DELETE (API CONNECTED)
-========================================================================== */
-// POST: Submit New Collection
-document.getElementById("collectionForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    const token = sessionStorage.getItem("token");
-
-    // Must match backend destructuring (member, fund)
-    const payload = {
-        date: document.getElementById("collectionDate").value,
-        member: document.getElementById("memberName").value,
-        type: document.getElementById("collectionType").value,
-        fund: document.getElementById("fundCategory").value,
-        amount: document.getElementById("collectionAmount").value,
-        status: document.getElementById("verificationStatus").value
-    };
-
-    try {
-        const res = await fetch("http://localhost:3000/api/collections", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(payload)
-        });
+    /* ==========================================================================
+    🔥 1. FETCH MEMBERS FOR SMART DROPDOWN
+    ========================================================================== */
+    async function loadMemberDropdown() {
+        const dropdown = document.getElementById("collectionMemberId");
+        const token = sessionStorage.getItem("token");
         
-        if (!res.ok) throw new Error("Failed to save to database");
-        
-        document.getElementById("collectionForm").reset();
-        closeModal();
-        loadCollectionsFromDB(); // Refresh table from DB
-    } catch (err) {
-        alert(err.message);
-    }
-});
-
-// PUT: Verify Collection Status
-async function verifyCollection(id) {
-    const token = sessionStorage.getItem("token");
-    try {
-        await fetch(`http://localhost:3000/api/collections/verify/${id}`, {
-            method: "PUT",
-            headers: { "Authorization": "Bearer " + token }
-        });
-        loadCollectionsFromDB(); // Refresh table
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-// DELETE: Remove Collection
-async function deleteCollection(id) {
-    if (!confirm("Permanently delete this collection record from the database?")) return;
-    const token = sessionStorage.getItem("token");
-    try {
-        await fetch(`http://localhost:3000/api/collections/${id}`, {
-            method: "DELETE",
-            headers: { "Authorization": "Bearer " + token }
-        });
-        loadCollectionsFromDB(); // Refresh table
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-/* ==========================================================================
-   🔥 5. METRICS MATH
-========================================================================== */
-function recalculateCollectionMetrics() {
-    let totalCountVal = collectionsData.length;
-    let aggregateAmount = 0;
-    let pendingCount = 0;
-
-    collectionsData.forEach(item => {
-        aggregateAmount += parseFloat(item.amount) || 0;
-        if (item.status === "pending") pendingCount++;
-    });
-
-    const formattedTotal = `₱${aggregateAmount.toLocaleString()}`;
-
-    document.getElementById("todayTotal").textContent = formattedTotal;
-    document.getElementById("todayCount").textContent = `${totalCountVal} records`;
-    document.getElementById("weeklyTotal").textContent = formattedTotal;
-    document.getElementById("weeklyCount").textContent = `${totalCountVal} records`;
-    document.getElementById("monthlyTotal").textContent = formattedTotal;
-    document.getElementById("monthlyCount").textContent = `${totalCountVal} records`;
-    document.getElementById("pendingVerificationCount").textContent = pendingCount;
-    
-    const calculationPercent = totalCountVal > 0 ? ((pendingCount / totalCountVal) * 100).toFixed(1) : "0.0";
-    document.getElementById("pendingPercentText").textContent = `${calculationPercent}% of total`;
-}
-
-/* ==========================================================================
-   🔥 6. UI: MODAL & AUTOCOMPLETE LOGIC
-========================================================================== */
-function openModal() {
-    document.getElementById("collectionDate").value = new Date().toISOString().split('T')[0];
-    populateCollectionTypes(); 
-    document.getElementById("collectionModal").style.display = "flex";
-}
-
-function closeModal() {
-    document.getElementById("collectionModal").style.display = "none";
-    document.getElementById("memberLookupMenu").style.display = "none";
-}
-
-document.getElementById("collectionModal").addEventListener("click", function(e) {
-    if(e.target === this) closeModal();
-});
-
-const inputField = document.getElementById("memberName");
-const suggestionMenu = document.getElementById("memberLookupMenu");
-
-inputField.addEventListener("input", function() {
-    const value = this.value.trim().toLowerCase();
-    suggestionMenu.innerHTML = "";
-
-    if (value.length === 0) {
-        suggestionMenu.style.display = "none";
-        return;
-    }
-
-    const matchingMembers = registeredMembers.filter(name => name.toLowerCase().includes(value));
-
-    if (matchingMembers.length > 0) {
-        suggestionMenu.style.display = "block";
-        matchingMembers.forEach(memberName => {
-            const li = document.createElement("li");
-            li.textContent = memberName;
-            li.addEventListener("click", function() {
-                inputField.value = memberName;
-                suggestionMenu.style.display = "none";
+        try {
+            const res = await fetch("http://localhost:3000/api/members", {
+                headers: { "Authorization": "Bearer " + token }
             });
-            suggestionMenu.appendChild(li);
+            
+            if (!res.ok) throw new Error(`Server Error: ${res.status}`);
+            
+            const members = await res.json();
+            
+            // Clear it and set a default
+            dropdown.innerHTML = '<option value="" disabled selected>-- Choose a Member --</option>';
+            dropdown.innerHTML += '<option value="ANONYMOUS">Anonymous / Guest</option>'; 
+            
+            // Only show Active members
+            const activeMembers = members.filter(m => m.status === "Active");
+            
+            activeMembers.forEach(m => {
+                // Value is the ID, Text is the Name
+                dropdown.innerHTML += `<option value="${m.member_id}">${m.official_name} (${m.member_id})</option>`;
+            });
+            
+        } catch (err) {
+            console.error("Error loading members for dropdown:", err);
+            dropdown.innerHTML = '<option value="" disabled selected>❌ Error fetching members</option>';
+        }
+    }
+
+    /* ==========================================================================
+    🔥 2. DYNAMIC DROPDOWN PULLING FROM DATABASE
+    ========================================================================== */
+    async function populateCollectionTypes() {
+        const selectDropdown = document.getElementById("collectionType");
+        const token = sessionStorage.getItem("token");
+        
+        try {
+            const res = await fetch("http://localhost:3000/api/collection-types", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            
+            if (!res.ok) return;
+            const typesArray = await res.json();
+            
+            selectDropdown.innerHTML = ""; 
+            
+            // Loop through Active types from DB
+            typesArray.forEach(type => {
+                if (type.status === "Active") {
+                    const option = document.createElement("option");
+                    option.value = type.name;
+                    option.textContent = type.name;
+                    selectDropdown.appendChild(option);
+                }
+            });
+            
+            // Failsafe
+            if (selectDropdown.options.length === 0) {
+                selectDropdown.innerHTML = `<option value="General Collection">General Collection</option>`;
+            }
+        } catch (err) {
+            console.error("Dropdown fetch error:", err);
+        }
+    }
+
+    /* ==========================================================================
+    🔥 3. DATABASE INTEGRATION & RENDERING
+    ========================================================================== */
+    let collectionsData = []; // Master memory array for filtering
+
+    // Fetch Collections from the PostgreSQL Database
+    async function loadCollectionsFromDB() {
+        const token = sessionStorage.getItem("token");
+        try {
+            const res = await fetch("http://localhost:3000/api/collections", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (!res.ok) throw new Error("Failed to load records");
+            
+            collectionsData = await res.json();
+            renderCollectionsTable();
+        } catch (err) {
+            console.error("DB Fetch Error:", err);
+        }
+    }
+
+    // Render the table, handle Searching, and handle Filtering
+    function renderCollectionsTable() {
+        const tableBody = document.getElementById("collectionTableBody");
+        const searchInput = document.getElementById("searchInput").value.toLowerCase().trim();
+        const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
+        
+        tableBody.innerHTML = "";
+
+        // Apply Filters
+        const filteredData = collectionsData.filter(item => {
+            const memberName = item.member_name || ""; // Failsafe
+            const matchesSearch = memberName.toLowerCase().includes(searchInput) || item.date.includes(searchInput);
+            const matchesStatus = statusFilter === "all status" || item.status.toLowerCase() === statusFilter;
+            
+            return matchesSearch && matchesStatus;
         });
-    } else {
-        suggestionMenu.style.display = "block";
-        const unknownLi = document.createElement("li");
-        unknownLi.textContent = "⚠️ Unregistered Member (Will record as Guest)";
-        unknownLi.style.color = "#ea580c";
-        unknownLi.style.cursor = "default";
-        suggestionMenu.appendChild(unknownLi);
-    }
-});
 
-document.addEventListener("click", function(e) {
-    if (e.target !== inputField && e.target !== suggestionMenu) {
-        suggestionMenu.style.display = "none";
-    }
-});
+        if (filteredData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding: 20px;">No matching collections found.</td></tr>`;
+            recalculateCollectionMetrics();
+            return;
+        }
 
-// Boot Application
-loadCollectionsFromDB();
-</script>
+        filteredData.forEach(item => {
+            const cleanDate = item.date ? item.date.split('T')[0] : "N/A"; // Format DB timestamp
+            
+            let actionButtonsMarkup = ``;
+            if (item.status === 'pending') {
+                actionButtonsMarkup = `
+                    <button class="action-btn" onclick="verifyCollection(${item.id})" title="Verify">✅</button>
+                    <button class="action-btn btn-delete" onclick="deleteCollection(${item.id})" title="Delete">🗑️</button>
+                `;
+            } else {
+                actionButtonsMarkup = `
+                    <button class="action-btn btn-delete" onclick="deleteCollection(${item.id})" title="Delete">🗑️</button>
+                `;
+            }
+
+            tableBody.innerHTML += `
+                <tr>
+                    <td>${cleanDate}</td>
+                    <td class="text-bold">${item.member_name || "Guest"}</td>
+                    <td>${item.type}</td>
+                    <td>${item.fund_category}</td>
+                    <td class="text-amount">₱${parseFloat(item.amount).toLocaleString()}</td>
+                    <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+                    <td>${actionButtonsMarkup}</td>
+                </tr>
+            `;
+        });
+
+        recalculateCollectionMetrics();
+    }
+
+    // 🔥 Trigger Search/Filter instantly on type/change
+    document.getElementById("searchInput").addEventListener("input", renderCollectionsTable);
+    document.getElementById("statusFilter").addEventListener("change", renderCollectionsTable);
+
+    /* ==========================================================================
+    🔥 4. RECORD, VERIFY, & DELETE (API CONNECTED)
+    ========================================================================== */
+    // POST: Submit New Collection
+    document.getElementById("collectionForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const token = sessionStorage.getItem("token");
+
+        // 🔥 This is updated to grab the dropdown value (member_id)
+        const payload = {
+            date: document.getElementById("collectionDate").value,
+            member: document.getElementById("collectionMemberId").value, 
+            type: document.getElementById("collectionType").value,
+            fund: document.getElementById("fundCategory").value,
+            amount: document.getElementById("collectionAmount").value,
+            status: document.getElementById("verificationStatus").value
+        };
+
+        try {
+            const res = await fetch("http://localhost:3000/api/collections", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!res.ok) throw new Error("Failed to save to database");
+            
+            document.getElementById("collectionForm").reset();
+            closeModal();
+            loadCollectionsFromDB(); // Refresh table from DB
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+
+    // PUT: Verify Collection Status
+    async function verifyCollection(id) {
+        const token = sessionStorage.getItem("token");
+        try {
+            await fetch(`http://localhost:3000/api/collections/verify/${id}`, {
+                method: "PUT",
+                headers: { "Authorization": "Bearer " + token }
+            });
+            loadCollectionsFromDB(); // Refresh table
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // DELETE: Remove Collection
+    async function deleteCollection(id) {
+        if (!confirm("Permanently delete this collection record from the database?")) return;
+        const token = sessionStorage.getItem("token");
+        try {
+            await fetch(`http://localhost:3000/api/collections/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": "Bearer " + token }
+            });
+            loadCollectionsFromDB(); // Refresh table
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    /* ==========================================================================
+    🔥 5. METRICS MATH
+    ========================================================================== */
+    function recalculateCollectionMetrics() {
+        let totalCountVal = collectionsData.length;
+        let aggregateAmount = 0;
+        let pendingCount = 0;
+
+        collectionsData.forEach(item => {
+            aggregateAmount += parseFloat(item.amount) || 0;
+            if (item.status === "pending") pendingCount++;
+        });
+
+        const formattedTotal = `₱${aggregateAmount.toLocaleString()}`;
+
+        document.getElementById("todayTotal").textContent = formattedTotal;
+        document.getElementById("todayCount").textContent = `${totalCountVal} records`;
+        document.getElementById("weeklyTotal").textContent = formattedTotal;
+        document.getElementById("weeklyCount").textContent = `${totalCountVal} records`;
+        document.getElementById("monthlyTotal").textContent = formattedTotal;
+        document.getElementById("monthlyCount").textContent = `${totalCountVal} records`;
+        document.getElementById("pendingVerificationCount").textContent = pendingCount;
+        
+        const calculationPercent = totalCountVal > 0 ? ((pendingCount / totalCountVal) * 100).toFixed(1) : "0.0";
+        document.getElementById("pendingPercentText").textContent = `${calculationPercent}% of total`;
+    }
+
+    /* ==========================================================================
+    🔥 6. UI: MODAL LOGIC
+    ========================================================================== */
+    function openModal() {
+        document.getElementById("collectionDate").value = new Date().toISOString().split('T')[0];
+        populateCollectionTypes(); 
+        document.getElementById("collectionModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("collectionModal").style.display = "none";
+    }
+
+    document.getElementById("collectionModal").addEventListener("click", function(e) {
+        if(e.target === this) closeModal();
+    });
+
+    // Boot Application
+    loadMemberDropdown();
+    loadCollectionsFromDB();
+    </script>
 </body>
 </html>
