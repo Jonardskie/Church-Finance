@@ -31,12 +31,13 @@ app.use("/api/reports", reportRoutes);
 // 5. STATIC FILES & ROOT REDIRECT
 app.use(express.static("Dashboard"));
 
-app.get("/", (req, res) => {
-    res.redirect("/login.html");
-});
+const path = require("path");
 
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "Dashboard", "pages", "login.html"));
+});
 // DATABASE INIT
-require("./Database/db");
+require("./config/db");
 
 // SERVER START
 const PORT = 3000;

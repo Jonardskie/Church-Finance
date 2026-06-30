@@ -1,4 +1,4 @@
-const pool = require("../Database/db");
+const pool = require("../config/db");
 const generateMemberId = require("../utils/memberIdGenerator");
 const XLSX = require("xlsx");
 const bcrypt = require("bcryptjs");

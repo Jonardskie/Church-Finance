@@ -1,4 +1,4 @@
-const pool = require("../Database/db");
+const pool = require("../config/db");
 
 exports.getFinancialReport = async (req, res) => {
     const { start, end } = req.query;

@@ -1,4 +1,4 @@
-const pool = require("../Database/db");
+const pool = require("../config/db");
 
 // 1. GET ALL EXPENSES
 exports.getExpenses = async (req, res) => {

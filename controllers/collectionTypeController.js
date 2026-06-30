@@ -1,5 +1,5 @@
 // File: controllers/collectionTypeController.js
-const pool = require("../Database/db");
+const pool = require("../config/db");
 
 // GET ALL
 exports.getTypes = async (req, res) => {

@@ -1,5 +1,5 @@
 // File: controllers/collectionController.js
-const pool = require("../Database/db");
+const pool = require("../config/db");
 
 // GET ALL COLLECTIONS
 exports.getCollections = async (req, res) => {
