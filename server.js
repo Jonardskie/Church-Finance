@@ -31,6 +31,19 @@ try {
 // 2. INIT APP
 const app = express();
 
+// Health check endpoint (no auth required)
+app.get("/api/health", (req, res) => {
+    res.status(200).json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        env: {
+            databaseConnected: process.env.DATABASE_URL ? "✓ Set" : "✗ Missing",
+            jwtSecret: process.env.JWT_SECRET ? "✓ Set" : "✗ Missing",
+            nodeEnv: process.env.NODE_ENV || "production"
+        }
+    });
+});
+
 // 3. MIDDLEWARE
 app.use(cors());
 app.use(express.json());

@@ -3,8 +3,8 @@ const router = express.Router();
 const controller = require("../controllers/memberController");
 
 // IMPORT MIDDLEWARES
-const authMiddleware = require("../middleware/authMiddleware");
-const roleMiddleware = require("../middleware/roleMiddleware");
+const authMiddleware = require("../middleWare/authMiddleware");
+const roleMiddleware = require("../middleWare/roleMiddleware");
 
 // =========================
 // CREATE SINGLE MEMBER (Allowed: Admin, Pastor, Secretary)

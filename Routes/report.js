@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/reportController");
-const authMiddleware = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleWare/authMiddleware");
 
 // Ensure this matches the endpoint: /api/reports/dashboard-data
 router.get("/dashboard-data", authMiddleware, controller.getFinancialReport);

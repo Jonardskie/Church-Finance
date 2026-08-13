@@ -4,7 +4,7 @@ const router = express.Router();
 const controller = require("../controllers/collectionController");
 
 // Basic Authentication Middleware
-const authMiddleware = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleWare/authMiddleware");
 
 // Routes
 router.get("/", authMiddleware, controller.getCollections);
