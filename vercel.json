@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "includeFiles": ["**/*.js", "**/*.json", "Dashboard/**/*", "config/**/*", "controllers/**/*", "Routes/**/*", "middleWare/**/*", "model/**/*", "utils/**/*"]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/Dashboard/(.*)",
+      "dest": "server.js"
+    },
+    {
+      "src": "/.*",
+      "dest": "server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
