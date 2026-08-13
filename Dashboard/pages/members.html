@@ -803,7 +803,7 @@ async function loadMembers() {
     const token = getToken();
 
     try {
-        const res = await fetch("http://localhost:3000/api/members", {
+        const res = await fetch("/api/members", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -902,7 +902,7 @@ document.querySelector(".filter-select").addEventListener("change", renderMember
 async function editMember(id) {
     const token = getToken();
     try {
-        const res = await fetch(`http://localhost:3000/api/members/${id}`, {
+        const res = await fetch(`/api/members/${id}`, {
             headers: { "Authorization": "Bearer " + token }
         });
         if (!res.ok) throw new Error("Failed to fetch member");
@@ -951,7 +951,7 @@ async function deleteMember(id) {
     const token = getToken();
     if (!confirm("Delete this member?")) return;
     try {
-        const res = await fetch(`http://localhost:3000/api/members/${id}`, {
+        const res = await fetch(`/api/members/${id}`, {
             method: "DELETE",
             headers: { "Authorization": "Bearer " + token }
         });
@@ -1006,11 +1006,11 @@ document.getElementById("memberForm").addEventListener("submit", async (e) => {
     };
 
     try {
-        let url = "http://localhost:3000/api/members";
+        let url = "/api/members";
         let method = "POST";
 
         if (selectedEditId) {
-            url = `http://localhost:3000/api/members/${selectedEditId}`;
+            url = `/api/members/${selectedEditId}`;
             method = "PUT";
         }
 
@@ -1047,7 +1047,7 @@ async function handleExcelUpload(inputElement) {
 
     try {
         console.log("Uploading Excel file...");
-        const res = await fetch("http://localhost:3000/api/members/import", {
+        const res = await fetch("/api/members/import", {
             method: "POST",
             headers: { "Authorization": "Bearer " + token },
             body: formData
@@ -1076,7 +1076,7 @@ async function viewLedger(member_id, member_name) {
     document.getElementById("ledgerModal").style.display = "flex";
 
     try {
-        const res = await fetch(`http://localhost:3000/api/collections/member/${member_id}`, {
+        const res = await fetch(`/api/collections/member/${member_id}`, {
             headers: { "Authorization": "Bearer " + token }
         });
         const data = await res.json();

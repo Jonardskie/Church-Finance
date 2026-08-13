@@ -261,7 +261,7 @@ async function loadDashboardMetrics() {
     const token = sessionStorage.getItem("token");
 
     try {
-        const res = await fetch("http://localhost:3000/api/members", {
+        const res = await fetch("/api/members", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

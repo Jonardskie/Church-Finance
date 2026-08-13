@@ -452,7 +452,7 @@ let selectedEditId = null;
 async function loadTypesFromDB() {
     const token = sessionStorage.getItem("token");
     try {
-        const res = await fetch("http://localhost:3000/api/collection-types", {
+        const res = await fetch("/api/collection-types", {
             headers: { "Authorization": "Bearer " + token }
         });
         collectionTypesData = await res.json();
@@ -477,11 +477,11 @@ document.getElementById("fundForm").addEventListener("submit", async function(e)
         status: document.getElementById("status").value
     };
 
-    let url = "http://localhost:3000/api/collection-types";
+    let url = "/api/collection-types";
     let method = "POST";
 
     if (selectedEditId) {
-        url = `http://localhost:3000/api/collection-types/${selectedEditId}`;
+        url = `/api/collection-types/${selectedEditId}`;
         method = "PUT";
     }
 
@@ -499,7 +499,7 @@ document.getElementById("fundForm").addEventListener("submit", async function(e)
 async function deleteType(id) {
     if (!confirm("Delete this type?")) return;
     const token = sessionStorage.getItem("token");
-    await fetch(`http://localhost:3000/api/collection-types/${id}`, {
+    await fetch(`/api/collection-types/${id}`, {
         method: "DELETE", headers: { "Authorization": "Bearer " + token }
     });
     loadTypesFromDB();

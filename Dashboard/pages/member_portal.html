@@ -33,7 +33,7 @@ async function loadMyDonations() {
     const memberName = localStorage.getItem("username"); // Matches the "official_name"
     document.getElementById("userName").innerText = memberName;
 
-    const res = await fetch("http://localhost:3000/api/collections", {
+    const res = await fetch("/api/collections", {
         headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
     });
     const allCollections = await res.json();
