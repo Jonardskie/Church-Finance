@@ -44,20 +44,21 @@ try {
     console.error("❌ Error loading routes:", error.message);
 }
 
-// Static files
-app.use(express.static(path.join(__dirname, "../Dashboard")));
-
-// Root route
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../Dashboard/pages/login.html"));
-});
-
 // Database init
 try {
     require("../config/db");
 } catch (error) {
     console.error("⚠️ Database init warning:", error.message);
 }
+
+// Static files - serve from Dashboard folder
+const dashboardPath = path.join(__dirname, "../Dashboard");
+app.use(express.static(dashboardPath));
+
+// Root route - serve login.html
+app.get("/", (req, res) => {
+    res.sendFile(path.join(dashboardPath, "pages", "login.html"));
+});
 
 // Error handler
 app.use((err, req, res, next) => {

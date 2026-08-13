@@ -732,7 +732,7 @@
     const token = sessionStorage.getItem("token");
     if (!token) {
         alert("Access Denied: Please log in to access the workspace.");
-        window.location.href = "login.html"; 
+        window.location.href = "/pages/login.html"; 
     }
 })();
 
@@ -749,7 +749,7 @@ function checkPageAccess() {
 
     if (!token) {
         alert("Unauthorized access. Please login.");
-        window.location.href = "login.html"; 
+        window.location.href = "/pages/login.html"; 
         return;
     }
 

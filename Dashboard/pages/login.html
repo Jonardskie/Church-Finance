@@ -386,9 +386,9 @@ document.getElementById("authLoginForm").addEventListener("submit", async functi
         const userRole = data.role ? data.role.toLowerCase() : "member";
         
         if (userRole === 'admin' || userRole === 'pastor' || userRole === 'secretary') {
-            window.location.href = "index.html"; // Send management to Dashboard
+            window.location.href = "/pages/index.html"; // Send management to Dashboard
         } else {
-            window.location.href = "member_portal.html"; // Send regular users to Portal
+            window.location.href = "/pages/member_portal.html"; // Send regular users to Portal
         }
 
     } catch (err) {
