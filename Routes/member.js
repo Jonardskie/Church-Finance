@@ -54,6 +54,33 @@ router.put(
     controller.updateMember
 );
 
+
+// =========================
+// BATCH DELETE MEMBERS
+// Allowed: Admin & Pastor
+// =========================
+router.delete(
+    "/batch",
+    authMiddleware,
+    roleMiddleware("Admin", "Pastor"),
+    controller.deleteMembersBatch
+);
+
+
+// =========================
+// DELETE SINGLE MEMBER
+// Allowed: Admin & Pastor
+// =========================
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware("Admin", "Pastor"),
+    controller.deleteMember
+);
+
+
+module.exports = router;
+
 // =========================
 // DELETE MEMBER (ONLY ADMIN & PASTOR)
 // =========================
