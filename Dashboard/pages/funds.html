@@ -1,40 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CFMMS - Collection Types</title>
-    <link rel="icon" href="/images/logo.png" type="image/png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>CFMMS - Collection Types</title>
+
+    <link
+        rel="icon"
+        href="/images/logo.png"
+        type="image/png"
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
 
     <style>
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        :root {
+            --navy: #1b365d;
+            --navy-dark: #0f2038;
+            --text: #263247;
+            --muted: #718096;
+            --border: #e5e9ef;
+            --bg: #f4f6f8;
+            --white: #ffffff;
+            --success: #18794e;
+            --danger: #b32034;
+            --warning: #a15c00;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
-            background: #f4f6f8;
+            background: var(--bg);
+            color: var(--text);
         }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* =====================================================
+           LAYOUT
+        ===================================================== */
 
         .container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* SIDEBAR */
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
         .sidebar {
             width: 260px;
-            background: linear-gradient(180deg, #1b365d 0%, #0f2038 100%);
+            min-width: 260px;
+            background:
+                linear-gradient(
+                    180deg,
+                    var(--navy) 0%,
+                    var(--navy-dark) 100%
+                );
             color: white;
-            padding: 30px 20px;
+            padding: 28px 18px;
         }
 
-        .sidebar h2 {
-            margin-bottom: 30px;
+        .sidebar-brand {
+            padding: 0 10px 28px;
+        }
+
+        .sidebar-brand h2 {
+            font-size: 24px;
+            letter-spacing: .5px;
         }
 
         .sidebar-menu {
@@ -42,115 +101,250 @@
         }
 
         .sidebar-menu li {
-            margin-bottom: 10px;
+            margin-bottom: 4px;
         }
 
         .sidebar-menu a {
             color: #a4bcd4;
             text-decoration: none;
-            display: block;
-            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 12px;
             border-radius: 8px;
+            transition: .2s ease;
         }
 
         .sidebar-menu a:hover,
         .sidebar-menu .active a {
-            background: rgba(255, 255, 255, .1);
+            background: rgba(255,255,255,.10);
             color: white;
         }
 
-        /* CONTENT */
+        .icon {
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* =====================================================
+           CONTENT
+        ===================================================== */
+
         .content {
             flex: 1;
+            min-width: 0;
             padding: 30px;
         }
 
         .topbar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 28px;
         }
 
         .topbar h1 {
-            color: #1b365d;
+            color: var(--navy);
+            font-size: 28px;
+            margin-bottom: 5px;
         }
 
         .topbar p {
-            color: #7f8c8d;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* =====================================================
+           BUTTONS
+        ===================================================== */
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-weight: 600;
+            transition: .2s ease;
         }
 
         .btn-primary {
-            background: #1b365d;
+            background: var(--navy);
             color: white;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 6px;
-            cursor: pointer;
         }
 
-        /* CARDS */
+        .btn-primary:hover {
+            background: #254a7b;
+        }
+
+        .btn-secondary {
+            background: #eef1f5;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e6ec;
+        }
+
+        .btn-edit {
+            background: #eaaa00;
+            color: white;
+            border: none;
+            padding: 7px 11px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-edit:hover {
+            opacity: .9;
+        }
+
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 7px 11px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-delete:hover {
+            opacity: .9;
+        }
+
+        /* =====================================================
+           SUMMARY CARDS
+        ===================================================== */
+
         .cards {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
         .card {
             background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
+            box-shadow:
+                0 3px 12px rgba(0,0,0,.04);
         }
 
         .card h3 {
-            color: #7f8c8d;
-            font-size: .9rem;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
         }
 
         .card-value {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-top: 10px;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--navy);
         }
 
-        /* TABLE */
+        /* =====================================================
+           TABLE
+        ===================================================== */
+
         .table-container {
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow:
+                0 4px 12px rgba(0,0,0,.04);
+        }
+
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .table-toolbar h2 {
+            font-size: 18px;
+        }
+
+        .record-count {
+            color: var(--muted);
+            font-size: 13px;
         }
 
         .search-box {
-            width: 300px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            width: 320px;
+            max-width: 100%;
+            height: 42px;
+            padding: 9px 12px;
+            border: 1px solid #d5dbe4;
+            border-radius: 7px;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--navy);
+            box-shadow:
+                0 0 0 3px rgba(27,54,93,.08);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
+            min-width: 1100px;
             border-collapse: collapse;
         }
 
+        thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
         th {
-            background: #f5f5f5;
+            padding: 13px 12px;
             text-align: left;
-            padding: 12px;
+            font-size: 12px;
+            color: #4b5563;
+            white-space: nowrap;
         }
 
         td {
-            padding: 12px;
-            border-top: 1px solid #eee;
+            padding: 13px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            color: #555;
+            vertical-align: middle;
         }
 
+        tbody tr:hover {
+            background: #f7f9fc;
+        }
+
+        .type-name {
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        /* =====================================================
+           STATUS
+        ===================================================== */
+
         .status {
+            display: inline-flex;
+            align-items: center;
             padding: 5px 10px;
             border-radius: 20px;
-            font-size: .8rem;
+            font-size: 11px;
+            font-weight: 600;
         }
 
         .active-status {
@@ -160,397 +354,2741 @@
 
         .inactive-status {
             background: #ffe0e0;
-            color: #b32034;
+            color: var(--danger);
         }
 
-        .btn-edit {
-            background: #eAAA00;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
+        /* =====================================================
+           CALCULATION BADGES
+        ===================================================== */
+
+        .calc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
-        .btn-delete {
-            background: #b32034;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
+        .calc-none {
+            background: #f0f1f3;
+            color: #6b7280;
         }
 
-        /* MODAL */
+        .calc-percentage {
+            background: #e8f0fb;
+            color: var(--navy);
+        }
+
+        .calc-fixed {
+            background: #fff3dc;
+            color: var(--warning);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* =====================================================
+           EMPTY / LOADING
+        ===================================================== */
+
+        .state-cell {
+            text-align: center;
+            padding: 45px 20px;
+            color: var(--muted);
+        }
+
+        .error-state {
+            color: var(--danger);
+        }
+
+        /* =====================================================
+           MODAL
+        ===================================================== */
+
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, .5);
-            justify-content: center;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(10,20,35,.60);
+            padding: 20px;
             align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
         }
 
         .modal-content {
+            width: min(700px, 100%);
+            max-height: 94vh;
+            overflow-y: auto;
             background: white;
-            width: 500px;
-            padding: 25px;
-            border-radius: 10px;
+            border-radius: 14px;
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.25);
         }
 
         .modal-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: var(--navy);
+        }
+
+        .modal-subtitle {
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--muted);
         }
 
         .close {
-            font-size: 30px;
-            cursor: pointer;
+            border: 0;
+            background: transparent;
+            color: #6b7280;
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 22px 24px;
+        }
+
+        /* =====================================================
+           FORM
+        ===================================================== */
+
+        .form-section {
+            margin-bottom: 22px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 13px;
+            color: var(--navy);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+            gap: 15px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 0;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #596579;
+        }
+
+        .required {
+            color: var(--danger);
         }
 
         .form-group input,
         .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            height: 42px;
+            padding: 9px 11px;
+            border: 1px solid #d5dbe4;
+            border-radius: 7px;
+            outline: none;
+            background: white;
         }
+
+        .form-group textarea {
+            height: 90px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--navy);
+            box-shadow:
+                0 0 0 3px rgba(27,54,93,.08);
+        }
+
+        .rate-wrapper {
+            position: relative;
+        }
+
+        .rate-wrapper input {
+            padding-right: 45px;
+        }
+
+        .rate-symbol {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .fixed-wrapper {
+            position: relative;
+        }
+
+        .fixed-wrapper input {
+            padding-left: 34px;
+        }
+
+        .peso-symbol {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-weight: 600;
+            pointer-events: none;
+        }
+
+        .help-text {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .calculation-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            background: #fafbfc;
+        }
+
+        .calculation-card .form-grid {
+            margin-top: 12px;
+        }
+
+        .disabled-field {
+            opacity: .55;
+        }
+
+        .disabled-field input {
+            background: #f1f3f5;
+            cursor: not-allowed;
+        }
+
+        /* =====================================================
+           MODAL FOOTER
+        ===================================================== */
 
         .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-top: 20px;
+            padding: 18px 24px;
+            border-top: 1px solid var(--border);
         }
 
-        .btn-cancel {
-            background: #ddd;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
+        .btn-save {
+            min-width: 110px;
         }
+
+        /* =====================================================
+           TOAST
+        ===================================================== */
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 2000;
+            min-width: 280px;
+            max-width: 420px;
+            padding: 14px 16px;
+            border-radius: 9px;
+            background: #1f2937;
+            color: white;
+            box-shadow:
+                0 10px 30px rgba(0,0,0,.18);
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: .25s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 1100px) {
+
+            .sidebar {
+                width: 220px;
+                min-width: 220px;
+            }
+
+            .content {
+                padding: 24px;
+            }
+
+            .cards {
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 850px) {
+
+            .sidebar {
+                width: 76px;
+                min-width: 76px;
+                padding: 22px 10px;
+            }
+
+            .sidebar-brand {
+                text-align: center;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .sidebar-brand h2 {
+                font-size: 18px;
+            }
+
+            .nav-text {
+                display: none;
+            }
+
+            .sidebar-menu a {
+                justify-content: center;
+                padding: 12px 5px;
+            }
+
+            .content {
+                padding: 20px 18px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .table-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .sidebar {
+                display: none;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            .topbar {
+                flex-direction: column;
+            }
+
+            .topbar h1 {
+                font-size: 23px;
+            }
+
+            .topbar .btn {
+                width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .modal {
+                padding: 10px;
+            }
+
+            .modal-content {
+                max-height: 96vh;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .modal-footer {
+                flex-direction: column-reverse;
+            }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+
+            .toast {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                min-width: auto;
+            }
+
+        }
+
     </style>
+
 </head>
+
+
 <body>
 
 <div class="container">
 
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
     <aside class="sidebar">
+
         <div class="sidebar-brand">
             <h2>CFMMS</h2>
         </div>
 
+
         <ul class="sidebar-menu">
-            <li >
+
+            <li>
                 <a href="index.html">
-                    <span class="icon">📊</span> 
+                    <span class="icon">📊</span>
                     <span class="nav-text">Dashboard</span>
                 </a>
             </li>
+
             <li>
                 <a href="members.html">
-                    <span class="icon">👥</span> 
+                    <span class="icon">👥</span>
                     <span class="nav-text">Members</span>
                 </a>
             </li>
+
             <li>
                 <a href="collections.html">
-                    <span class="icon">📥</span> 
+                    <span class="icon">📥</span>
                     <span class="nav-text">Collections</span>
                 </a>
             </li>
+
             <li class="active">
                 <a href="funds.html">
-                    <span class="icon">💰</span> 
-                    <span class="nav-text">Funds</span>
+                    <span class="icon">💰</span>
+                    <span class="nav-text">Collection Types</span>
                 </a>
             </li>
-            <li class="mobile-hide">
+
+            <li>
                 <a href="expenses.html">
-                    <span class="icon">📤</span> 
+                    <span class="icon">📤</span>
                     <span class="nav-text">Expenses</span>
                 </a>
             </li>
+
             <li class="mobile-hide">
                 <a href="vouchers.html">
-                    <span class="icon">🎫</span> 
+                    <span class="icon">🎫</span>
                     <span class="nav-text">Vouchers</span>
                 </a>
             </li>
+
             <li class="mobile-hide">
                 <a href="reports.html">
-                    <span class="icon">📈</span> 
+                    <span class="icon">📈</span>
                     <span class="nav-text">Reports</span>
                 </a>
             </li>
+
             <li class="mobile-hide">
                 <a href="audit.html">
-                    <span class="icon">🛡️</span> 
+                    <span class="icon">🛡️</span>
                     <span class="nav-text">Audit Trail</span>
                 </a>
             </li>
+
             <li class="mobile-hide">
                 <a href="users.html">
-                    <span class="icon">👤</span> 
+                    <span class="icon">👤</span>
                     <span class="nav-text">Users</span>
                 </a>
             </li>
+
             <li>
                 <a href="settings.html">
-                    <span class="icon">⚙️</span> 
+                    <span class="icon">⚙️</span>
                     <span class="nav-text">Settings</span>
                 </a>
             </li>
-            
-            <li style="margin-top: 20px;">
-                <a href="#" onclick="handleLogout(event)" style="background: rgba(179, 32, 52, 0.15); color: #ffe0e0; border: 1px solid rgba(179, 32, 52, 0.3);">
-                    <span class="icon">🚪</span> 
+
+            <li style="margin-top:20px;">
+                <a
+                    href="#"
+                    onclick="handleLogout(event)"
+                    style="
+                        background:rgba(179,32,52,.15);
+                        color:#ffe0e0;
+                        border:1px solid rgba(179,32,52,.3);
+                    "
+                >
+                    <span class="icon">🚪</span>
                     <span class="nav-text">Logout</span>
                 </a>
             </li>
+
         </ul>
+
     </aside>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
 
     <main class="content">
 
+
         <div class="topbar">
+
             <div>
                 <h1>Collection Types</h1>
-                <p>Manage church collection categories.</p>
+
+                <p>
+                    Manage collection categories and their
+                    PS and Apportionment calculation rules.
+                </p>
             </div>
-            <button class="btn-primary" onclick="openModal()">
-                + Add Type
+
+            <button
+                class="btn btn-primary"
+                type="button"
+                onclick="openAddModal()"
+            >
+                + Add Collection Type
             </button>
+
         </div>
 
+
+        <!-- =================================================
+             SUMMARY CARDS
+        ================================================== -->
+
         <section class="cards">
+
             <div class="card">
+
                 <h3>Total Types</h3>
-                <div class="card-value" id="totalTypesCount">1</div>
+
+                <div
+                    class="card-value"
+                    id="totalTypesCount"
+                >
+                    0
+                </div>
+
             </div>
+
+
             <div class="card">
+
                 <h3>Active Types</h3>
-                <div class="card-value" id="activeTypesCount">1</div>
+
+                <div
+                    class="card-value"
+                    id="activeTypesCount"
+                >
+                    0
+                </div>
+
             </div>
+
+
             <div class="card">
+
                 <h3>Inactive Types</h3>
-                <div class="card-value" id="inactiveTypesCount">0</div>
+
+                <div
+                    class="card-value"
+                    id="inactiveTypesCount"
+                >
+                    0
+                </div>
+
             </div>
+
         </section>
+
+
+        <!-- =================================================
+             TABLE
+        ================================================== -->
 
         <section class="table-container">
-            <input type="text" class="search-box" placeholder="Search collection type...">
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Type Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="typeTable">
-                    <tr>
-                        <td>1</td>
-                        <td>Tithes</td>
-                        <td>Regular member tithes</td>
-                        <td>
-                            <span class="status active-status">Active</span>
-                        </td>
-                        <td>
-                            <button class="btn-edit">Edit</button>
-                            <button class="btn-delete">Delete</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-toolbar">
+
+                <div>
+
+                    <h2>
+                        Collection Type Configuration
+                    </h2>
+
+                    <span
+                        class="record-count"
+                        id="recordCount"
+                    >
+                        0 records
+                    </span>
+
+                </div>
+
+                <input
+                    type="search"
+                    id="searchBox"
+                    class="search-box"
+                    placeholder="Search collection type..."
+                >
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Collection Type</th>
+
+                            <th>Description</th>
+
+                            <th>PS Calculation</th>
+
+                            <th>Apportionment</th>
+
+                            <th>Status</th>
+
+                            <th>Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="typeTable">
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="state-cell"
+                            >
+                                Loading collection types...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
         </section>
+
 
     </main>
 
 </div>
 
-<div class="modal" id="fundModal">
+
+<!-- =========================================================
+     COLLECTION TYPE MODAL
+========================================================= -->
+
+<div
+    class="modal"
+    id="collectionTypeModal"
+    onclick="handleModalBackdrop(event)"
+>
+
     <div class="modal-content">
+
+
         <div class="modal-header">
-            <h2>Add Collection Type</h2>
-            <span class="close" onclick="closeModal()">&times;</span>
+
+            <div>
+
+                <h2 id="modalTitle">
+                    Add Collection Type
+                </h2>
+
+                <div class="modal-subtitle">
+                    Configure the collection category and
+                    financial calculation rules.
+                </div>
+
+            </div>
+
+            <button
+                class="close"
+                type="button"
+                onclick="closeModal()"
+            >
+                ×
+            </button>
+
         </div>
 
-        <form id="fundForm">
-            <div class="form-group">
-                <label>Type Name</label>
-                <input type="text" id="typeName" required>
+
+        <form id="collectionTypeForm">
+
+
+            <div class="modal-body">
+
+
+                <!-- =========================================
+                     BASIC INFORMATION
+                ========================================== -->
+
+                <div class="form-section">
+
+                    <div class="section-title">
+                        📋 Basic Information
+                    </div>
+
+
+                    <div class="form-grid">
+
+
+                        <div class="form-group">
+
+                            <label for="typeName">
+                                Collection Type
+                                <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="typeName"
+                                placeholder="e.g. Tithes"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="status">
+                                Status
+                            </label>
+
+                            <select id="status">
+
+                                <option value="Active">
+                                    Active
+                                </option>
+
+                                <option value="Inactive">
+                                    Inactive
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group full">
+
+                            <label for="description">
+                                Description
+                            </label>
+
+                            <textarea
+                                id="description"
+                                placeholder="Describe this collection type..."
+                            ></textarea>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     PS CONFIGURATION
+                ========================================== -->
+
+                <div class="form-section">
+
+                    <div class="section-title">
+                        🧮 PS Configuration
+                    </div>
+
+
+                    <div class="calculation-card">
+
+
+                        <div class="form-grid">
+
+
+                            <div class="form-group">
+
+                                <label for="psCalculationType">
+                                    PS Calculation
+                                </label>
+
+                                <select
+                                    id="psCalculationType"
+                                >
+
+                                    <option value="none">
+                                        None
+                                    </option>
+
+                                    <option value="percentage">
+                                        Percentage
+                                    </option>
+
+                                    <option value="fixed">
+                                        Fixed Amount
+                                    </option>
+
+                                </select>
+
+                                <div class="help-text">
+                                    Choose how PS will be calculated.
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="form-group"
+                                id="psRateGroup"
+                            >
+
+                                <label for="psRate">
+                                    PS Rate
+                                </label>
+
+                                <div
+                                    class="rate-wrapper"
+                                    id="psPercentageWrapper"
+                                >
+
+                                    <input
+                                        type="number"
+                                        id="psRate"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        value="0"
+                                        placeholder="0.00"
+                                    >
+
+                                    <span class="rate-symbol">
+                                        %
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    class="fixed-wrapper"
+                                    id="psFixedWrapper"
+                                    style="display:none;"
+                                >
+
+                                    <span class="peso-symbol">
+                                        ₱
+                                    </span>
+
+                                    <input
+                                        type="number"
+                                        id="psFixedAmount"
+                                        min="0"
+                                        step="0.01"
+                                        value="0"
+                                        placeholder="0.00"
+                                    >
+
+                                </div>
+
+
+                                <div
+                                    class="help-text"
+                                    id="psHelpText"
+                                >
+                                    No PS calculation.
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     APPORTIONMENT CONFIGURATION
+                ========================================== -->
+
+                <div class="form-section">
+
+                    <div class="section-title">
+                        📊 Apportionment Configuration
+                    </div>
+
+
+                    <div class="calculation-card">
+
+
+                        <div class="form-grid">
+
+
+                            <div class="form-group">
+
+                                <label for="apportionmentCalculationType">
+                                    Apportionment Calculation
+                                </label>
+
+                                <select
+                                    id="apportionmentCalculationType"
+                                >
+
+                                    <option value="none">
+                                        None
+                                    </option>
+
+                                    <option value="percentage">
+                                        Percentage
+                                    </option>
+
+                                    <option value="fixed">
+                                        Fixed Amount
+                                    </option>
+
+                                </select>
+
+                                <div class="help-text">
+                                    Choose how Apportionment will be calculated.
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="form-group"
+                                id="apportionmentRateGroup"
+                            >
+
+                                <label for="apportionmentRate">
+                                    Apportionment Rate
+                                </label>
+
+
+                                <div
+                                    class="rate-wrapper"
+                                    id="apportionmentPercentageWrapper"
+                                >
+
+                                    <input
+                                        type="number"
+                                        id="apportionmentRate"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        value="0"
+                                        placeholder="0.00"
+                                    >
+
+                                    <span class="rate-symbol">
+                                        %
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    class="fixed-wrapper"
+                                    id="apportionmentFixedWrapper"
+                                    style="display:none;"
+                                >
+
+                                    <span class="peso-symbol">
+                                        ₱
+                                    </span>
+
+                                    <input
+                                        type="number"
+                                        id="apportionmentFixedAmount"
+                                        min="0"
+                                        step="0.01"
+                                        value="0"
+                                        placeholder="0.00"
+                                    >
+
+                                </div>
+
+
+                                <div
+                                    class="help-text"
+                                    id="apportionmentHelpText"
+                                >
+                                    No Apportionment calculation.
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
             </div>
 
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="description"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Status</label>
-                <select id="status">
-                    <option>Active</option>
-                    <option>Inactive</option>
-                </select>
-            </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn-cancel" onclick="closeModal()">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="closeModal()"
+                >
                     Cancel
                 </button>
-                <button type="submit" class="btn-primary">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-save"
+                    id="saveButton"
+                >
                     Save Type
                 </button>
+
             </div>
+
+
         </form>
+
     </div>
+
 </div>
 
 
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div
+    class="toast"
+    id="toast"
+></div>
+
+
 <script>
-// 1. SECURITY NAV GUARD
+
+
+// ============================================================
+// AUTHENTICATION
+// ============================================================
+
 (() => {
-    const token = sessionStorage.getItem("token");
+
+    const token =
+        sessionStorage.getItem("token");
+
     if (!token) {
-        window.location.replace("login.html");
-        throw new Error("Intercepted."); 
+
+        window.location.replace(
+            "login.html"
+        );
+
+        throw new Error(
+            "Authentication required."
+        );
+
     }
+
 })();
 
-function handleLogout(event) {
-    event.preventDefault();
-    if (confirm("Are you sure you want to log out?")) {
-       sessionStorage.clear()
-        window.location.replace("login.html"); 
-    }
-}
+
+// ============================================================
+// STATE
+// ============================================================
 
 let collectionTypesData = [];
+
 let selectedEditId = null;
 
-// FETCH FROM DATABASE
-async function loadTypesFromDB() {
-    const token = sessionStorage.getItem("token");
-    try {
-        const res = await fetch("/api/collection-types", {
-            headers: { "Authorization": "Bearer " + token }
-        });
-        collectionTypesData = await res.json();
-        renderTable();
-    } catch (err) { console.error(err); }
-}
 
-function openModal() {
-    selectedEditId = null;
-    document.getElementById("fundForm").reset();
-    document.getElementById("fundModal").style.display = "flex";
-}
-function closeModal() { document.getElementById("fundModal").style.display = "none"; }
+// ============================================================
+// ELEMENT HELPERS
+// ============================================================
 
-// SUBMIT DATA (POST or PUT)
-document.getElementById("fundForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    const token = sessionStorage.getItem("token");
-    const payload = {
-        name: document.getElementById("typeName").value,
-        description: document.getElementById("description").value,
-        status: document.getElementById("status").value
-    };
+const $ = id =>
+    document.getElementById(id);
 
-    let url = "/api/collection-types";
-    let method = "POST";
 
-    if (selectedEditId) {
-        url = `/api/collection-types/${selectedEditId}`;
-        method = "PUT";
+// ============================================================
+// LOGOUT
+// ============================================================
+
+function handleLogout(event) {
+
+    event.preventDefault();
+
+    if (
+        confirm(
+            "Are you sure you want to log out?"
+        )
+    ) {
+
+        sessionStorage.clear();
+
+        window.location.replace(
+            "login.html"
+        );
+
     }
 
-    await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify(payload)
-    });
-
-    closeModal();
-    loadTypesFromDB();
-});
-
-// DELETE
-async function deleteType(id) {
-    if (!confirm("Delete this type?")) return;
-    const token = sessionStorage.getItem("token");
-    await fetch(`/api/collection-types/${id}`, {
-        method: "DELETE", headers: { "Authorization": "Bearer " + token }
-    });
-    loadTypesFromDB();
 }
 
-// EDIT
-function editType(id) {
-    const type = collectionTypesData.find(t => t.id === id);
-    if (!type) return;
-    selectedEditId = id;
-    document.getElementById("typeName").value = type.name;
-    document.getElementById("description").value = type.description;
-    document.getElementById("status").value = type.status;
-    document.getElementById("fundModal").style.display = "flex";
-}
 
-// RENDER & FILTER
-function renderTable() {
-    const table = document.getElementById("typeTable");
-    const searchInput = document.querySelector(".search-box").value.toLowerCase().trim();
-    table.innerHTML = "";
+// ============================================================
+// TOAST
+// ============================================================
 
-    let activeCount = 0, inactiveCount = 0;
-    collectionTypesData.forEach(type => { type.status === "Active" ? activeCount++ : inactiveCount++; });
+let toastTimer;
 
-    document.getElementById("totalTypesCount").textContent = collectionTypesData.length;
-    document.getElementById("activeTypesCount").textContent = activeCount;
-    document.getElementById("inactiveTypesCount").textContent = inactiveCount;
+function showToast(
+    message,
+    type = "success"
+) {
 
-    const filteredData = collectionTypesData.filter(type => 
-        type.name.toLowerCase().includes(searchInput) || (type.description && type.description.toLowerCase().includes(searchInput))
+    const toast =
+        $("toast");
+
+    toast.textContent =
+        message;
+
+    toast.className =
+        `toast ${type} show`;
+
+    clearTimeout(
+        toastTimer
     );
 
-    filteredData.forEach(type => {
-        table.innerHTML += `
-            <tr>
-                <td style="font-weight: 600;">${type.id}</td>
-                <td style="font-weight: 500; color: #1b365d;">${type.name}</td>
-                <td>${type.description || ""}</td>
-                <td><span class="status ${type.status === 'Active' ? 'active-status' : 'inactive-status'}">${type.status}</span></td>
-                <td>
-                    <button class="btn-edit" onclick="editType(${type.id})">Edit</button>
-                    <button class="btn-delete" onclick="deleteType(${type.id})">Delete</button>
-                </td>
-            </tr>`;
-    });
+    toastTimer =
+        setTimeout(
+            () => {
+
+                toast.classList.remove(
+                    "show"
+                );
+
+            },
+            3000
+        );
+
 }
 
-document.querySelector(".search-box").addEventListener("input", renderTable);
-loadTypesFromDB(); // Boot
+
+// ============================================================
+// ESCAPE HTML
+// ============================================================
+
+function escapeHtml(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+// ============================================================
+// FORMAT CALCULATION
+// ============================================================
+
+function formatCalculation(
+    calculationType,
+    rate
+) {
+
+    if (
+        calculationType === "none"
+    ) {
+
+        return `
+            <span class="calc-badge calc-none">
+                None
+            </span>
+        `;
+
+    }
+
+
+    if (
+        calculationType === "percentage"
+    ) {
+
+        return `
+            <span class="calc-badge calc-percentage">
+                ${escapeHtml(rate)}%
+            </span>
+        `;
+
+    }
+
+
+    if (
+        calculationType === "fixed"
+    ) {
+
+        return `
+            <span class="calc-badge calc-fixed">
+                ₱${Number(rate || 0).toLocaleString(
+                    "en-PH",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }
+                )}
+            </span>
+        `;
+
+    }
+
+
+    return `
+        <span class="calc-badge calc-none">
+            —
+        </span>
+    `;
+
+}
+
+
+// ============================================================
+// LOAD COLLECTION TYPES
+// ============================================================
+
+async function loadTypesFromDB() {
+
+    const token =
+        sessionStorage.getItem(
+            "token"
+        );
+
+    const table =
+        $("typeTable");
+
+
+    table.innerHTML = `
+        <tr>
+            <td
+                colspan="7"
+                class="state-cell"
+            >
+                Loading collection types...
+            </td>
+        </tr>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/collection-types",
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+
+        if (
+            response.status === 401 ||
+            response.status === 403
+        ) {
+
+            sessionStorage.clear();
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        if (!response.ok) {
+
+            const error =
+                await response
+                    .json()
+                    .catch(
+                        () => ({})
+                    );
+
+            throw new Error(
+                error.error ||
+                "Unable to load collection types."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        collectionTypesData =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        renderTable();
+
+
+    } catch (error) {
+
+        console.error(
+            "Collection type loading error:",
+            error
+        );
+
+
+        table.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    class="state-cell error-state"
+                >
+                    Unable to load collection types.
+                    Please try again.
+                </td>
+            </tr>
+        `;
+
+        showToast(
+            error.message ||
+            "Unable to load collection types.",
+            "error"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// RENDER TABLE
+// ============================================================
+
+function renderTable() {
+
+    const table =
+        $("typeTable");
+
+    const search =
+        $("searchBox")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    let activeCount = 0;
+
+    let inactiveCount = 0;
+
+
+    collectionTypesData.forEach(
+        type => {
+
+            if (
+                String(type.status)
+                    .toLowerCase() ===
+                "active"
+            ) {
+
+                activeCount++;
+
+            } else {
+
+                inactiveCount++;
+
+            }
+
+        }
+    );
+
+
+    $("totalTypesCount")
+        .textContent =
+        collectionTypesData.length;
+
+
+    $("activeTypesCount")
+        .textContent =
+        activeCount;
+
+
+    $("inactiveTypesCount")
+        .textContent =
+        inactiveCount;
+
+
+    const filtered =
+        collectionTypesData.filter(
+            type => {
+
+                const searchable = [
+                    type.name,
+                    type.description,
+                    type.status,
+                    type.ps_calculation_type,
+                    type.apportionment_calculation_type
+                ]
+                    .join(" ")
+                    .toLowerCase();
+
+                return searchable.includes(
+                    search
+                );
+
+            }
+        );
+
+
+    $("recordCount")
+        .textContent =
+        `${filtered.length} record${
+            filtered.length === 1
+                ? ""
+                : "s"
+        }`;
+
+
+    if (!filtered.length) {
+
+        table.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    class="state-cell"
+                >
+                    No collection types found.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        filtered.map(
+            type => {
+
+                const isActive =
+                    String(type.status)
+                        .toLowerCase() ===
+                    "active";
+
+
+                const psRate =
+                    Number(
+                        type.ps_rate || 0
+                    );
+
+
+                const apportionmentRate =
+                    Number(
+                        type.apportionment_rate || 0
+                    );
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                ${escapeHtml(type.id)}
+                            </strong>
+                        </td>
+
+
+                        <td>
+                            <span class="type-name">
+                                ${escapeHtml(type.name)}
+                            </span>
+                        </td>
+
+
+                        <td>
+                            ${escapeHtml(
+                                type.description ||
+                                "—"
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${formatCalculation(
+                                type.ps_calculation_type,
+                                psRate
+                            )}
+                        </td>
+
+
+                        <td>
+                            ${formatCalculation(
+                                type.apportionment_calculation_type,
+                                apportionmentRate
+                            )}
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="
+                                    status
+                                    ${
+                                        isActive
+                                            ? "active-status"
+                                            : "inactive-status"
+                                    }
+                                "
+                            >
+                                ${escapeHtml(
+                                    type.status ||
+                                    "Inactive"
+                                )}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <div class="action-buttons">
+
+                                <button
+                                    type="button"
+                                    class="btn-edit"
+                                    onclick="editType(${type.id})"
+                                >
+                                    Edit
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn-delete"
+                                    onclick="deleteType(${type.id})"
+                                >
+                                    Delete
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        ).join("");
+
+}
+
+
+// ============================================================
+// OPEN ADD MODAL
+// ============================================================
+
+function openAddModal() {
+
+    selectedEditId =
+        null;
+
+    $("modalTitle")
+        .textContent =
+        "Add Collection Type";
+
+    $("saveButton")
+        .textContent =
+        "Save Type";
+
+
+    $("collectionTypeForm")
+        .reset();
+
+
+    $("status")
+        .value =
+        "Active";
+
+
+    $("psCalculationType")
+        .value =
+        "none";
+
+    $("apportionmentCalculationType")
+        .value =
+        "none";
+
+
+    $("psRate")
+        .value =
+        "0";
+
+    $("psFixedAmount")
+        .value =
+        "0";
+
+    $("apportionmentRate")
+        .value =
+        "0";
+
+    $("apportionmentFixedAmount")
+        .value =
+        "0";
+
+
+    updatePSFields();
+
+    updateApportionmentFields();
+
+
+    $("collectionTypeModal")
+        .classList.add(
+            "show"
+        );
+
+}
+
+
+// ============================================================
+// CLOSE MODAL
+// ============================================================
+
+function closeModal() {
+
+    $("collectionTypeModal")
+        .classList.remove(
+            "show"
+        );
+
+}
+
+
+// ============================================================
+// BACKDROP
+// ============================================================
+
+function handleModalBackdrop(
+    event
+) {
+
+    if (
+        event.target.id ===
+        "collectionTypeModal"
+    ) {
+
+        closeModal();
+
+    }
+
+}
+
+
+// ============================================================
+// UPDATE PS UI
+// ============================================================
+
+function updatePSFields() {
+
+    const type =
+        $("psCalculationType")
+            .value;
+
+
+    const percentageWrapper =
+        $("psPercentageWrapper");
+
+    const fixedWrapper =
+        $("psFixedWrapper");
+
+    const help =
+        $("psHelpText");
+
+
+    if (type === "none") {
+
+        percentageWrapper
+            .style.display =
+            "block";
+
+        fixedWrapper
+            .style.display =
+            "none";
+
+
+        $("psRate")
+            .disabled =
+            true;
+
+        $("psFixedAmount")
+            .disabled =
+            true;
+
+
+        $("psRate")
+            .value =
+            "0";
+
+
+        $("psFixedAmount")
+            .value =
+            "0";
+
+
+        help.textContent =
+            "No PS will be calculated.";
+
+        return;
+
+    }
+
+
+    if (type === "percentage") {
+
+        percentageWrapper
+            .style.display =
+            "block";
+
+        fixedWrapper
+            .style.display =
+            "none";
+
+
+        $("psRate")
+            .disabled =
+            false;
+
+        $("psFixedAmount")
+            .disabled =
+            true;
+
+
+        help.textContent =
+            "Enter the percentage of the collection amount.";
+
+        return;
+
+    }
+
+
+    if (type === "fixed") {
+
+        percentageWrapper
+            .style.display =
+            "none";
+
+        fixedWrapper
+            .style.display =
+            "block";
+
+
+        $("psRate")
+            .disabled =
+            true;
+
+        $("psFixedAmount")
+            .disabled =
+            false;
+
+
+        help.textContent =
+            "Enter the fixed PS amount.";
+
+    }
+
+}
+
+
+// ============================================================
+// UPDATE APPORTIONMENT UI
+// ============================================================
+
+function updateApportionmentFields() {
+
+    const type =
+        $("apportionmentCalculationType")
+            .value;
+
+
+    const percentageWrapper =
+        $("apportionmentPercentageWrapper");
+
+    const fixedWrapper =
+        $("apportionmentFixedWrapper");
+
+    const help =
+        $("apportionmentHelpText");
+
+
+    if (type === "none") {
+
+        percentageWrapper
+            .style.display =
+            "block";
+
+        fixedWrapper
+            .style.display =
+            "none";
+
+
+        $("apportionmentRate")
+            .disabled =
+            true;
+
+        $("apportionmentFixedAmount")
+            .disabled =
+            true;
+
+
+        $("apportionmentRate")
+            .value =
+            "0";
+
+
+        $("apportionmentFixedAmount")
+            .value =
+            "0";
+
+
+        help.textContent =
+            "No Apportionment will be calculated.";
+
+        return;
+
+    }
+
+
+    if (type === "percentage") {
+
+        percentageWrapper
+            .style.display =
+            "block";
+
+        fixedWrapper
+            .style.display =
+            "none";
+
+
+        $("apportionmentRate")
+            .disabled =
+            false;
+
+        $("apportionmentFixedAmount")
+            .disabled =
+            true;
+
+
+        help.textContent =
+            "Enter the percentage of the collection amount.";
+
+        return;
+
+    }
+
+
+    if (type === "fixed") {
+
+        percentageWrapper
+            .style.display =
+            "none";
+
+        fixedWrapper
+            .style.display =
+            "block";
+
+
+        $("apportionmentRate")
+            .disabled =
+            true;
+
+        $("apportionmentFixedAmount")
+            .disabled =
+            false;
+
+
+        help.textContent =
+            "Enter the fixed Apportionment amount.";
+
+    }
+
+}
+
+
+// ============================================================
+// EDIT COLLECTION TYPE
+// ============================================================
+
+function editType(id) {
+
+    const type =
+        collectionTypesData.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!type) {
+
+        showToast(
+            "Collection type not found.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    selectedEditId =
+        type.id;
+
+
+    $("modalTitle")
+        .textContent =
+        "Edit Collection Type";
+
+
+    $("saveButton")
+        .textContent =
+        "Update Type";
+
+
+    $("typeName")
+        .value =
+        type.name || "";
+
+
+    $("description")
+        .value =
+        type.description || "";
+
+
+    $("status")
+        .value =
+        type.status || "Active";
+
+
+    $("psCalculationType")
+        .value =
+        type.ps_calculation_type ||
+        "none";
+
+
+    $("apportionmentCalculationType")
+        .value =
+        type.apportionment_calculation_type ||
+        "none";
+
+
+    const psType =
+        type.ps_calculation_type ||
+        "none";
+
+
+    const psRate =
+        Number(
+            type.ps_rate || 0
+        );
+
+
+    if (
+        psType ===
+        "fixed"
+    ) {
+
+        $("psFixedAmount")
+            .value =
+            psRate;
+
+    } else {
+
+        $("psRate")
+            .value =
+            psRate;
+
+    }
+
+
+    const apportionmentType =
+        type.apportionment_calculation_type ||
+        "none";
+
+
+    const apportionmentRate =
+        Number(
+            type.apportionment_rate || 0
+        );
+
+
+    if (
+        apportionmentType ===
+        "fixed"
+    ) {
+
+        $("apportionmentFixedAmount")
+            .value =
+            apportionmentRate;
+
+    } else {
+
+        $("apportionmentRate")
+            .value =
+            apportionmentRate;
+
+    }
+
+
+    updatePSFields();
+
+    updateApportionmentFields();
+
+
+    $("collectionTypeModal")
+        .classList.add(
+            "show"
+        );
+
+}
+
+
+// ============================================================
+// VALIDATE FORM
+// ============================================================
+
+function validateForm() {
+
+    const name =
+        $("typeName")
+            .value
+            .trim();
+
+
+    if (!name) {
+
+        showToast(
+            "Collection type name is required.",
+            "error"
+        );
+
+        $("typeName").focus();
+
+        return false;
+
+    }
+
+
+    const psType =
+        $("psCalculationType")
+            .value;
+
+
+    const apportionmentType =
+        $("apportionmentCalculationType")
+            .value;
+
+
+    let psValue = 0;
+
+    let apportionmentValue = 0;
+
+
+    if (
+        psType ===
+        "percentage"
+    ) {
+
+        psValue =
+            Number(
+                $("psRate").value
+            );
+
+
+        if (
+            !Number.isFinite(psValue) ||
+            psValue < 0 ||
+            psValue > 100
+        ) {
+
+            showToast(
+                "PS percentage must be between 0% and 100%.",
+                "error"
+            );
+
+            $("psRate").focus();
+
+            return false;
+
+        }
+
+    }
+
+
+    if (
+        psType ===
+        "fixed"
+    ) {
+
+        psValue =
+            Number(
+                $("psFixedAmount").value
+            );
+
+
+        if (
+            !Number.isFinite(psValue) ||
+            psValue < 0
+        ) {
+
+            showToast(
+                "PS fixed amount cannot be negative.",
+                "error"
+            );
+
+            $("psFixedAmount").focus();
+
+            return false;
+
+        }
+
+    }
+
+
+    if (
+        apportionmentType ===
+        "percentage"
+    ) {
+
+        apportionmentValue =
+            Number(
+                $("apportionmentRate").value
+            );
+
+
+        if (
+            !Number.isFinite(
+                apportionmentValue
+            ) ||
+            apportionmentValue < 0 ||
+            apportionmentValue > 100
+        ) {
+
+            showToast(
+                "Apportionment percentage must be between 0% and 100%.",
+                "error"
+            );
+
+            $("apportionmentRate").focus();
+
+            return false;
+
+        }
+
+    }
+
+
+    if (
+        apportionmentType ===
+        "fixed"
+    ) {
+
+        apportionmentValue =
+            Number(
+                $("apportionmentFixedAmount").value
+            );
+
+
+        if (
+            !Number.isFinite(
+                apportionmentValue
+            ) ||
+            apportionmentValue < 0
+        ) {
+
+            showToast(
+                "Apportionment fixed amount cannot be negative.",
+                "error"
+            );
+
+            $("apportionmentFixedAmount").focus();
+
+            return false;
+
+        }
+
+    }
+
+
+    return true;
+
+}
+
+
+// ============================================================
+// SAVE / UPDATE
+// ============================================================
+
+$("collectionTypeForm")
+    .addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+
+            if (!validateForm()) {
+
+                return;
+
+            }
+
+
+            const token =
+                sessionStorage.getItem(
+                    "token"
+                );
+
+
+            const psType =
+                $("psCalculationType")
+                    .value;
+
+
+            const apportionmentType =
+                $("apportionmentCalculationType")
+                    .value;
+
+
+            let psRate = 0;
+
+            let apportionmentRate = 0;
+
+
+            if (
+                psType ===
+                "percentage"
+            ) {
+
+                psRate =
+                    Number(
+                        $("psRate").value
+                    );
+
+            }
+
+
+            if (
+                psType ===
+                "fixed"
+            ) {
+
+                psRate =
+                    Number(
+                        $("psFixedAmount").value
+                    );
+
+            }
+
+
+            if (
+                apportionmentType ===
+                "percentage"
+            ) {
+
+                apportionmentRate =
+                    Number(
+                        $("apportionmentRate").value
+                    );
+
+            }
+
+
+            if (
+                apportionmentType ===
+                "fixed"
+            ) {
+
+                apportionmentRate =
+                    Number(
+                        $("apportionmentFixedAmount").value
+                    );
+
+            }
+
+
+            const payload = {
+
+                name:
+                    $("typeName")
+                        .value
+                        .trim(),
+
+                description:
+                    $("description")
+                        .value
+                        .trim(),
+
+                status:
+                    $("status")
+                        .value,
+
+                ps_calculation_type:
+                    psType,
+
+                ps_rate:
+                    psRate,
+
+                apportionment_calculation_type:
+                    apportionmentType,
+
+                apportionment_rate:
+                    apportionmentRate
+
+            };
+
+
+            const isEditing =
+                selectedEditId !== null;
+
+
+            const url =
+                isEditing
+                    ? `/api/collection-types/${selectedEditId}`
+                    : "/api/collection-types";
+
+
+            const method =
+                isEditing
+                    ? "PUT"
+                    : "POST";
+
+
+            const saveButton =
+                $("saveButton");
+
+
+            const originalText =
+                saveButton.textContent;
+
+
+            try {
+
+                saveButton.disabled =
+                    true;
+
+                saveButton.textContent =
+                    isEditing
+                        ? "Updating..."
+                        : "Saving...";
+
+
+                const response =
+                    await fetch(
+                        url,
+                        {
+                            method,
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json",
+
+                                "Authorization":
+                                    "Bearer " +
+                                    token
+
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+
+                        }
+                    );
+
+
+                if (
+                    response.status === 401 ||
+                    response.status === 403
+                ) {
+
+                    sessionStorage.clear();
+
+                    window.location.replace(
+                        "login.html"
+                    );
+
+                    return;
+
+                }
+
+
+                const data =
+                    await response
+                        .json()
+                        .catch(
+                            () => ({})
+                        );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Unable to save collection type."
+                    );
+
+                }
+
+
+                closeModal();
+
+
+                await loadTypesFromDB();
+
+
+                showToast(
+                    isEditing
+                        ? "Collection type updated successfully."
+                        : "Collection type created successfully.",
+                    "success"
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Save collection type error:",
+                    error
+                );
+
+
+                showToast(
+                    error.message ||
+                    "Unable to save collection type.",
+                    "error"
+                );
+
+
+            } finally {
+
+                saveButton.disabled =
+                    false;
+
+                saveButton.textContent =
+                    originalText;
+
+            }
+
+        }
+    );
+
+
+// ============================================================
+// DELETE
+// ============================================================
+
+async function deleteType(id) {
+
+    const type =
+        collectionTypesData.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!type) {
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            `Delete "${type.name}"?\n\n` +
+            `This action cannot be undone.`
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const token =
+        sessionStorage.getItem(
+            "token"
+        );
+
+
+    try {
+
+        const response =
+            await fetch(
+                `/api/collection-types/${id}`,
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+
+        if (
+            response.status === 401 ||
+            response.status === 403
+        ) {
+
+            sessionStorage.clear();
+
+            window.location.replace(
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        const data =
+            await response
+                .json()
+                .catch(
+                    () => ({})
+                );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                "Unable to delete collection type."
+            );
+
+        }
+
+
+        await loadTypesFromDB();
+
+
+        showToast(
+            "Collection type deleted successfully.",
+            "success"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Delete collection type error:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Unable to delete collection type.",
+            "error"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// SEARCH
+// ============================================================
+
+$("searchBox")
+    .addEventListener(
+        "input",
+        renderTable
+    );
+
+
+// ============================================================
+// CALCULATION EVENTS
+// ============================================================
+
+$("psCalculationType")
+    .addEventListener(
+        "change",
+        updatePSFields
+    );
+
+
+$("apportionmentCalculationType")
+    .addEventListener(
+        "change",
+        updateApportionmentFields
+    );
+
+
+// ============================================================
+// ESC KEY
+// ============================================================
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape"
+        ) {
+
+            closeModal();
+
+        }
+
+    }
+);
+
+
+// ============================================================
+// INITIALIZE
+// ============================================================
+
+updatePSFields();
+
+updateApportionmentFields();
+
+loadTypesFromDB();
+
 </script>
 
 </body>
+
 </html>

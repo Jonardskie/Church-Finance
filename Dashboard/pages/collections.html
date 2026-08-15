@@ -239,280 +239,1104 @@
     </div>
 </div>
 
-    <script>
-    // 1. 🔥 SECURITY NAV GUARD
-    (() => {
-        const token = sessionStorage.getItem("token");
-        if (!token || token === "undefined" || token === "null") {
+<script>
+/* =========================================================
+   CFMMS — COLLECTIONS PAGE
+   Complete Frontend Script
+   ========================================================= */
+
+
+/* =========================================================
+   1. AUTHENTICATION
+   ========================================================= */
+
+const token = sessionStorage.getItem("token");
+
+if (!token || token === "undefined" || token === "null") {
+    sessionStorage.clear();
+    document.documentElement.style.display = "none";
+
+    alert("Access Denied: Please log in first.");
+
+    window.location.replace("login.html");
+
+    throw new Error("Unauthenticated session.");
+}
+
+
+/* =========================================================
+   2. LOGOUT
+   ========================================================= */
+
+function handleLogout(event) {
+
+    event.preventDefault();
+
+    if (confirm("Are you sure you want to log out?")) {
+
         sessionStorage.clear();
-            document.documentElement.style.display = "none"; 
-            alert("Access Denied: Please log in first.");
-            window.location.replace("login.html");
-            throw new Error("Unauthenticated session intercepted."); 
+
+        window.location.replace("login.html");
+    }
+}
+
+
+/* =========================================================
+   3. GLOBAL COLLECTION DATA
+   ========================================================= */
+
+let collectionsData = [];
+
+
+/* =========================================================
+   4. API HELPER
+   ========================================================= */
+
+async function apiRequest(url, options = {}) {
+
+    const response = await fetch(url, {
+
+        ...options,
+
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token,
+            ...(options.headers || {})
         }
-    })();
-
-    // LOGOUT FUNCTION
-    function handleLogout(event) {
-        event.preventDefault();
-        if (confirm("Are you sure you want to log out?")) {
-            sessionStorage.clear();
-            window.location.replace("login.html");
-        }
-    }
-
-    /* ==========================================================================
-    🔥 1. FETCH MEMBERS FOR SMART DROPDOWN
-    ========================================================================== */
-    async function loadMemberDropdown() {
-        const dropdown = document.getElementById("collectionMemberId");
-        const token = sessionStorage.getItem("token");
-        
-        try {
-            const res = await fetch("/api/members", {
-                headers: { "Authorization": "Bearer " + token }
-            });
-            
-            if (!res.ok) throw new Error(`Server Error: ${res.status}`);
-            
-            const members = await res.json();
-            
-            // Clear it and set a default
-            dropdown.innerHTML = '<option value="" disabled selected>-- Choose a Member --</option>';
-            dropdown.innerHTML += '<option value="ANONYMOUS">Anonymous / Guest</option>'; 
-            
-            // Only show Active members
-            const activeMembers = members.filter(m => m.status === "Active");
-            
-            activeMembers.forEach(m => {
-                // Value is the ID, Text is the Name
-                dropdown.innerHTML += `<option value="${m.member_id}">${m.official_name} (${m.member_id})</option>`;
-            });
-            
-        } catch (err) {
-            console.error("Error loading members for dropdown:", err);
-            dropdown.innerHTML = '<option value="" disabled selected>❌ Error fetching members</option>';
-        }
-    }
-
-    /* ==========================================================================
-    🔥 2. DYNAMIC DROPDOWN PULLING FROM DATABASE
-    ========================================================================== */
-    async function populateCollectionTypes() {
-        const selectDropdown = document.getElementById("collectionType");
-        const token = sessionStorage.getItem("token");
-        
-        try {
-            const res = await fetch("/api/collection-types", {
-                headers: { "Authorization": "Bearer " + token }
-            });
-            
-            if (!res.ok) return;
-            const typesArray = await res.json();
-            
-            selectDropdown.innerHTML = ""; 
-            
-            // Loop through Active types from DB
-            typesArray.forEach(type => {
-                if (type.status === "Active") {
-                    const option = document.createElement("option");
-                    option.value = type.name;
-                    option.textContent = type.name;
-                    selectDropdown.appendChild(option);
-                }
-            });
-            
-            // Failsafe
-            if (selectDropdown.options.length === 0) {
-                selectDropdown.innerHTML = `<option value="General Collection">General Collection</option>`;
-            }
-        } catch (err) {
-            console.error("Dropdown fetch error:", err);
-        }
-    }
-
-    /* ==========================================================================
-    🔥 3. DATABASE INTEGRATION & RENDERING
-    ========================================================================== */
-    let collectionsData = []; // Master memory array for filtering
-
-    // Fetch Collections from the PostgreSQL Database
-    async function loadCollectionsFromDB() {
-        const token = sessionStorage.getItem("token");
-        try {
-            const res = await fetch("/api/collections", {
-                headers: { "Authorization": "Bearer " + token }
-            });
-            if (!res.ok) throw new Error("Failed to load records");
-            
-            collectionsData = await res.json();
-            renderCollectionsTable();
-        } catch (err) {
-            console.error("DB Fetch Error:", err);
-        }
-    }
-
-    // Render the table, handle Searching, and handle Filtering
-    function renderCollectionsTable() {
-        const tableBody = document.getElementById("collectionTableBody");
-        const searchInput = document.getElementById("searchInput").value.toLowerCase().trim();
-        const statusFilter = document.getElementById("statusFilter").value.toLowerCase();
-        
-        tableBody.innerHTML = "";
-
-        // Apply Filters
-        const filteredData = collectionsData.filter(item => {
-            const memberName = item.member_name || ""; // Failsafe
-            const matchesSearch = memberName.toLowerCase().includes(searchInput) || item.date.includes(searchInput);
-            const matchesStatus = statusFilter === "all status" || item.status.toLowerCase() === statusFilter;
-            
-            return matchesSearch && matchesStatus;
-        });
-
-        if (filteredData.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding: 20px;">No matching collections found.</td></tr>`;
-            recalculateCollectionMetrics();
-            return;
-        }
-
-        filteredData.forEach(item => {
-            const cleanDate = item.date ? item.date.split('T')[0] : "N/A"; // Format DB timestamp
-            
-            let actionButtonsMarkup = ``;
-            if (item.status === 'pending') {
-                actionButtonsMarkup = `
-                    <button class="action-btn" onclick="verifyCollection(${item.id})" title="Verify">✅</button>
-                    <button class="action-btn btn-delete" onclick="deleteCollection(${item.id})" title="Delete">🗑️</button>
-                `;
-            } else {
-                actionButtonsMarkup = `
-                    <button class="action-btn btn-delete" onclick="deleteCollection(${item.id})" title="Delete">🗑️</button>
-                `;
-            }
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${cleanDate}</td>
-                    <td class="text-bold">${item.member_name || "Guest"}</td>
-                    <td>${item.type}</td>
-                    <td>${item.fund_category}</td>
-                    <td class="text-amount">₱${parseFloat(item.amount).toLocaleString()}</td>
-                    <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-                    <td>${actionButtonsMarkup}</td>
-                </tr>
-            `;
-        });
-
-        recalculateCollectionMetrics();
-    }
-
-    // 🔥 Trigger Search/Filter instantly on type/change
-    document.getElementById("searchInput").addEventListener("input", renderCollectionsTable);
-    document.getElementById("statusFilter").addEventListener("change", renderCollectionsTable);
-
-    /* ==========================================================================
-    🔥 4. RECORD, VERIFY, & DELETE (API CONNECTED)
-    ========================================================================== */
-    // POST: Submit New Collection
-        document.getElementById("collectionForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
-            const token = sessionStorage.getItem("token");
-
-            // 🔥 Get the dropdown elements
-            const memberDropdown = document.getElementById("collectionMemberId");
-            const selectedOption = memberDropdown.options[memberDropdown.selectedIndex];
-                const payload = {
-                    date: document.getElementById("collectionDate").value,
-                    member_id: memberDropdown.value, 
-                    member_name: selectedOption.text.split('(')[0].trim(),
-                    type: document.getElementById("collectionType").value,
-                    fund: document.getElementById("fundCategory").value,
-                    amount: document.getElementById("collectionAmount").value,
-                    status: document.getElementById("verificationStatus").value
-                };
-
-            try {
-                const res = await fetch("/api/collections", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + token
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!res.ok) throw new Error("Failed to save to database");
-                
-                document.getElementById("collectionForm").reset();
-                closeModal();
-                loadCollectionsFromDB(); 
-            } catch (err) {
-                alert(err.message);
-            }
-        });
-
-    // DELETE: Remove Collection
-    async function deleteCollection(id) {
-        if (!confirm("Permanently delete this collection record from the database?")) return;
-        const token = sessionStorage.getItem("token");
-        try {
-            await fetch(`/api/collections/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": "Bearer " + token }
-            });
-            loadCollectionsFromDB(); // Refresh table
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    /* ==========================================================================
-    🔥 5. METRICS MATH
-    ========================================================================== */
-    function recalculateCollectionMetrics() {
-        let totalCountVal = collectionsData.length;
-        let aggregateAmount = 0;
-        let pendingCount = 0;
-
-        collectionsData.forEach(item => {
-            aggregateAmount += parseFloat(item.amount) || 0;
-            if (item.status === "pending") pendingCount++;
-        });
-
-        const formattedTotal = `₱${aggregateAmount.toLocaleString()}`;
-
-        document.getElementById("todayTotal").textContent = formattedTotal;
-        document.getElementById("todayCount").textContent = `${totalCountVal} records`;
-        document.getElementById("weeklyTotal").textContent = formattedTotal;
-        document.getElementById("weeklyCount").textContent = `${totalCountVal} records`;
-        document.getElementById("monthlyTotal").textContent = formattedTotal;
-        document.getElementById("monthlyCount").textContent = `${totalCountVal} records`;
-        document.getElementById("pendingVerificationCount").textContent = pendingCount;
-        
-        const calculationPercent = totalCountVal > 0 ? ((pendingCount / totalCountVal) * 100).toFixed(1) : "0.0";
-        document.getElementById("pendingPercentText").textContent = `${calculationPercent}% of total`;
-    }
-
-    /* ==========================================================================
-    🔥 6. UI: MODAL LOGIC
-    ========================================================================== */
-    function openModal() {
-        document.getElementById("collectionDate").value = new Date().toISOString().split('T')[0];
-        populateCollectionTypes(); 
-        document.getElementById("collectionModal").style.display = "flex";
-    }
-
-    function closeModal() {
-        document.getElementById("collectionModal").style.display = "none";
-    }
-
-    document.getElementById("collectionModal").addEventListener("click", function(e) {
-        if(e.target === this) closeModal();
     });
 
-    // Boot Application
-    loadMemberDropdown();
-    loadCollectionsFromDB();
-    </script>
+
+    let data;
+
+    try {
+        data = await response.json();
+    } catch {
+        data = null;
+    }
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data?.error ||
+            data?.message ||
+            `Server error: ${response.status}`
+        );
+    }
+
+
+    return data;
+}
+
+
+/* =========================================================
+   5. LOAD MEMBERS
+   ========================================================= */
+
+async function loadMemberDropdown() {
+
+    const dropdown =
+        document.getElementById("collectionMemberId");
+
+
+    if (!dropdown) return;
+
+
+    dropdown.innerHTML = `
+        <option value="" disabled selected>
+            Loading members...
+        </option>
+    `;
+
+
+    try {
+
+        const members =
+            await apiRequest("/api/members");
+
+
+        dropdown.innerHTML = `
+            <option value="" disabled selected>
+                -- Choose a Member --
+            </option>
+
+            <option value="ANONYMOUS">
+                Anonymous / Guest
+            </option>
+        `;
+
+
+        const activeMembers =
+            members.filter(
+                member =>
+                    member.status === "Active"
+            );
+
+
+        activeMembers.forEach(member => {
+
+            const option =
+                document.createElement("option");
+
+
+            option.value =
+                member.member_id;
+
+
+            option.textContent =
+                `${member.official_name} (${member.member_id})`;
+
+
+            dropdown.appendChild(option);
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Error loading members:",
+            error
+        );
+
+
+        dropdown.innerHTML = `
+            <option value="" disabled selected>
+                ❌ Error fetching members
+            </option>
+        `;
+    }
+}
+
+
+/* =========================================================
+   6. LOAD COLLECTION TYPES
+   ========================================================= */
+
+async function loadCollectionTypes() {
+
+    const dropdown =
+        document.getElementById("collectionType");
+
+
+    if (!dropdown) return;
+
+
+    dropdown.innerHTML = `
+        <option value="" disabled selected>
+            Loading collection types...
+        </option>
+    `;
+
+
+    try {
+
+        const types =
+            await apiRequest("/api/collection-types");
+
+
+        dropdown.innerHTML = `
+            <option value="" disabled selected>
+                -- Choose Collection Type --
+            </option>
+        `;
+
+
+        types
+            .filter(
+                type =>
+                    type.status === "Active"
+            )
+            .forEach(type => {
+
+                const option =
+                    document.createElement("option");
+
+
+                option.value =
+                    type.id;
+
+
+                option.textContent =
+                    type.name;
+
+
+                dropdown.appendChild(option);
+
+            });
+
+
+        if (dropdown.options.length === 1) {
+
+            dropdown.innerHTML = `
+                <option value="" disabled selected>
+                    No active collection types
+                </option>
+            `;
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Collection type loading error:",
+            error
+        );
+
+
+        dropdown.innerHTML = `
+            <option value="" disabled selected>
+                ❌ Failed to load collection types
+            </option>
+        `;
+    }
+}
+
+
+/* =========================================================
+   7. LOAD COLLECTIONS
+   ========================================================= */
+
+async function loadCollectionsFromDB() {
+
+    try {
+
+        collectionsData =
+            await apiRequest("/api/collections");
+
+
+        if (!Array.isArray(collectionsData)) {
+            collectionsData = [];
+        }
+
+
+        renderCollectionsTable();
+
+
+    } catch (error) {
+
+        console.error(
+            "Collections loading error:",
+            error
+        );
+
+
+        const tableBody =
+            document.getElementById(
+                "collectionTableBody"
+            );
+
+
+        if (tableBody) {
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td
+                        colspan="7"
+                        style="
+                            text-align:center;
+                            color:#ef4444;
+                            padding:30px;
+                        "
+                    >
+                        Failed to load collections.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
+
+/* =========================================================
+   8. RENDER COLLECTION TABLE
+   ========================================================= */
+
+function renderCollectionsTable() {
+
+    const tableBody =
+        document.getElementById(
+            "collectionTableBody"
+        );
+
+
+    const searchInput =
+        document.getElementById(
+            "searchInput"
+        );
+
+
+    const statusFilter =
+        document.getElementById(
+            "statusFilter"
+        );
+
+
+    if (!tableBody) return;
+
+
+    const search =
+        searchInput
+            ? searchInput.value.toLowerCase().trim()
+            : "";
+
+
+    const selectedStatus =
+        statusFilter
+            ? statusFilter.value.toLowerCase()
+            : "all status";
+
+
+    const filteredData =
+        collectionsData.filter(item => {
+
+            const memberName =
+                String(
+                    item.member_name || ""
+                ).toLowerCase();
+
+
+            const date =
+                String(
+                    item.date || ""
+                ).toLowerCase();
+
+
+            const type =
+                String(
+                    item.type || ""
+                ).toLowerCase();
+
+
+            const fund =
+                String(
+                    item.fund_category || ""
+                ).toLowerCase();
+
+
+            const matchesSearch =
+                !search ||
+                memberName.includes(search) ||
+                date.includes(search) ||
+                type.includes(search) ||
+                fund.includes(search);
+
+
+            const itemStatus =
+                String(
+                    item.status || ""
+                ).toLowerCase();
+
+
+            const matchesStatus =
+                selectedStatus === "all status" ||
+                itemStatus === selectedStatus;
+
+
+            return (
+                matchesSearch &&
+                matchesStatus
+            );
+        });
+
+
+    tableBody.innerHTML = "";
+
+
+    if (filteredData.length === 0) {
+
+        tableBody.innerHTML = `
+            <tr>
+                <td
+                    colspan="7"
+                    style="
+                        text-align:center;
+                        color:#94a3b8;
+                        padding:30px;
+                    "
+                >
+                    No matching collections found.
+                </td>
+            </tr>
+        `;
+
+
+        updateCollectionMetrics();
+
+        return;
+    }
+
+
+    filteredData.forEach(item => {
+
+        const cleanDate =
+            item.date
+                ? String(item.date).split("T")[0]
+                : "N/A";
+
+
+        const amount =
+            Number(item.amount || 0)
+                .toLocaleString();
+
+
+        const status =
+            String(
+                item.status || ""
+            ).toLowerCase();
+
+
+        let actions = "";
+
+
+        if (status === "pending") {
+
+            actions = `
+                <button
+                    class="action-btn"
+                    onclick="verifyCollection(${item.id})"
+                    title="Verify"
+                >
+                    ✅
+                </button>
+
+                <button
+                    class="action-btn"
+                    onclick="deleteCollection(${item.id})"
+                    title="Delete"
+                >
+                    🗑️
+                </button>
+            `;
+
+        } else {
+
+            actions = `
+                <button
+                    class="action-btn"
+                    onclick="deleteCollection(${item.id})"
+                    title="Delete"
+                >
+                    🗑️
+                </button>
+            `;
+        }
+
+
+        tableBody.innerHTML += `
+            <tr>
+
+                <td>
+                    ${escapeHTML(cleanDate)}
+                </td>
+
+                <td class="text-bold">
+                    ${escapeHTML(
+                        item.member_name || "Guest"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        item.type || "N/A"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        item.fund_category || "N/A"
+                    )}
+                </td>
+
+                <td class="text-amount">
+                    ₱${amount}
+                </td>
+
+                <td>
+                    <span
+                        class="status-badge status-${status}"
+                    >
+                        ${escapeHTML(status)}
+                    </span>
+                </td>
+
+                <td>
+                    ${actions}
+                </td>
+
+            </tr>
+        `;
+    });
+
+
+    updateCollectionMetrics();
+}
+
+
+/* =========================================================
+   9. SEARCH
+   ========================================================= */
+
+const searchInput =
+    document.getElementById("searchInput");
+
+
+if (searchInput) {
+
+    searchInput.addEventListener(
+        "input",
+        renderCollectionsTable
+    );
+}
+
+
+/* =========================================================
+   10. STATUS FILTER
+   ========================================================= */
+
+const statusFilter =
+    document.getElementById("statusFilter");
+
+
+if (statusFilter) {
+
+    statusFilter.addEventListener(
+        "change",
+        renderCollectionsTable
+    );
+}
+
+
+/* =========================================================
+   11. RECORD NEW COLLECTION
+   ========================================================= */
+
+const collectionForm =
+    document.getElementById("collectionForm");
+
+
+if (collectionForm) {
+
+    collectionForm.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const memberDropdown =
+                document.getElementById(
+                    "collectionMemberId"
+                );
+
+
+            const typeDropdown =
+                document.getElementById(
+                    "collectionType"
+                );
+
+
+            const memberOption =
+                memberDropdown.options[
+                    memberDropdown.selectedIndex
+                ];
+
+
+            const typeOption =
+                typeDropdown.options[
+                    typeDropdown.selectedIndex
+                ];
+
+
+            if (!memberDropdown.value) {
+
+                alert(
+                    "Please select a member."
+                );
+
+                return;
+            }
+
+
+            if (!typeDropdown.value) {
+
+                alert(
+                    "Please select a collection type."
+                );
+
+                return;
+            }
+
+
+            const amount =
+                Number(
+                    document.getElementById(
+                        "collectionAmount"
+                    ).value
+                );
+
+
+            if (!amount || amount <= 0) {
+
+                alert(
+                    "Please enter a valid amount."
+                );
+
+                return;
+            }
+
+
+            const payload = {
+
+                date:
+                    document.getElementById(
+                        "collectionDate"
+                    ).value,
+
+
+                member_id:
+                    memberDropdown.value,
+
+
+                member_name:
+                    memberOption.text
+                        .split("(")[0]
+                        .trim(),
+
+
+                collection_type_id:
+                    Number(
+                        typeDropdown.value
+                    ),
+
+
+                fund:
+                    document.getElementById(
+                        "fundCategory"
+                    ).value,
+
+
+                amount:
+                    amount,
+
+
+                status:
+                    document.getElementById(
+                        "verificationStatus"
+                    ).value
+            };
+
+
+            try {
+
+                const result =
+                    await apiRequest(
+                        "/api/collections",
+                        {
+                            method: "POST",
+
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
+                        }
+                    );
+
+
+                console.log(
+                    "Collection saved:",
+                    result
+                );
+
+
+                alert(
+                    "Collection recorded successfully."
+                );
+
+
+                collectionForm.reset();
+
+
+                closeModal();
+
+
+                await loadCollectionsFromDB();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Save collection error:",
+                    error
+                );
+
+
+                alert(
+                    error.message
+                );
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   12. VERIFY COLLECTION
+   ========================================================= */
+
+async function verifyCollection(id) {
+
+    if (
+        !confirm(
+            "Verify this collection?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await apiRequest(
+            `/api/collections/${id}`,
+            {
+                method: "PUT",
+
+                body: JSON.stringify({
+                    status: "verified"
+                })
+            }
+        );
+
+
+        alert(
+            "Collection verified successfully."
+        );
+
+
+        await loadCollectionsFromDB();
+
+
+    } catch (error) {
+
+        console.error(
+            "Verification error:",
+            error
+        );
+
+
+        alert(
+            error.message
+        );
+    }
+}
+
+
+/* =========================================================
+   13. DELETE COLLECTION
+   ========================================================= */
+
+async function deleteCollection(id) {
+
+    if (
+        !confirm(
+            "Permanently delete this collection record?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await apiRequest(
+            `/api/collections/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        alert(
+            "Collection deleted successfully."
+        );
+
+
+        await loadCollectionsFromDB();
+
+
+    } catch (error) {
+
+        console.error(
+            "Delete collection error:",
+            error
+        );
+
+
+        alert(
+            error.message
+        );
+    }
+}
+
+
+/* =========================================================
+   14. COLLECTION METRICS
+   ========================================================= */
+
+function updateCollectionMetrics() {
+
+    const totalRecords =
+        collectionsData.length;
+
+
+    let totalAmount = 0;
+
+    let pendingCount = 0;
+
+
+    collectionsData.forEach(item => {
+
+        totalAmount +=
+            Number(item.amount || 0);
+
+
+        if (
+            String(item.status).toLowerCase() ===
+            "pending"
+        ) {
+            pendingCount++;
+        }
+    });
+
+
+    const formattedTotal =
+        `₱${totalAmount.toLocaleString()}`;
+
+
+    const todayTotal =
+        document.getElementById(
+            "todayTotal"
+        );
+
+
+    const todayCount =
+        document.getElementById(
+            "todayCount"
+        );
+
+
+    const weeklyTotal =
+        document.getElementById(
+            "weeklyTotal"
+        );
+
+
+    const weeklyCount =
+        document.getElementById(
+            "weeklyCount"
+        );
+
+
+    const monthlyTotal =
+        document.getElementById(
+            "monthlyTotal"
+        );
+
+
+    const monthlyCount =
+        document.getElementById(
+            "monthlyCount"
+        );
+
+
+    const pendingVerificationCount =
+        document.getElementById(
+            "pendingVerificationCount"
+        );
+
+
+    const pendingPercentText =
+        document.getElementById(
+            "pendingPercentText"
+        );
+
+
+    if (todayTotal)
+        todayTotal.textContent =
+            formattedTotal;
+
+
+    if (todayCount)
+        todayCount.textContent =
+            `${totalRecords} records`;
+
+
+    if (weeklyTotal)
+        weeklyTotal.textContent =
+            formattedTotal;
+
+
+    if (weeklyCount)
+        weeklyCount.textContent =
+            `${totalRecords} records`;
+
+
+    if (monthlyTotal)
+        monthlyTotal.textContent =
+            formattedTotal;
+
+
+    if (monthlyCount)
+        monthlyCount.textContent =
+            `${totalRecords} records`;
+
+
+    if (pendingVerificationCount)
+        pendingVerificationCount.textContent =
+            pendingCount;
+
+
+    const percentage =
+        totalRecords > 0
+            ? (
+                (pendingCount / totalRecords) *
+                100
+              ).toFixed(1)
+            : "0.0";
+
+
+    if (pendingPercentText)
+        pendingPercentText.textContent =
+            `${percentage}% of total`;
+}
+
+
+/* =========================================================
+   15. OPEN MODAL
+   ========================================================= */
+
+async function openModal() {
+
+    const modal =
+        document.getElementById(
+            "collectionModal"
+        );
+
+
+    const dateInput =
+        document.getElementById(
+            "collectionDate"
+        );
+
+
+    if (!modal) return;
+
+
+    if (dateInput) {
+
+        dateInput.value =
+            new Date()
+                .toISOString()
+                .split("T")[0];
+    }
+
+
+    await loadCollectionTypes();
+
+
+    modal.style.display = "flex";
+}
+
+
+/* =========================================================
+   16. CLOSE MODAL
+   ========================================================= */
+
+function closeModal() {
+
+    const modal =
+        document.getElementById(
+            "collectionModal"
+        );
+
+
+    if (modal) {
+
+        modal.style.display =
+            "none";
+    }
+}
+
+
+/* =========================================================
+   17. MODAL BACKDROP
+   ========================================================= */
+
+const collectionModal =
+    document.getElementById(
+        "collectionModal"
+    );
+
+
+if (collectionModal) {
+
+    collectionModal.addEventListener(
+        "click",
+        function(event) {
+
+            if (event.target === this) {
+
+                closeModal();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   18. HTML ESCAPE
+   ========================================================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+/* =========================================================
+   19. START COLLECTIONS PAGE
+   ========================================================= */
+
+loadMemberDropdown();
+
+loadCollectionsFromDB();
+
+</script>
 </body>
 </html>
