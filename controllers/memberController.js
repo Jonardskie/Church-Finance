@@ -13,6 +13,84 @@ const cleanDate = (dateString) =>
 const cleanChoice = (val) =>
     val && val.trim() !== "" ? val : null;
 
+const normalizeDateValue = (value) => {
+    if (value === null || value === undefined || String(value).trim() === "") {
+        return null;
+    }
+
+    if (value instanceof Date && !isNaN(value)) {
+        return value.toISOString().split("T")[0];
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+        const parsed = XLSX.SSF.parse_date_code(value);
+
+        if (parsed) {
+            const year = parsed.y || 1900;
+            const month = (parsed.m || 0) + 1;
+            const day = parsed.d || 1;
+            const date = new Date(year, month - 1, day);
+
+            if (!isNaN(date)) {
+                return date.toISOString().split("T")[0];
+            }
+        }
+    }
+
+    const raw = String(value).trim();
+
+    if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(raw)) {
+        const [year, month, day] = raw.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        if (!isNaN(date)) {
+            return date.toISOString().split("T")[0];
+        }
+    }
+
+    const match = raw.match(/^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}(?:\s+\d{1,2}:\d{2}(:\d{2})?)?$/);
+
+    if (!match) {
+        return null;
+    }
+
+    const parts = raw.replace(" ", " ").split(/[/-]/);
+    let first = Number(parts[0]);
+    let second = Number(parts[1]);
+    let year = Number(parts[2]);
+
+    if (year < 100) {
+        year += 2000;
+    }
+
+    let day;
+    let month;
+
+    if (first > 12 && second <= 12) {
+        day = first;
+        month = second;
+    } else if (second > 12 && first <= 12) {
+        month = first;
+        day = second;
+    } else if (first <= 31 && second <= 12) {
+        day = first;
+        month = second;
+    } else {
+        month = first;
+        day = second;
+    }
+
+    const date = new Date(year, month - 1, day);
+
+    if (!isNaN(date.getTime()) &&
+        date.getFullYear() === year &&
+        date.getMonth() === month - 1 &&
+        date.getDate() === day) {
+        return date.toISOString().split("T")[0];
+    }
+
+    return null;
+};
+
 
 // ==========================================
 // GET ALL MEMBERS
@@ -676,119 +754,126 @@ exports.deleteMembersBatch = async (req, res) => {
 // ==========================================
 
 exports.importMembers = async (req, res) => {
+    const uploadedFile =
+        req.files &&
+        (req.files.excelFile || req.files.file || req.files.membersFile);
 
-    if (
-        !req.files ||
-        !req.files.excelFile
-    ) {
-
+    if (!uploadedFile) {
         return res.status(400).json({
             message: "No file uploaded."
         });
     }
 
-
-    const file = req.files.excelFile;
-
-
     try {
-
         const workbook = XLSX.read(
-            file.data,
+            uploadedFile.data,
             {
                 type: "buffer"
             }
         );
-
 
         const sheet =
             workbook.Sheets[
                 workbook.SheetNames[0]
             ];
 
+        if (!sheet) {
+            return res.status(400).json({
+                message: "No worksheet found in the uploaded Excel file."
+            });
+        }
 
-        const sheetData =
-            XLSX.utils.sheet_to_json(sheet);
+        const normalizeHeader = (value) =>
+            String(value || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, " ")
+                .trim();
 
+        const getCellValue = (row, keys) => {
+            const normalizedRow = {};
+
+            Object.entries(row || {}).forEach(([key, value]) => {
+                normalizedRow[normalizeHeader(key)] = value;
+            });
+
+            for (const key of keys) {
+                const matchedValue = normalizedRow[normalizeHeader(key)];
+                if (matchedValue !== undefined && matchedValue !== null && String(matchedValue).trim() !== "") {
+                    return matchedValue;
+                }
+            }
+
+            return null;
+        };
+
+        const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+        if (!rawRows || rawRows.length === 0) {
+            return res.status(400).json({
+                message: "The uploaded Excel file has no rows to import."
+            });
+        }
 
         let processedCount = 0;
 
+        for (const row of rawRows) {
+            const isCompletelyEmptyRow =
+                Object.values(row || {}).every(
+                    value => String(value ?? "").trim() === ""
+                );
 
-        for (const row of sheetData) {
-
-            const official_name =
-                row["Full Name"] ||
-                row["Official Name"];
-
-
-            const phone =
-                row["Contact Number"] ||
-                row["Phone"];
-
-
-            const address =
-                row["Address"];
-
-
-            const role =
-                row["Role"] ||
-                "member";
-
-
-            const status =
-                row["Status"] ||
-                "Active";
-
-
-            const join_date =
-                row["Join Date"] ||
-                new Date()
-                    .toISOString()
-                    .split("T")[0];
-
-
-            const gender =
-                row["Gender"] === "Male" ||
-                row["Gender"] === "Female"
-                    ? row["Gender"]
-                    : null;
-
-
-            const marital_status =
-                [
-                    "Single",
-                    "Married",
-                    "Widowed"
-                ].includes(
-                    row["Marital Status"]
-                )
-                    ? row["Marital Status"]
-                    : null;
-
-
-            // Skip incomplete rows
-            if (
-                !official_name ||
-                !address
-            ) {
+            if (isCompletelyEmptyRow) {
                 continue;
             }
 
+            const official_name =
+                String(
+                    getCellValue(row, ["full name", "official name", "member name", "name"]) ?? ""
+                ).trim();
 
-            const member_id =
-                await generateMemberId(pool);
+            const phone =
+                String(
+                    getCellValue(row, ["contact number", "phone", "mobile number", "tel", "telephone"]) ?? ""
+                ).trim();
 
+            const address =
+                String(
+                    getCellValue(row, ["address", "residential address"]) ?? ""
+                ).trim();
 
-            const defaultPassword =
-                await bcrypt.hash(
-                    "123456",
-                    10
-                );
+            const role =
+                String(getCellValue(row, ["role"]) ?? "").trim() || "member";
 
+            const status =
+                String(getCellValue(row, ["status"]) ?? "").trim() || "Active";
 
-            // ==========================================
-            // INSERT MEMBER
-            // ==========================================
+            const join_date =
+                normalizeDateValue(
+                    getCellValue(row, ["join date", "date joined", "joined date"]) ?? ""
+                ) || new Date().toISOString().split("T")[0];
+
+            const genderRaw =
+                getCellValue(row, ["gender"]);
+
+            const gender =
+                typeof genderRaw === "string" &&
+                ["male", "female"].includes(genderRaw.trim().toLowerCase())
+                    ? genderRaw.trim().charAt(0).toUpperCase() + genderRaw.trim().slice(1).toLowerCase()
+                    : null;
+
+            const maritalStatusRaw =
+                getCellValue(row, ["marital status"]);
+
+            const marital_status =
+                ["single", "married", "widowed"].includes(
+                    String(maritalStatusRaw || "").trim().toLowerCase()
+                )
+                    ? String(maritalStatusRaw).trim()
+                    : null;
+
+            const member_id = await generateMemberId(pool);
+            const defaultPassword = await bcrypt.hash("123456", 10);
 
             await pool.query(
                 `
@@ -823,11 +908,6 @@ exports.importMembers = async (req, res) => {
                 ]
             );
 
-
-            // ==========================================
-            // CREATE USER ACCOUNT
-            // ==========================================
-
             await pool.query(
                 `
                 INSERT INTO users
@@ -842,26 +922,21 @@ exports.importMembers = async (req, res) => {
                 ]
             );
 
-
             processedCount++;
         }
 
+        if (processedCount === 0) {
+            return res.status(400).json({
+                message: "No valid member rows were found in the Excel file."
+            });
+        }
 
         res.json({
-
-            message:
-                `Imported ${processedCount} members successfully.`
-
+            message: `Imported ${processedCount} members successfully.`
         });
 
-
     } catch (err) {
-
-        console.error(
-            "❌ IMPORT MEMBERS ERROR:",
-            err.message
-        );
-
+        console.error("❌ IMPORT MEMBERS ERROR:", err.message);
         res.status(500).json({
             error: err.message
         });

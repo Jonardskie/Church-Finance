@@ -1041,6 +1041,8 @@
 
         </section>
 
+        <div id="memberPagination" class="pagination-bar" style="display:none; margin: 12px 0 18px; justify-content:flex-end; gap:8px; align-items:center;"></div>
+
 
         <!-- ==========================================
              BATCH ACTION TOOLBAR
@@ -1653,6 +1655,10 @@ let selectedEditId = null;
 
 let allMembersData = [];
 
+const PAGE_SIZE = 50;
+
+let currentPage = 1;
+
 
 /*
     🔥 IMPORTANT
@@ -1959,11 +1965,30 @@ function updateMemberStatistics() {
    LOAD MEMBERS
 ========================================================= */
 
-async function loadMembers() {
+async function loadMembers({ resetFilters = false } = {}) {
 
     const token =
         getToken();
 
+    const searchBox =
+        document.getElementById(
+            "memberSearchBox"
+        );
+
+    const statusFilter =
+        document.getElementById(
+            "memberStatusFilter"
+        );
+
+    if (resetFilters) {
+        if (searchBox) {
+            searchBox.value = "";
+        }
+
+        if (statusFilter) {
+            statusFilter.value = "all";
+        }
+    }
 
     try {
 
@@ -2005,6 +2030,7 @@ async function loadMembers() {
                 ? data
                 : [];
 
+        currentPage = 1;
 
         /*
             Remove selected IDs that no longer
@@ -2059,6 +2085,40 @@ async function loadMembers() {
 }
 
 
+function changePage(nextPage) {
+    const filteredData = getFilteredMembers();
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+
+    if (nextPage < 1) nextPage = 1;
+    if (nextPage > totalPages) nextPage = totalPages;
+
+    currentPage = nextPage;
+    renderMembers();
+}
+
+function renderPagination(filteredData) {
+    const pagination = document.getElementById("memberPagination");
+    if (!pagination) return;
+
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+
+    if (filteredData.length <= PAGE_SIZE) {
+        pagination.style.display = "none";
+        pagination.innerHTML = "";
+        return;
+    }
+
+    const prevButton = `<button type="button" class="btn-primary" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(${currentPage - 1})" style="opacity:${currentPage === 1 ? 0.5 : 1};">Prev</button>`;
+    const nextButton = `<button type="button" class="btn-primary" ${currentPage >= totalPages ? "disabled" : ""} onclick="changePage(${currentPage + 1})" style="opacity:${currentPage >= totalPages ? 0.5 : 1};">Next</button>`;
+
+    pagination.innerHTML = `
+        <span style="color:#475569; font-size: 0.9rem;">Page ${currentPage} of ${totalPages}</span>
+        ${prevButton}
+        ${nextButton}
+    `;
+    pagination.style.display = "flex";
+}
+
 /* =========================================================
    RENDER MEMBERS
 ========================================================= */
@@ -2094,6 +2154,11 @@ function renderMembers() {
     const filteredData =
         getFilteredMembers();
 
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageData = filteredData.slice(start, start + PAGE_SIZE);
 
     table.innerHTML = "";
 
@@ -2125,7 +2190,7 @@ function renderMembers() {
 
         `;
 
-
+        renderPagination(filteredData);
         updateBatchToolbar();
 
         return;
@@ -2137,7 +2202,7 @@ function renderMembers() {
        CREATE ROWS
     ========================================== */
 
-    filteredData.forEach(member => {
+    pageData.forEach(member => {
 
         const memberId =
             Number(member.id);
@@ -2449,6 +2514,7 @@ function renderMembers() {
         has been rebuilt.
     */
 
+    renderPagination(filteredData);
     updateBatchToolbar();
 
 }
@@ -3686,14 +3752,14 @@ async function handleExcelUpload(
         }
 
 
+        selectedMemberIds.clear();
+
         alert(
             data.message ||
             "Import successful!"
         );
 
-
-        await loadMembers();
-
+        await loadMembers({ resetFilters: true });
 
     } catch (err) {
 
@@ -4040,7 +4106,7 @@ window.addEventListener(
    INITIAL PAGE LOAD
 ========================================================= */
 
-loadMembers();
+loadMembers({ resetFilters: true });
 
 </script>
 
