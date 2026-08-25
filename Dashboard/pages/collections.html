@@ -292,10 +292,80 @@ let collectionsData = [];
    4. API HELPER
    ========================================================= */
 
+const COLLECTIONS_CACHE_TTL = 5 * 60 * 1000;
+
+function getCachedJson(key, ttl = COLLECTIONS_CACHE_TTL) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+
+        if (Date.now() > (parsed.expiresAt || 0)) {
+            localStorage.removeItem(key);
+            return null;
+        }
+
+        return parsed.value;
+    } catch {
+        return null;
+    }
+}
+
+function setCachedJson(key, value, ttl = COLLECTIONS_CACHE_TTL) {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            value,
+            expiresAt: Date.now() + ttl
+        }));
+    } catch {
+        // ignore cache write errors
+    }
+}
+
+async function cachedFetchJson(url, options = {}, key, ttl = COLLECTIONS_CACHE_TTL) {
+    const method = (options.method || "GET").toUpperCase();
+    const cacheKey = key || `cfmms:${method}:${url}`;
+
+    if (method === "GET") {
+        const cached = getCachedJson(cacheKey, ttl);
+        if (cached !== null) {
+            return cached;
+        }
+    }
+
+    try {
+        const response = await fetch(url, options);
+
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            data = await response.text();
+        }
+
+        if (response.ok && method === "GET") {
+            setCachedJson(cacheKey, data, ttl);
+        }
+
+        return data;
+    } catch (error) {
+        if (method === "GET") {
+            const cached = getCachedJson(cacheKey, ttl);
+            if (cached !== null) {
+                return cached;
+            }
+        }
+
+        throw error;
+    }
+}
+
 async function apiRequest(url, options = {}) {
 
-    const response = await fetch(url, {
-
+    const method = (options.method || "GET").toUpperCase();
+    const requestOptions = {
         ...options,
 
         headers: {
@@ -303,27 +373,18 @@ async function apiRequest(url, options = {}) {
             "Authorization": "Bearer " + token,
             ...(options.headers || {})
         }
-    });
+    };
 
+    const data = await cachedFetchJson(
+        url,
+        requestOptions,
+        `cfmms:${method}:${url}`,
+        COLLECTIONS_CACHE_TTL
+    );
 
-    let data;
-
-    try {
-        data = await response.json();
-    } catch {
-        data = null;
+    if (data && data.error) {
+        throw new Error(data.error || data.message || "Server error");
     }
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            data?.error ||
-            data?.message ||
-            `Server error: ${response.status}`
-        );
-    }
-
 
     return data;
 }

@@ -2928,6 +2928,76 @@ function resetFilters() {
 LOAD
 ===================================================== */
 
+const EXPENSES_CACHE_TTL = 5 * 60 * 1000;
+
+function getCachedJson(key, ttl = EXPENSES_CACHE_TTL) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+
+        if (Date.now() > (parsed.expiresAt || 0)) {
+            localStorage.removeItem(key);
+            return null;
+        }
+
+        return parsed.value;
+    } catch {
+        return null;
+    }
+}
+
+function setCachedJson(key, value, ttl = EXPENSES_CACHE_TTL) {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            value,
+            expiresAt: Date.now() + ttl
+        }));
+    } catch {
+        // ignore cache errors
+    }
+}
+
+async function cachedFetchJson(url, options = {}, key, ttl = EXPENSES_CACHE_TTL) {
+    const method = (options.method || "GET").toUpperCase();
+    const cacheKey = key || `cfmms:${method}:${url}`;
+
+    if (method === "GET") {
+        const cached = getCachedJson(cacheKey, ttl);
+        if (cached !== null) {
+            return cached;
+        }
+    }
+
+    try {
+        const response = await fetch(url, options);
+
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            data = await response.text();
+        }
+
+        if (response.ok && method === "GET") {
+            setCachedJson(cacheKey, data, ttl);
+        }
+
+        return data;
+    } catch (error) {
+        if (method === "GET") {
+            const cached = getCachedJson(cacheKey, ttl);
+            if (cached !== null) {
+                return cached;
+            }
+        }
+
+        throw error;
+    }
+}
+
 async function loadExpenses() {
 
     const body =
@@ -2937,47 +3007,15 @@ async function loadExpenses() {
 
     try {
 
-        const response =
-            await fetch(
-                "/api/expenses",
-                {
-                    headers: {
-                        Authorization:
-                            "Bearer " + token
-                    }
+        const data = await cachedFetchJson(
+            "/api/expenses",
+            {
+                headers: {
+                    Authorization: "Bearer " + token
                 }
-            );
-
-        if (
-            response.status === 401 ||
-            response.status === 403
-        ) {
-
-            sessionStorage.clear();
-
-            window.location.replace(
-                "login.html"
-            );
-
-            return;
-
-        }
-
-        if (!response.ok) {
-
-            const error =
-                await response.json()
-                    .catch(() => ({}));
-
-            throw new Error(
-                error.error ||
-                "Unable to load expenses."
-            );
-
-        }
-
-        const data =
-            await response.json();
+            },
+            "cfmms:expenses:list"
+        );
 
         allExpenses =
             Array.isArray(data)

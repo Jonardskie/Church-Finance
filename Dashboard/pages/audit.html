@@ -2300,66 +2300,22 @@ function openDetailsModal(index) {
             `;
 
 
-            const response =
-                await fetch(
-                    "/api/audit",
-                    {
-                        method: "GET",
-
-                        headers: {
-
-                            "Authorization":
-                                "Bearer " +
-                                token
-
-                        }
-
+            const data = await cachedFetchJson(
+                "/api/audit",
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
                     }
-                );
+                },
+                "cfmms:audit:list"
+            );
 
-
-            if (
-                response.status === 401 ||
-                response.status === 403
-            ) {
-
-                sessionStorage.clear();
-
-                window.location.replace(
-                    "login.html"
-                );
-
-                return;
-
+            if (!Array.isArray(data)) {
+                throw new Error("Unable to load audit logs.");
             }
 
-
-            if (!response.ok) {
-
-                const error =
-                    await response
-                        .json()
-                        .catch(
-                            () => ({})
-                        );
-
-
-                throw new Error(
-                    error.error ||
-                    "Unable to load audit logs."
-                );
-
-            }
-
-
-            const data =
-                await response.json();
-
-
-            allAuditLogs =
-                Array.isArray(data)
-                    ? data
-                    : [];
+            allAuditLogs = data;
 
 
             calculateSummary(

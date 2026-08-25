@@ -1694,6 +1694,76 @@ function getToken() {
 
 }
 
+const MEMBER_CACHE_TTL = 5 * 60 * 1000;
+
+function getCachedJson(key, ttl = MEMBER_CACHE_TTL) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+
+        if (Date.now() > (parsed.expiresAt || 0)) {
+            localStorage.removeItem(key);
+            return null;
+        }
+
+        return parsed.value;
+    } catch {
+        return null;
+    }
+}
+
+function setCachedJson(key, value, ttl = MEMBER_CACHE_TTL) {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            value,
+            expiresAt: Date.now() + ttl
+        }));
+    } catch {
+        // ignore storage quota issues
+    }
+}
+
+async function cachedFetchJson(url, options = {}, key, ttl = MEMBER_CACHE_TTL) {
+    const method = (options.method || "GET").toUpperCase();
+    const cacheKey = key || `cfmms:${method}:${url}`;
+
+    if (method === "GET") {
+        const cached = getCachedJson(cacheKey, ttl);
+        if (cached !== null) {
+            return cached;
+        }
+    }
+
+    try {
+        const response = await fetch(url, options);
+
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            data = await response.text();
+        }
+
+        if (response.ok && method === "GET") {
+            setCachedJson(cacheKey, data, ttl);
+        }
+
+        return data;
+    } catch (error) {
+        if (method === "GET") {
+            const cached = getCachedJson(cacheKey, ttl);
+            if (cached !== null) {
+                return cached;
+            }
+        }
+
+        throw error;
+    }
+}
+
 
 /* =========================================================
    ROLE CONTROL
@@ -1992,8 +2062,8 @@ async function loadMembers({ resetFilters = false } = {}) {
 
     try {
 
-        const res =
-            await fetch(
+        const data =
+            await cachedFetchJson(
                 "/api/members",
                 {
                     method: "GET",
@@ -2005,18 +2075,15 @@ async function loadMembers({ resetFilters = false } = {}) {
                         "Authorization":
                             "Bearer " + token
                     }
-                }
+                },
+                "cfmms:members:list"
             );
 
 
-        const data =
-            await res.json();
-
-
-        if (!res.ok) {
+        if (!Array.isArray(data)) {
 
             alert(
-                data.message ||
+                data?.message ||
                 "Failed to load members."
             );
 
@@ -2024,11 +2091,7 @@ async function loadMembers({ resetFilters = false } = {}) {
 
         }
 
-
-        allMembersData =
-            Array.isArray(data)
-                ? data
-                : [];
+        allMembersData = data;
 
         currentPage = 1;
 

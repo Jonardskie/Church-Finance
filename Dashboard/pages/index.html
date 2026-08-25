@@ -254,6 +254,76 @@ const storedUsername = sessionStorage.getItem("username") || "User";
 const storedRole = sessionStorage.getItem("role") || "Member";
 document.getElementById("userBadgeProfile").innerText = `👤 ${storedUsername} (${storedRole})`;
 
+const DASHBOARD_CACHE_TTL = 5 * 60 * 1000;
+
+function getCachedJson(key, ttl = DASHBOARD_CACHE_TTL) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+
+        if (Date.now() > (parsed.expiresAt || 0)) {
+            localStorage.removeItem(key);
+            return null;
+        }
+
+        return parsed.value;
+    } catch {
+        return null;
+    }
+}
+
+function setCachedJson(key, value, ttl = DASHBOARD_CACHE_TTL) {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            value,
+            expiresAt: Date.now() + ttl
+        }));
+    } catch {
+        // ignore cache write failures in private browsing / quota limits
+    }
+}
+
+async function cachedFetchJson(url, options = {}, key, ttl = DASHBOARD_CACHE_TTL) {
+    const method = (options.method || "GET").toUpperCase();
+    const cacheKey = key || `cfmms:${method}:${url}`;
+
+    if (method === "GET") {
+        const cached = getCachedJson(cacheKey, ttl);
+        if (cached !== null) {
+            return cached;
+        }
+    }
+
+    try {
+        const response = await fetch(url, options);
+
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            data = await response.text();
+        }
+
+        if (response.ok && method === "GET") {
+            setCachedJson(cacheKey, data, ttl);
+        }
+
+        return data;
+    } catch (error) {
+        if (method === "GET") {
+            const cached = getCachedJson(cacheKey, ttl);
+            if (cached !== null) {
+                return cached;
+            }
+        }
+
+        throw error;
+    }
+}
+
 /* ==========================================
    LOAD SYSTEM MONITOR METRICS & TABLES
 ========================================== */
@@ -261,22 +331,22 @@ async function loadDashboardMetrics() {
     const token = sessionStorage.getItem("token");
 
     try {
-        const res = await fetch("/api/members", {
+        const data = await cachedFetchJson("/api/members", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + token
             }
-        });
+        }, "cfmms:dashboard:members");
 
-        const data = await res.json();
+        const res = { ok: true };
 
-        if (!res.ok) {
-            console.warn("Backend metrics fetch rejected:", data.message);
+        if (!Array.isArray(data)) {
+            console.warn("Backend metrics fetch rejected:", data?.message || "Invalid members payload");
             return;
         }
 
-        const members = Array.isArray(data) ? data : [];
+        const members = data;
         const table = document.getElementById("dashMemberTableBody");
         if (!table) return;
         

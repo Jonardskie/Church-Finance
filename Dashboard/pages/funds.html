@@ -1466,67 +1466,115 @@
 // AUTHENTICATION
 // ============================================================
 
-(() => {
+const FUNDS_CACHE_TTL = 5 * 60 * 1000;
 
-    const token =
-        sessionStorage.getItem("token");
+function getCachedJson(key, ttl = FUNDS_CACHE_TTL) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
 
-    if (!token) {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
 
-        window.location.replace(
-            "login.html"
-        );
+        if (Date.now() > (parsed.expiresAt || 0)) {
+            localStorage.removeItem(key);
+            return null;
+        }
 
-        throw new Error(
-            "Authentication required."
-        );
+        return parsed.value;
+    } catch {
+        return null;
+    }
+}
 
+function setCachedJson(key, value, ttl = FUNDS_CACHE_TTL) {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            value,
+            expiresAt: Date.now() + ttl
+        }));
+    } catch {
+        // ignore cache errors
+    }
+}
+
+async function cachedFetchJson(url, options = {}, key, ttl = FUNDS_CACHE_TTL) {
+    const method = (options.method || "GET").toUpperCase();
+    const cacheKey = key || `cfmms:${method}:${url}`;
+
+    if (method === "GET") {
+        const cached = getCachedJson(cacheKey, ttl);
+        if (cached !== null) {
+            return cached;
+        }
     }
 
-})();
+    try {
+        const response = await fetch(url, options);
 
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            data = await response.text();
+        }
+
+        if (response.ok && method === "GET") {
+            setCachedJson(cacheKey, data, ttl);
+        }
+
+        return data;
+    } catch (error) {
+        if (method === "GET") {
+            const cached = getCachedJson(cacheKey, ttl);
+            if (cached !== null) {
+                return cached;
+            }
+        }
+
+        throw error;
+    }
+}
+
+function clearCollectionTypesCache() {
+    localStorage.removeItem("cfmms:funds:collection-types");
+    localStorage.removeItem("cfmms:funds:collection-types:v2");
+    localStorage.removeItem("cfmms:funds:collection-types:v3");
+    localStorage.removeItem("cfmms:GET:/api/collection-types");
+    localStorage.removeItem("cfmms:GET:/api/collection-types/");
+}
+
+const FUNDS_COLLECTION_TYPES_CACHE_KEY = "cfmms:funds:collection-types:v3";
 
 // ============================================================
-// STATE
+// PAGE STATE AND HELPERS
 // ============================================================
 
 let collectionTypesData = [];
 
 let selectedEditId = null;
 
-
-// ============================================================
-// ELEMENT HELPERS
-// ============================================================
-
-const $ = id =>
-    document.getElementById(id);
-
-
-// ============================================================
-// LOGOUT
-// ============================================================
+const $ = id => document.getElementById(id);
 
 function handleLogout(event) {
-
     event.preventDefault();
 
-    if (
-        confirm(
-            "Are you sure you want to log out?"
-        )
-    ) {
-
+    if (confirm("Are you sure you want to log out?")) {
         sessionStorage.clear();
-
-        window.location.replace(
-            "login.html"
-        );
-
+        window.location.replace("login.html");
     }
-
 }
 
+(() => {
+
+    const token = sessionStorage.getItem("token");
+
+    if (!token) {
+        window.location.replace("login.html");
+        return;
+    }
+
+})();
 
 // ============================================================
 // TOAST
@@ -1692,55 +1740,24 @@ async function loadTypesFromDB() {
 
     try {
 
-        const response =
-            await fetch(
-                "/api/collection-types",
-                {
-                    method: "GET",
-
-                    headers: {
-                        "Authorization":
-                            "Bearer " + token
-                    }
+        const data = await cachedFetchJson(
+            "/api/collection-types",
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
                 }
-            );
+            },
+            FUNDS_COLLECTION_TYPES_CACHE_KEY
+        );
 
+        if (!Array.isArray(data)) {
+            if (data?.error || data?.message) {
+                throw new Error(data.error || data.message);
+            }
 
-        if (
-            response.status === 401 ||
-            response.status === 403
-        ) {
-
-            sessionStorage.clear();
-
-            window.location.replace(
-                "login.html"
-            );
-
-            return;
-
+            throw new Error("Unable to load collection types.");
         }
-
-
-        if (!response.ok) {
-
-            const error =
-                await response
-                    .json()
-                    .catch(
-                        () => ({})
-                    );
-
-            throw new Error(
-                error.error ||
-                "Unable to load collection types."
-            );
-
-        }
-
-
-        const data =
-            await response.json();
 
 
         collectionTypesData =
@@ -2866,6 +2883,7 @@ $("collectionTypeForm")
                 }
 
 
+                clearCollectionTypesCache();
                 closeModal();
 
 
@@ -3000,6 +3018,7 @@ async function deleteType(id) {
         }
 
 
+        clearCollectionTypesCache();
         await loadTypesFromDB();
 
 
