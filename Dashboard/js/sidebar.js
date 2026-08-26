@@ -19,7 +19,7 @@
 
     sidebar.innerHTML = `
         <div class="sidebar-brand">
-            <h2>CFMMS</h2>
+            <h2>MAUI UMC</h2>
         </div>
         <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="siteNavigation">
             Menu
@@ -164,5 +164,30 @@
         }
         sessionStorage.clear();
         window.location.replace("login.html");
+    });
+
+    sidebar.querySelectorAll("a[href]").forEach(link => {
+        link.addEventListener("click", event => {
+            const target = link.getAttribute("href");
+
+            if (
+                event.defaultPrevented ||
+                target === "#" ||
+                link.id === "sidebarLogout" ||
+                event.ctrlKey ||
+                event.metaKey ||
+                event.shiftKey ||
+                event.altKey
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            document.body.classList.add("page-exit");
+
+            window.setTimeout(() => {
+                window.location.href = target;
+            }, 160);
+        });
     });
 })();

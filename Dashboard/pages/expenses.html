@@ -22,6 +22,7 @@
     href="/images/logo.png"
     type="image/png"
 >
+<link rel="stylesheet" href="../css/sidebar.css">
 
 <style>
 
@@ -2245,12 +2246,15 @@ function formatDate(value) {
 function statusBadge(status) {
 
     const safe =
-        status || "Pending";
+        String(status || "Pending");
+
+    const normalizedStatus =
+        safe.toLowerCase();
 
     const className =
-        safe === "Approved"
+        normalizedStatus === "approved"
             ? "status-approved"
-            : safe === "Voided"
+            : normalizedStatus === "voided"
                 ? "status-voided"
                 : "status-pending";
 
@@ -2757,8 +2761,8 @@ function renderExpenses(expenses) {
                             </button>
 
                             ${
-                                expense.status ===
-                                "Pending"
+                                String(expense.status).toLowerCase() ===
+                                "pending"
                                     ? `
                                         <button
                                             class="action-btn"
@@ -2782,8 +2786,8 @@ function renderExpenses(expenses) {
                             }
 
                             ${
-                                expense.status !==
-                                "Voided"
+                                String(expense.status).toLowerCase() !==
+                                "voided"
                                     ? `
                                         <button
                                             class="action-btn"
@@ -2974,11 +2978,13 @@ async function cachedFetchJson(url, options = {}, key, ttl = EXPENSES_CACHE_TTL)
     try {
         const response = await fetch(url, options);
 
+        const responseText = await response.text();
         let data;
+
         try {
-            data = await response.json();
+            data = responseText ? JSON.parse(responseText) : null;
         } catch {
-            data = await response.text();
+            data = responseText;
         }
 
         if (response.ok && method === "GET") {
@@ -3006,6 +3012,10 @@ async function loadExpenses() {
         );
 
     try {
+
+        localStorage.removeItem(
+            "cfmms:expenses:list"
+        );
 
         const data = await cachedFetchJson(
             "/api/expenses",
@@ -3230,6 +3240,10 @@ document
 
                 closeExpenseModal();
 
+                localStorage.removeItem(
+                    "cfmms:expenses:list"
+                );
+
                 await loadExpenses();
 
                 alert(
@@ -3273,10 +3287,7 @@ EDIT
 
 function editExpense(expense) {
 
-    if (
-        expense.status !==
-        "Pending"
-    ) {
+    if (String(expense.status).toLowerCase() !== "pending") {
 
         alert(
             "Only Pending expenses can be edited."
@@ -3346,6 +3357,10 @@ async function approveExpense(id) {
             );
 
         }
+
+        localStorage.removeItem(
+            "cfmms:expenses:list"
+        );
 
         await loadExpenses();
 
@@ -3446,6 +3461,10 @@ async function voidExpense(id) {
             );
 
         }
+
+        localStorage.removeItem(
+            "cfmms:expenses:list"
+        );
 
         await loadExpenses();
 

@@ -1122,6 +1122,7 @@
 
     </style>
 
+    <link rel="stylesheet" href="../css/sidebar.css">
 </head>
 
 
@@ -1734,6 +1735,35 @@
     let allAuditLogs = [];
 
 
+    async function fetchAuditLogs() {
+
+        const response = await fetch(
+            "/api/audit",
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        const responseText = await response.text();
+        let data;
+
+        try {
+            data = responseText ? JSON.parse(responseText) : null;
+        } catch {
+            data = responseText;
+        }
+
+        if (!response.ok) {
+            throw new Error(data?.error || "Unable to load audit logs.");
+        }
+
+        return data;
+    }
+
+
     // ========================================================
     // HELPERS
     // ========================================================
@@ -2300,16 +2330,7 @@ function openDetailsModal(index) {
             `;
 
 
-            const data = await cachedFetchJson(
-                "/api/audit",
-                {
-                    method: "GET",
-                    headers: {
-                        "Authorization": "Bearer " + token
-                    }
-                },
-                "cfmms:audit:list"
-            );
+            const data = await fetchAuditLogs();
 
             if (!Array.isArray(data)) {
                 throw new Error("Unable to load audit logs.");

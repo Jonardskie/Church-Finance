@@ -33,6 +33,7 @@ try {
     const memberRoutes = require("../Routes/member");
     const reportRoutes = require("../Routes/report");
     const expenseRoutes = require("../Routes/expenses");
+    const auditRoutes = require("../Routes/audit");
 
     app.use("/api/auth", authRoutes);
     app.use("/api/collections", collectionRoutes);
@@ -40,6 +41,7 @@ try {
     app.use("/api/members", memberRoutes);
     app.use("/api/expenses", expenseRoutes);
     app.use("/api/reports", reportRoutes);
+    app.use("/api/audit", auditRoutes);
 } catch (error) {
     console.error("❌ Error loading routes:", error.message);
 }
