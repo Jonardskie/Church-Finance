@@ -202,23 +202,15 @@
             </div>
             <div class="form-group">
                 <label>Select Member *</label>
-                <select id="collectionMemberId" required>
-                    <option value="" disabled selected>Loading members...</option>
-                </select>
+                <input type="search" id="memberSearch" required placeholder="Type to find a member...">
+                <input type="hidden" id="collectionMemberId">
+                <ul class="suggestions-dropdown" id="memberSuggestions"></ul>
             </div>
             <div class="form-group">
                 <label>Collection Type</label>
-                <select id="collectionType">
-                    <!-- Populated dynamically from local storage -->
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Fund Category</label>
-                <select id="fundCategory">
-                    <option value="General Fund">General Fund</option>
-                    <option value="Building Fund">Building Fund</option>
-                    <option value="Benevolence Fund">Benevolence Fund</option>
-                </select>
+                <input type="search" id="collectionTypeSearch" required placeholder="Type to find a collection type...">
+                <input type="hidden" id="collectionType">
+                <ul class="suggestions-dropdown" id="collectionTypeSuggestions"></ul>
             </div>
             <div class="form-group">
                 <label>Amount (₱)</label>
@@ -286,6 +278,8 @@ function handleLogout(event) {
    ========================================================= */
 
 let collectionsData = [];
+let memberOptions = [];
+let collectionTypeOptions = [];
 
 
 /* =========================================================
@@ -338,11 +332,13 @@ async function cachedFetchJson(url, options = {}, key, ttl = COLLECTIONS_CACHE_T
     try {
         const response = await fetch(url, options);
 
+        const responseText = await response.text();
         let data;
+
         try {
-            data = await response.json();
+            data = responseText ? JSON.parse(responseText) : null;
         } catch {
-            data = await response.text();
+            data = responseText;
         }
 
         if (response.ok && method === "GET") {
@@ -395,63 +391,21 @@ async function apiRequest(url, options = {}) {
    ========================================================= */
 
 async function loadMemberDropdown() {
-
-    const dropdown =
-        document.getElementById("collectionMemberId");
-
-
-    if (!dropdown) return;
-
-
-    dropdown.innerHTML = `
-        <option value="" disabled selected>
-            Loading members...
-        </option>
-    `;
-
-
     try {
 
         const members =
             await apiRequest("/api/members");
 
 
-        dropdown.innerHTML = `
-            <option value="" disabled selected>
-                -- Choose a Member --
-            </option>
-
-            <option value="ANONYMOUS">
-                Anonymous / Guest
-            </option>
-        `;
-
-
-        const activeMembers =
-            members.filter(
-                member =>
-                    member.status === "Active"
-            );
-
-
-        activeMembers.forEach(member => {
-
-            const option =
-                document.createElement("option");
-
-
-            option.value =
-                member.member_id;
-
-
-            option.textContent =
-                `${member.official_name} (${member.member_id})`;
-
-
-            dropdown.appendChild(option);
-
-        });
-
+        memberOptions = [
+            { id: "ANONYMOUS", name: "Anonymous / Guest" },
+            ...members
+                .filter(member => member.status === "Active")
+                .map(member => ({
+                    id: member.member_id,
+                    name: `${member.official_name} (${member.member_id})`
+                }))
+        ];
 
     } catch (error) {
 
@@ -461,13 +415,73 @@ async function loadMemberDropdown() {
         );
 
 
-        dropdown.innerHTML = `
-            <option value="" disabled selected>
-                ❌ Error fetching members
-            </option>
-        `;
+        memberOptions = [];
     }
 }
+
+
+function renderSuggestions(searchId, suggestionsId, options) {
+
+    const searchInput =
+        document.getElementById(searchId);
+
+    const suggestions =
+        document.getElementById(suggestionsId);
+
+    if (!searchInput || !suggestions) return;
+
+    const query = searchInput.value.toLowerCase().trim();
+    const matches = options
+        .filter(option => option.name.toLowerCase().includes(query))
+        .sort((first, second) => {
+            const firstStarts = first.name.toLowerCase().startsWith(query);
+            const secondStarts = second.name.toLowerCase().startsWith(query);
+            return Number(secondStarts) - Number(firstStarts);
+        });
+
+    suggestions.innerHTML = matches.length
+        ? matches.map(option =>
+            `<li data-value="${escapeHTML(option.id)}" data-name="${escapeHTML(option.name)}">${escapeHTML(option.name)}</li>`
+        ).join("")
+        : "<li>No matching names found</li>";
+
+    suggestions.style.display = "block";
+}
+
+
+document.getElementById("memberSearch")?.addEventListener(
+    "input",
+    () => {
+        document.getElementById("collectionMemberId").value = "";
+        renderSuggestions("memberSearch", "memberSuggestions", memberOptions);
+    }
+);
+
+document.getElementById("collectionTypeSearch")?.addEventListener(
+    "input",
+    () => {
+        document.getElementById("collectionType").value = "";
+        renderSuggestions("collectionTypeSearch", "collectionTypeSuggestions", collectionTypeOptions);
+    }
+);
+
+document.getElementById("memberSuggestions")?.addEventListener("click", event => {
+    const suggestion = event.target.closest("li[data-value]");
+    if (!suggestion) return;
+
+    document.getElementById("memberSearch").value = suggestion.dataset.name;
+    document.getElementById("collectionMemberId").value = suggestion.dataset.value;
+    event.currentTarget.style.display = "none";
+});
+
+document.getElementById("collectionTypeSuggestions")?.addEventListener("click", event => {
+    const suggestion = event.target.closest("li[data-value]");
+    if (!suggestion) return;
+
+    document.getElementById("collectionTypeSearch").value = suggestion.dataset.name;
+    document.getElementById("collectionType").value = suggestion.dataset.value;
+    event.currentTarget.style.display = "none";
+});
 
 
 /* =========================================================
@@ -475,67 +489,18 @@ async function loadMemberDropdown() {
    ========================================================= */
 
 async function loadCollectionTypes() {
-
-    const dropdown =
-        document.getElementById("collectionType");
-
-
-    if (!dropdown) return;
-
-
-    dropdown.innerHTML = `
-        <option value="" disabled selected>
-            Loading collection types...
-        </option>
-    `;
-
-
     try {
 
         const types =
             await apiRequest("/api/collection-types");
 
 
-        dropdown.innerHTML = `
-            <option value="" disabled selected>
-                -- Choose Collection Type --
-            </option>
-        `;
-
-
-        types
+        collectionTypeOptions = types
             .filter(
                 type =>
                     type.status === "Active"
             )
-            .forEach(type => {
-
-                const option =
-                    document.createElement("option");
-
-
-                option.value =
-                    type.id;
-
-
-                option.textContent =
-                    type.name;
-
-
-                dropdown.appendChild(option);
-
-            });
-
-
-        if (dropdown.options.length === 1) {
-
-            dropdown.innerHTML = `
-                <option value="" disabled selected>
-                    No active collection types
-                </option>
-            `;
-        }
-
+            .map(type => ({ id: type.name, name: type.name }));
 
     } catch (error) {
 
@@ -545,11 +510,7 @@ async function loadCollectionTypes() {
         );
 
 
-        dropdown.innerHTML = `
-            <option value="" disabled selected>
-                ❌ Failed to load collection types
-            </option>
-        `;
+        collectionTypeOptions = [];
     }
 }
 
@@ -897,18 +858,6 @@ if (collectionForm) {
                 );
 
 
-            const memberOption =
-                memberDropdown.options[
-                    memberDropdown.selectedIndex
-                ];
-
-
-            const typeOption =
-                typeDropdown.options[
-                    typeDropdown.selectedIndex
-                ];
-
-
             if (!memberDropdown.value) {
 
                 alert(
@@ -960,21 +909,15 @@ if (collectionForm) {
 
 
                 member_name:
-                    memberOption.text
+                    document.getElementById(
+                        "memberSearch"
+                    ).value
                         .split("(")[0]
                         .trim(),
 
 
-                collection_type_id:
-                    Number(
-                        typeDropdown.value
-                    ),
-
-
-                fund:
-                    document.getElementById(
-                        "fundCategory"
-                    ).value,
+                type:
+                    typeDropdown.value,
 
 
                 amount:
@@ -1015,8 +958,20 @@ if (collectionForm) {
                 );
 
 
+                localStorage.removeItem(
+                    "cfmms:GET:/api/collections"
+                );
+
+
+                localStorage.removeItem(
+                    "cfmms:dashboard:collections"
+                );
+
+
                 collectionForm.reset();
 
+                document.getElementById("memberSuggestions").style.display = "none";
+                document.getElementById("collectionTypeSuggestions").style.display = "none";
 
                 closeModal();
 
@@ -1059,7 +1014,7 @@ async function verifyCollection(id) {
     try {
 
         await apiRequest(
-            `/api/collections/${id}`,
+            `/api/collections/verify/${id}`,
             {
                 method: "PUT",
 
@@ -1072,6 +1027,16 @@ async function verifyCollection(id) {
 
         alert(
             "Collection verified successfully."
+        );
+
+
+        localStorage.removeItem(
+            "cfmms:GET:/api/collections"
+        );
+
+
+        localStorage.removeItem(
+            "cfmms:dashboard:collections"
         );
 
 
@@ -1120,6 +1085,16 @@ async function deleteCollection(id) {
 
         alert(
             "Collection deleted successfully."
+        );
+
+
+        localStorage.removeItem(
+            "cfmms:GET:/api/collections"
+        );
+
+
+        localStorage.removeItem(
+            "cfmms:dashboard:collections"
         );
 
 
@@ -1399,5 +1374,7 @@ loadMemberDropdown();
 loadCollectionsFromDB();
 
 </script>
+<script src="../js/form-validation.js"></script>
+<script src="../js/sidebar.js"></script>
 </body>
 </html>

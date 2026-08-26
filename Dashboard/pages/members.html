@@ -1175,7 +1175,7 @@
 
         <div class="modal-tabs">
 
-            <button class="tab-btn active">
+            <button class="tab-btn active" type="button">
                 Basic
             </button>
 
@@ -1740,11 +1740,13 @@ async function cachedFetchJson(url, options = {}, key, ttl = MEMBER_CACHE_TTL) {
     try {
         const response = await fetch(url, options);
 
+        const responseText = await response.text();
         let data;
+
         try {
-            data = await response.json();
+            data = responseText ? JSON.parse(responseText) : null;
         } catch {
-            data = await response.text();
+            data = responseText;
         }
 
         if (response.ok && method === "GET") {
@@ -3210,7 +3212,7 @@ function openModal() {
 
 
     const generatedMemberId =
-        "MEM-" +
+        "MUMC-" +
         nextIdNum
             .toString()
             .padStart(
@@ -4173,5 +4175,7 @@ loadMembers({ resetFilters: true });
 
 </script>
 
+<script src="../js/form-validation.js"></script>
+<script src="../js/sidebar.js"></script>
 </body>
 </html>

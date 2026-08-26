@@ -30,7 +30,7 @@ async function generateMemberId(pool) {
         }
 
         const paddedCounter = String(nextCounter).padStart(4, "0");
-        return `CFMMS-${currentYear}-${paddedCounter}`;
+        return `MUMC-${currentYear}-${paddedCounter}`;
 
     } catch (err) {
         console.error("ID Generator Error:", err.message);

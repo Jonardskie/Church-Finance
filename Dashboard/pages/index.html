@@ -300,11 +300,13 @@ async function cachedFetchJson(url, options = {}, key, ttl = DASHBOARD_CACHE_TTL
     try {
         const response = await fetch(url, options);
 
+        const responseText = await response.text();
         let data;
+
         try {
-            data = await response.json();
+            data = responseText ? JSON.parse(responseText) : null;
         } catch {
-            data = await response.text();
+            data = responseText;
         }
 
         if (response.ok && method === "GET") {
@@ -331,13 +333,22 @@ async function loadDashboardMetrics() {
     const token = sessionStorage.getItem("token");
 
     try {
-        const data = await cachedFetchJson("/api/members", {
+        const [data, collections] = await Promise.all([
+            cachedFetchJson("/api/members", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + token
             }
-        }, "cfmms:dashboard:members");
+            }, "cfmms:dashboard:members"),
+            cachedFetchJson("/api/collections", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                }
+            }, "cfmms:dashboard:collections")
+        ]);
 
         const res = { ok: true };
 
@@ -386,8 +397,28 @@ async function loadDashboardMetrics() {
         const percentCalculation = members.length > 0 ? Math.round((activeCount / members.length) * 100) : 0;
         document.getElementById("dashActivePercent").innerText = `${percentCalculation}% Active`;
 
-        // Mock Summary Placeholders for Fin-Modules (To scale up when collections API modules bind)
-        document.getElementById("dashTotalCollections").innerText = "₱0.00";
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        const monthlyCollections = Array.isArray(collections)
+            ? collections.filter(collection => {
+                const collectionDate = new Date(
+                    collection.collection_date || collection.date
+                );
+                return collectionDate.getMonth() === currentMonth &&
+                    collectionDate.getFullYear() === currentYear;
+            })
+            : [];
+        const monthlyTotal = monthlyCollections.reduce(
+            (total, collection) => total + Number(collection.amount || 0),
+            0
+        );
+
+        document.getElementById("dashTotalCollections").innerText =
+            `₱${monthlyTotal.toLocaleString("en-PH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
         document.getElementById("dashAvailableFunds").innerText = "₱0.00";
         document.getElementById("dashTotalExpenses").innerText = "₱0.00";
 
@@ -399,5 +430,7 @@ async function loadDashboardMetrics() {
 // Run monitor updates on page launch
 loadDashboardMetrics();
 </script>
+<script src="../js/form-validation.js"></script>
+<script src="../js/sidebar.js"></script>
 </body>
 </html>
