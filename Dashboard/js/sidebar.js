@@ -36,6 +36,18 @@
         </ul>
     `;
 
+    const mobileTrigger = document.createElement("button");
+    mobileTrigger.className = "mobile-sidebar-trigger";
+    mobileTrigger.type = "button";
+    mobileTrigger.textContent = "Menu";
+    mobileTrigger.setAttribute("aria-expanded", "false");
+    mobileTrigger.setAttribute("aria-controls", "siteNavigation");
+
+    const mobileOverlay = document.createElement("div");
+    mobileOverlay.className = "mobile-sidebar-overlay";
+    mobileOverlay.hidden = true;
+    document.body.append(mobileTrigger, mobileOverlay);
+
     const style = document.createElement("style");
     style.textContent = `
         .sidebar {
@@ -121,14 +133,98 @@
         }
         @media (max-width: 768px) {
             .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 2000;
+                width: min(280px, 86vw);
                 flex-basis: 100%;
-                min-height: auto;
+                min-height: 100dvh;
+                height: 100dvh;
                 padding: 16px;
+                overflow-y: auto;
+                transform: translateX(-105%);
+                transition: transform .18s ease-out;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
             }
             .sidebar-toggle { display: block; }
-            .sidebar-menu { display: none; }
-            .sidebar-menu.is-open { display: block; }
+            .sidebar-menu { display: block; }
             .container { display: block; }
+            .content {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                padding: 16px !important;
+                overflow-x: hidden;
+            }
+            .topbar,
+            .page-header {
+                display: flex !important;
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            .topbar h1,
+            .page-header h1 {
+                font-size: 1.45rem;
+            }
+            .topbar button,
+            .page-header button,
+            .page-header .btn,
+            .toolbar button {
+                width: 100%;
+            }
+            .cards,
+            .summary-grid,
+            .dashboard-grid,
+            .filter-grid,
+            .form-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 14px;
+            }
+            .card,
+            .summary-card,
+            .table-container,
+            .table-section-container,
+            .filter-card {
+                width: 100%;
+                min-width: 0;
+            }
+            .table-container,
+            .table-section-container {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            table {
+                min-width: 640px;
+            }
+            .modal {
+                padding: 12px !important;
+            }
+            .modal-content {
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: calc(100dvh - 24px) !important;
+                padding: 16px !important;
+            }
+            .modal-footer,
+            .actions,
+            .action-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .modal-footer button,
+            .actions button,
+            .action-buttons button {
+                flex: 1 1 auto;
+                min-height: 40px;
+            }
         }
     `;
     document.head.appendChild(style);
@@ -186,10 +282,30 @@
     const toggle = sidebar.querySelector(".sidebar-toggle");
     const menu = sidebar.querySelector(".sidebar-menu");
 
+    const closeMobileSidebar = () => {
+        sidebar.classList.remove("mobile-open");
+        mobileOverlay.hidden = true;
+        mobileTrigger.setAttribute("aria-expanded", "false");
+    };
+
+    const openMobileSidebar = () => {
+        sidebar.classList.add("mobile-open");
+        mobileOverlay.hidden = false;
+        mobileTrigger.setAttribute("aria-expanded", "true");
+    };
+
     toggle.addEventListener("click", () => {
         const isOpen = menu.classList.toggle("is-open");
         toggle.setAttribute("aria-expanded", String(isOpen));
     });
+
+    mobileTrigger.addEventListener("click", () => {
+        sidebar.classList.contains("mobile-open")
+            ? closeMobileSidebar()
+            : openMobileSidebar();
+    });
+
+    mobileOverlay.addEventListener("click", closeMobileSidebar);
 
     sidebar.querySelector("#sidebarLogout").addEventListener("click", event => {
         event.preventDefault();
@@ -218,6 +334,7 @@
             }
 
             event.preventDefault();
+            closeMobileSidebar();
             document.body.classList.add("page-exit");
 
             window.setTimeout(() => {
