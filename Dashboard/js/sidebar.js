@@ -222,7 +222,7 @@
 
             window.setTimeout(() => {
                 window.location.href = target;
-            }, 160);
+            }, 100);
         });
     });
 })();

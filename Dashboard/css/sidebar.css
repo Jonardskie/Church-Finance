@@ -5,11 +5,11 @@
 }
 
 body {
-    animation: pageEnter .22s ease-out both;
+    animation: pageEnter .14s ease-out both;
 }
 
 body.page-exit {
-    animation: pageExit .16s ease-in both;
+    animation: pageExit .10s ease-in both;
 }
 
 body.modal-open {
