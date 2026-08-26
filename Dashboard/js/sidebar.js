@@ -61,7 +61,7 @@
         .sidebar-menu { list-style: none; padding: 0; margin: 0; }
         .sidebar-menu li { margin-bottom: 8px; }
         .sidebar-menu a {
-            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+            transition: transform 0.1s ease, background-color 0.2s ease, color 0.1s ease;
         }
 
         .sidebar-menu a:hover {
