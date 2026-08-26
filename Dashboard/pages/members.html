@@ -1462,6 +1462,8 @@
                     <input
                         type="text"
                         id="loginId"
+                        readonly
+                        placeholder="Same as Member ID"
                     >
 
                 </div>
@@ -3338,7 +3340,6 @@ async function editMember(id) {
         document.getElementById(
             "loginId"
         ).value =
-            member.login_id ||
             member.member_id ||
             "";
 

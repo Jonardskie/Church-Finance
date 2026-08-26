@@ -85,6 +85,7 @@
         .suggestions-dropdown li { padding: 10px 12px; cursor: pointer; font-size: 0.85rem; color: #333; border-bottom: 1px solid #f9f9f9; }
         .suggestions-dropdown li:last-child { border-bottom: none; }
         .suggestions-dropdown li:hover { background: #f0f4f8; color: #1b365d; font-weight: 500; }
+        .suggestions-dropdown li.active { background: #e2e8f0; color: #1b365d; font-weight: 600; }
 
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .btn-cancel { background: #f3f4f6; color: #4b5563; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-family: inherit; }
@@ -450,6 +451,56 @@ function renderSuggestions(searchId, suggestionsId, options) {
 }
 
 
+function selectSuggestion(suggestion, searchId, hiddenId, suggestionsId) {
+
+    document.getElementById(searchId).value = suggestion.dataset.name;
+    document.getElementById(hiddenId).value = suggestion.dataset.value;
+    document.getElementById(suggestionsId).style.display = "none";
+}
+
+
+function handleSuggestionKeyboard(event, searchId, suggestionsId, hiddenId) {
+
+    const suggestions = document.getElementById(suggestionsId);
+    const visibleSuggestions = Array.from(
+        suggestions.querySelectorAll("li[data-value]")
+    );
+
+    if (!visibleSuggestions.length) return;
+
+    const activeIndex = visibleSuggestions.findIndex(
+        suggestion => suggestion.classList.contains("active")
+    );
+
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+
+        const direction = event.key === "ArrowDown" ? 1 : -1;
+        const nextIndex = activeIndex < 0
+            ? direction === 1 ? 0 : visibleSuggestions.length - 1
+            : (activeIndex + direction + visibleSuggestions.length) % visibleSuggestions.length;
+
+        visibleSuggestions.forEach(suggestion => suggestion.classList.remove("active"));
+        const activeSuggestion = visibleSuggestions[nextIndex];
+        activeSuggestion.classList.add("active");
+        activeSuggestion.scrollIntoView({ block: "nearest" });
+        return;
+    }
+
+    if (event.key === "Enter") {
+        event.preventDefault();
+        const activeSuggestion = visibleSuggestions[activeIndex < 0 ? 0 : activeIndex];
+        selectSuggestion(activeSuggestion, searchId, hiddenId, suggestionsId);
+        return;
+    }
+
+    if (event.key === "Escape") {
+        event.preventDefault();
+        suggestions.style.display = "none";
+    }
+}
+
+
 document.getElementById("memberSearch")?.addEventListener(
     "input",
     () => {
@@ -466,22 +517,48 @@ document.getElementById("collectionTypeSearch")?.addEventListener(
     }
 );
 
+document.getElementById("memberSearch")?.addEventListener(
+    "keydown",
+    event => handleSuggestionKeyboard(
+        event,
+        "memberSearch",
+        "memberSuggestions",
+        "collectionMemberId"
+    )
+);
+
+document.getElementById("collectionTypeSearch")?.addEventListener(
+    "keydown",
+    event => handleSuggestionKeyboard(
+        event,
+        "collectionTypeSearch",
+        "collectionTypeSuggestions",
+        "collectionType"
+    )
+);
+
 document.getElementById("memberSuggestions")?.addEventListener("click", event => {
     const suggestion = event.target.closest("li[data-value]");
     if (!suggestion) return;
 
-    document.getElementById("memberSearch").value = suggestion.dataset.name;
-    document.getElementById("collectionMemberId").value = suggestion.dataset.value;
-    event.currentTarget.style.display = "none";
+    selectSuggestion(
+        suggestion,
+        "memberSearch",
+        "collectionMemberId",
+        "memberSuggestions"
+    );
 });
 
 document.getElementById("collectionTypeSuggestions")?.addEventListener("click", event => {
     const suggestion = event.target.closest("li[data-value]");
     if (!suggestion) return;
 
-    document.getElementById("collectionTypeSearch").value = suggestion.dataset.name;
-    document.getElementById("collectionType").value = suggestion.dataset.value;
-    event.currentTarget.style.display = "none";
+    selectSuggestion(
+        suggestion,
+        "collectionTypeSearch",
+        "collectionType",
+        "collectionTypeSuggestions"
+    );
 });
 
 

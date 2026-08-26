@@ -61,12 +61,13 @@
         .sidebar-menu { list-style: none; padding: 0; margin: 0; }
         .sidebar-menu li { margin-bottom: 8px; }
         .sidebar-menu a {
-            display: block;
-            padding: 10px;
-            border-radius: 6px;
-            color: #a4bcd4;
-            text-decoration: none;
-            transition: background .2s ease, color .2s ease;
+            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+            transform: translateX(6px); /* Nudges the link 6 pixels to the right */
         }
         .sidebar-menu a:hover,
         .sidebar-menu .active a {
@@ -101,6 +102,22 @@
         .btn-print:hover {
             background: #f1f5f9;
             opacity: 1;
+        }
+        .modal {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100dvh !important;
+            max-height: 100dvh;
+            overflow-y: auto;
+            padding: 80px;
+            box-sizing: border-box;
+            align-items: flex-start !important;
+        }
+        .modal-content {
+            max-height: calc(90dvh - 40px);
+            overflow-y: auto;
+            margin: 0 auto;
         }
         @media (max-width: 768px) {
             .sidebar {
@@ -147,6 +164,24 @@
         childList: true,
         subtree: true
     });
+
+    const updateModalScrollLock = () => {
+        const modalIsOpen = Array.from(document.querySelectorAll(".modal"))
+            .some(modal => {
+                const styles = window.getComputedStyle(modal);
+                return styles.display !== "none" && styles.visibility !== "hidden";
+            });
+
+        document.body.classList.toggle("modal-open", modalIsOpen);
+    };
+
+    const modalObserver = new MutationObserver(updateModalScrollLock);
+    modalObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["class", "style"],
+        subtree: true
+    });
+    updateModalScrollLock();
 
     const toggle = sidebar.querySelector(".sidebar-toggle");
     const menu = sidebar.querySelector(".sidebar-menu");

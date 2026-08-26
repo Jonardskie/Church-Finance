@@ -12,6 +12,10 @@ body.page-exit {
     animation: pageExit .16s ease-in both;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 @keyframes pageEnter {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }

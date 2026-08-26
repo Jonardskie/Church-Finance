@@ -179,7 +179,7 @@ exports.createMember = async (req, res) => {
             member_id || await generateMemberId(pool);
 
         const finalLoginId =
-            login_id || finalMemberId;
+            finalMemberId;
 
 
         const insertMemberQuery = `
@@ -346,6 +346,20 @@ exports.updateMember = async (req, res) => {
 
     try {
 
+        const existingMemberResult = await pool.query(
+            "SELECT member_id, login_id FROM members WHERE id = $1",
+            [id]
+        );
+
+        if (existingMemberResult.rows.length === 0) {
+            return res.status(404).json({
+                error: "Member not found."
+            });
+        }
+
+        const existingMember = existingMemberResult.rows[0];
+        const memberLoginId = existingMember.member_id;
+
         // ==========================================
         // NORMALIZE ROLE
         // ==========================================
@@ -414,7 +428,7 @@ exports.updateMember = async (req, res) => {
             cleanDate(join_date) ||
                 new Date().toISOString().split("T")[0],
 
-            login_id,
+            memberLoginId,
 
             cleanChoice(gender),
 
@@ -463,7 +477,7 @@ exports.updateMember = async (req, res) => {
 
             const userCheck = await pool.query(
                 "SELECT * FROM users WHERE username = $1",
-                [login_id]
+                [memberLoginId]
             );
 
 
@@ -482,7 +496,7 @@ exports.updateMember = async (req, res) => {
                         hashedPassword,
                         formattedRole,
                         official_name,
-                        login_id
+                        memberLoginId
                     ]
                 );
 
@@ -495,7 +509,7 @@ exports.updateMember = async (req, res) => {
                     VALUES ($1,$2,$3,$4)
                     `,
                     [
-                        login_id,
+                        memberLoginId,
                         hashedPassword,
                         formattedRole,
                         official_name
