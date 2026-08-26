@@ -15,7 +15,7 @@
         name1: { maxLength: 150, pattern: /^[\p{L} .'-]+$/u, message: "Use letters, spaces, hyphens, apostrophes, or periods only." },
         name2: { maxLength: 150, pattern: /^[\p{L} .'-]+$/u, message: "Use letters, spaces, hyphens, apostrophes, or periods only." },
         email: { maxLength: 254, type: "email" },
-        userEmail: { maxLength: 254, type: "email" },
+        userEmail: { maxLength: 50, pattern: /^[A-Za-z0-9._-]+$/, message: "Use a valid RBA member ID or username." },
         tel1: { maxLength: 20, pattern: /^(09\d{9}|\+639\d{9})$/, message: "Use 09XXXXXXXXX or +639XXXXXXXXX." },
         tel2: { maxLength: 20, pattern: /^(09\d{9}|\+639\d{9})$/, message: "Use 09XXXXXXXXX or +639XXXXXXXXX." },
         loginId: { maxLength: 50, pattern: /^[A-Za-z0-9._-]+$/, message: "Use letters, numbers, periods, underscores, or hyphens only." },
