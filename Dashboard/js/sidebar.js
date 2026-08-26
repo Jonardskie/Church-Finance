@@ -10,11 +10,8 @@
         ["collections.html", "Collections"],
         ["funds.html", "Funds"],
         ["expenses.html", "Expenses"],
-        ["vouchers.html", "Vouchers"],
         ["reports.html", "Reports"],
         ["audit.html", "Audit Trail"],
-        ["users.html", "Users"],
-        ["settings.html", "Settings"]
     ];
 
     sidebar.innerHTML = `
