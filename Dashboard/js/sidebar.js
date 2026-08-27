@@ -4,25 +4,60 @@
     if (!sidebar) return;
 
     const currentPage = window.location.pathname.split("/").pop() || "index.html";
-    const navigation = [
-        ["index.html", "Dashboard"],
-        ["members.html", "Members"],
-        ["collections.html", "Collections"],
-        ["funds.html", "Funds"],
-        ["expenses.html", "Expenses"],
-        ["reports.html", "Reports"],
-        ["audit.html", "Audit Trail"],
+    const userRole = (sessionStorage.getItem("role") || "member").toLowerCase();
+    const userName = sessionStorage.getItem("name") || sessionStorage.getItem("username") || "User";
+
+    // Role-based page permission mapping
+    const pagePermissions = {
+        "index.html": ["admin", "pastor", "treasurer", "secretary", "finance"],
+        "members.html": ["admin", "pastor", "treasurer", "secretary", "finance"],
+        "collections.html": ["admin", "pastor", "treasurer", "secretary", "finance"],
+        "funds.html": ["admin", "treasurer", "finance"],
+        "expenses.html": ["admin", "pastor", "treasurer", "finance"],
+        "reports.html": ["admin", "pastor", "treasurer", "finance"],
+        "audit.html": ["admin", "pastor", "treasurer", "finance"]
+    };
+
+    // Client-side Page Guard
+    if (pagePermissions[currentPage] && !pagePermissions[currentPage].includes(userRole)) {
+        if (userRole === "member") {
+            window.location.replace("member_portal.html");
+            return;
+        } else {
+            alert("Access Restricted: You do not have authorization to view this section.");
+            window.location.replace("index.html");
+            return;
+        }
+    }
+
+    const allNavigation = [
+        ["index.html", "Dashboard", ["admin", "pastor", "treasurer", "secretary", "finance"]],
+        ["members.html", "Members", ["admin", "pastor", "treasurer", "secretary", "finance"]],
+        ["collections.html", "Collections", ["admin", "pastor", "treasurer", "secretary", "finance"]],
+        ["funds.html", "Funds", ["admin", "treasurer", "finance"]],
+        ["expenses.html", "Expenses", ["admin", "pastor", "treasurer", "finance"]],
+        ["reports.html", "Reports", ["admin", "pastor", "treasurer", "finance"]],
+        ["audit.html", "Audit Trail", ["admin", "pastor", "treasurer", "finance"]]
     ];
+
+    const allowedNavigation = allNavigation.filter(([page, label, roles]) =>
+        roles.includes(userRole)
+    );
+
+    const formattedRole = userRole.charAt(0).toUpperCase() + userRole.slice(1);
 
     sidebar.innerHTML = `
         <div class="sidebar-brand">
             <h2>MAUI UMC</h2>
+            <div style="font-size:0.75rem; color:#94a3b8; margin-top:-20px; margin-bottom:20px; font-weight:500; letter-spacing:0.5px;">
+                👤 ${userName} <span style="background:rgba(255,255,255,0.15); padding:2px 6px; border-radius:4px; margin-left:4px; text-transform:capitalize;">${formattedRole}</span>
+            </div>
         </div>
         <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="siteNavigation">
             Menu
         </button>
         <ul class="sidebar-menu" id="siteNavigation">
-            ${navigation.map(([page, label]) => `
+            ${allowedNavigation.map(([page, label]) => `
                 <li class="${page === currentPage ? "active" : ""}">
                     <a href="${page}">${label}</a>
                 </li>

@@ -194,44 +194,37 @@ if (auditRoutes) {
 
 
 // ============================================================
-// STATIC FILES
+// STATIC FILES & PAGE ROUTING
 // ============================================================
 
-app.use(
-    express.static("Dashboard")
-);
+const dashboardPath = path.join(__dirname, "Dashboard");
+const pagesPath = path.join(__dirname, "Dashboard", "pages");
 
+app.use(express.static(dashboardPath));
+app.use(express.static(pagesPath));
 
-// ============================================================
-// ROOT REDIRECT
-// ============================================================
-
+// Root redirect to login
 app.get("/", (req, res) => {
+    res.sendFile(path.join(pagesPath, "login.html"));
+});
 
-    try {
+// Explicit /pages/:page routing
+app.get("/pages/:page", (req, res, next) => {
+    const pageName = req.params.page.endsWith(".html") ? req.params.page : `${req.params.page}.html`;
+    const filePath = path.join(pagesPath, pageName);
+    res.sendFile(filePath, (err) => {
+        if (err) next();
+    });
+});
 
-        res.sendFile(
-            path.join(
-                __dirname,
-                "Dashboard",
-                "pages",
-                "login.html"
-            )
-        );
-
-    } catch (error) {
-
-        console.error(
-            "❌ Error serving login page:",
-            error
-        );
-
-        res
-            .status(500)
-            .send("Login page not found");
-
-    }
-
+// Direct root /:page routing (e.g. /index.html, /members.html)
+app.get("/:page", (req, res, next) => {
+    if (req.params.page.startsWith("api")) return next();
+    const pageName = req.params.page.endsWith(".html") ? req.params.page : `${req.params.page}.html`;
+    const filePath = path.join(pagesPath, pageName);
+    res.sendFile(filePath, (err) => {
+        if (err) next();
+    });
 });
 
 

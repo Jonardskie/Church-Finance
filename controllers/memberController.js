@@ -161,6 +161,7 @@ exports.createMember = async (req, res) => {
         password,
         gender,
         name_1,
+        middle_name,
         gov_id,
         name_2,
         marital_status,
@@ -181,6 +182,8 @@ exports.createMember = async (req, res) => {
         const finalLoginId =
             finalMemberId;
 
+        // Auto-construct official_name if not directly provided
+        const finalOfficialName = official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ");
 
         const insertMemberQuery = `
             INSERT INTO members (
@@ -194,6 +197,7 @@ exports.createMember = async (req, res) => {
                 login_id,
                 gender,
                 name_1,
+                middle_name,
                 gov_id,
                 name_2,
                 marital_status,
@@ -207,7 +211,7 @@ exports.createMember = async (req, res) => {
             )
             VALUES (
                 $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
-                $11,$12,$13,$14,$15,$16,$17,$18,$19,$20
+                $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21
             )
             RETURNING id;
         `;
@@ -217,7 +221,7 @@ exports.createMember = async (req, res) => {
 
             finalMemberId,
 
-            official_name,
+            finalOfficialName,
 
             phone,
 
@@ -235,6 +239,8 @@ exports.createMember = async (req, res) => {
             cleanChoice(gender),
 
             name_1,
+
+            middle_name || null,
 
             gov_id,
 
@@ -331,6 +337,7 @@ exports.updateMember = async (req, res) => {
         password,
         gender,
         name_1,
+        middle_name,
         gov_id,
         name_2,
         marital_status,
@@ -359,6 +366,9 @@ exports.updateMember = async (req, res) => {
 
         const existingMember = existingMemberResult.rows[0];
         const memberLoginId = existingMember.member_id;
+
+        // Auto-construct official_name if not explicitly set
+        const finalOfficialName = official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ");
 
         // ==========================================
         // NORMALIZE ROLE
@@ -399,23 +409,24 @@ exports.updateMember = async (req, res) => {
                 login_id = $7,
                 gender = $8,
                 name_1 = $9,
-                gov_id = $10,
-                name_2 = $11,
-                marital_status = $12,
-                dob = $13,
-                occupation = $14,
-                education = $15,
-                hobbies = $16,
-                tel_2 = $17,
-                email = $18,
-                baptist_date = $19
-            WHERE id = $20
+                middle_name = $10,
+                gov_id = $11,
+                name_2 = $12,
+                marital_status = $13,
+                dob = $14,
+                occupation = $15,
+                education = $16,
+                hobbies = $17,
+                tel_2 = $18,
+                email = $19,
+                baptist_date = $20
+            WHERE id = $21
         `;
 
 
         const values = [
 
-            official_name,
+            finalOfficialName,
 
             phone,
 
@@ -433,6 +444,8 @@ exports.updateMember = async (req, res) => {
             cleanChoice(gender),
 
             name_1,
+
+            middle_name || null,
 
             gov_id,
 
@@ -539,6 +552,7 @@ exports.updateMember = async (req, res) => {
 
 
 // ==========================================
+// ==========================================
 // DELETE ONE MEMBER
 // ==========================================
 
@@ -551,15 +565,24 @@ exports.deleteMember = async (req, res) => {
         await client.query("BEGIN");
 
 
-        // Get login ID first
+        // Get login ID / member ID first
         const member = await client.query(
             `
-            SELECT login_id
+            SELECT login_id, member_id
             FROM members
             WHERE id = $1
             `,
             [req.params.id]
         );
+
+        if (member.rows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({
+                message: "Member not found"
+            });
+        }
+
+        const loginId = member.rows[0].login_id || member.rows[0].member_id;
 
 
         // Delete member
@@ -573,17 +596,13 @@ exports.deleteMember = async (req, res) => {
 
 
         // Delete associated user account
-        if (
-            member.rows.length > 0 &&
-            member.rows[0].login_id
-        ) {
-
+        if (loginId) {
             await client.query(
                 `
                 DELETE FROM users
-                WHERE username = $1
+                WHERE LOWER(username) = LOWER($1)
                 `,
-                [member.rows[0].login_id]
+                [loginId]
             );
         }
 
@@ -592,7 +611,7 @@ exports.deleteMember = async (req, res) => {
 
 
         res.json({
-            message: "Deleted successfully"
+            message: "Member deleted successfully."
         });
 
 
@@ -662,12 +681,12 @@ exports.deleteMembersBatch = async (req, res) => {
 
 
         // ==========================================
-        // GET LOGIN IDS
+        // GET LOGIN IDS & MEMBER IDS
         // ==========================================
 
         const memberResult = await client.query(
             `
-            SELECT login_id
+            SELECT login_id, member_id
             FROM members
             WHERE id = ANY($1::int[])
             `,
@@ -676,13 +695,8 @@ exports.deleteMembersBatch = async (req, res) => {
 
 
         const loginIds = memberResult.rows
-            .map(row => row.login_id)
-            .filter(
-                loginId =>
-                    loginId !== null &&
-                    loginId !== undefined &&
-                    loginId !== ""
-            );
+            .map(row => row.login_id || row.member_id)
+            .filter(Boolean);
 
 
         // ==========================================
@@ -707,7 +721,7 @@ exports.deleteMembersBatch = async (req, res) => {
             await client.query(
                 `
                 DELETE FROM users
-                WHERE username = ANY($1::text[])
+                WHERE LOWER(username) = ANY(SELECT LOWER(unnest($1::text[])))
                 `,
                 [loginIds]
             );
@@ -841,14 +855,27 @@ exports.importMembers = async (req, res) => {
                 continue;
             }
 
-            const official_name =
+            const name_1 =
+                String(getCellValue(row, ["first name", "given name", "name 1", "firstname", "first_name"]) ?? "").trim();
+
+            const middle_name =
+                String(getCellValue(row, ["middle name", "middle initial", "m.i.", "m i", "middlename", "mid name", "middle_name"]) ?? "").trim();
+
+            const name_2 =
+                String(getCellValue(row, ["last name", "surname", "family name", "name 2", "lastname", "last_name"]) ?? "").trim();
+
+            let official_name =
                 String(
-                    getCellValue(row, ["full name", "official name", "member name", "name"]) ?? ""
+                    getCellValue(row, ["official name", "official_name", "full name", "member name", "name"]) ?? ""
                 ).trim();
+
+            if (!official_name && (name_1 || name_2)) {
+                official_name = [name_1, middle_name, name_2].filter(Boolean).join(" ");
+            }
 
             const phone =
                 String(
-                    getCellValue(row, ["contact number", "phone", "mobile number", "tel", "telephone"]) ?? ""
+                    getCellValue(row, ["phone", "contact number", "mobile number", "tel", "telephone", "tel 1", "tel1"]) ?? ""
                 ).trim();
 
             const address =
@@ -857,18 +884,18 @@ exports.importMembers = async (req, res) => {
                 ).trim();
 
             const role =
-                String(getCellValue(row, ["role"]) ?? "").trim() || "member";
+                String(getCellValue(row, ["role", "role setting"]) ?? "").trim() || "member";
 
             const status =
-                String(getCellValue(row, ["status"]) ?? "").trim() || "Active";
+                String(getCellValue(row, ["status", "membership status"]) ?? "").trim() || "Active";
 
             const join_date =
                 normalizeDateValue(
-                    getCellValue(row, ["join date", "date joined", "joined date"]) ?? ""
+                    getCellValue(row, ["join date", "join_date", "date joined", "joined date"]) ?? ""
                 ) || new Date().toISOString().split("T")[0];
 
             const genderRaw =
-                getCellValue(row, ["gender"]);
+                getCellValue(row, ["gender", "sex"]);
 
             const gender =
                 typeof genderRaw === "string" &&
@@ -876,15 +903,43 @@ exports.importMembers = async (req, res) => {
                     ? genderRaw.trim().charAt(0).toUpperCase() + genderRaw.trim().slice(1).toLowerCase()
                     : null;
 
+            const gov_id =
+                String(getCellValue(row, ["gov id", "gov_id", "government id", "id number", "passport", "license"]) ?? "").trim();
+
             const maritalStatusRaw =
-                getCellValue(row, ["marital status"]);
+                getCellValue(row, ["marital status", "marital_status", "civil status"]);
 
             const marital_status =
                 ["single", "married", "widowed"].includes(
                     String(maritalStatusRaw || "").trim().toLowerCase()
                 )
-                    ? String(maritalStatusRaw).trim()
+                    ? String(maritalStatusRaw).trim().charAt(0).toUpperCase() + String(maritalStatusRaw).trim().slice(1).toLowerCase()
                     : null;
+
+            const dob =
+                normalizeDateValue(
+                    getCellValue(row, ["dob", "date of birth", "birthdate", "birthday", "birth date"]) ?? ""
+                );
+
+            const occupation =
+                String(getCellValue(row, ["occupation", "job", "profession", "work"]) ?? "").trim();
+
+            const education =
+                String(getCellValue(row, ["education", "educational attainment", "attainment"]) ?? "").trim();
+
+            const hobbies =
+                String(getCellValue(row, ["hobbies", "hobby", "interests"]) ?? "").trim();
+
+            const tel_2 =
+                String(getCellValue(row, ["tel 2", "tel_2", "secondary phone", "telephone 2", "emergency contact", "other phone"]) ?? "").trim();
+
+            const email =
+                String(getCellValue(row, ["email", "email address", "e-mail"]) ?? "").trim();
+
+            const baptist_date =
+                normalizeDateValue(
+                    getCellValue(row, ["baptist date", "baptist_date", "baptism date", "date baptized", "baptized date"]) ?? ""
+                );
 
             const member_id = await generateMemberId(pool);
             const defaultPassword = await bcrypt.hash("123456", 10);
@@ -901,11 +956,22 @@ exports.importMembers = async (req, res) => {
                     join_date,
                     login_id,
                     gender,
-                    marital_status
+                    name_1,
+                    middle_name,
+                    gov_id,
+                    name_2,
+                    marital_status,
+                    dob,
+                    occupation,
+                    education,
+                    hobbies,
+                    tel_2,
+                    email,
+                    baptist_date
                 )
                 VALUES (
-                    $1,$2,$3,$4,$5,
-                    $6,$7,$8,$9,$10
+                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+                    $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21
                 )
                 `,
                 [
@@ -918,7 +984,18 @@ exports.importMembers = async (req, res) => {
                     join_date,
                     member_id,
                     gender,
-                    marital_status
+                    name_1 || null,
+                    middle_name || null,
+                    gov_id || null,
+                    name_2 || null,
+                    marital_status,
+                    dob,
+                    occupation || null,
+                    education || null,
+                    hobbies || null,
+                    tel_2 || null,
+                    email || null,
+                    baptist_date
                 ]
             );
 

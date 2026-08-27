@@ -13,6 +13,7 @@
     const fieldRules = {
         officialName: { maxLength: 150, pattern: /^[\p{L} .'-]+$/u, message: "Use letters, spaces, hyphens, apostrophes, or periods only." },
         name1: { maxLength: 150, pattern: /^[\p{L} .'-]+$/u, message: "Use letters, spaces, hyphens, apostrophes, or periods only." },
+        middleName: { maxLength: 150, pattern: /^[\p{L} .'-]+$/u, message: "Use letters, spaces, hyphens, apostrophes, or periods only." },
         name2: { maxLength: 150, pattern: /^[\p{L} .'-]+$/u, message: "Use letters, spaces, hyphens, apostrophes, or periods only." },
         email: { maxLength: 254, type: "email" },
         userEmail: { maxLength: 50, pattern: /^[A-Za-z0-9._-]+$/, message: "Use a valid RBA member ID or username." },

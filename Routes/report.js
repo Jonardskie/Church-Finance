@@ -10,35 +10,42 @@ const controller =
 const authMiddleware =
     require("../middleWare/authMiddleware");
 
+const roleMiddleware =
+    require("../middleWare/roleMiddleware");
 
-// Collection Summary
+
+// Collection Summary (Admin, Pastor, Treasurer)
 router.get(
     "/collections/summary",
     authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.collectionSummary
 );
 
 
-// Receipt Detail
+// Receipt Detail (Admin, Pastor, Treasurer)
 router.get(
     "/collections/detail",
     authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.collectionDetail
 );
 
 
-// Collection Method Summary
+// Collection Method Summary (Admin, Pastor, Treasurer)
 router.get(
     "/collections/methods",
     authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.collectionMethodSummary
 );
 
 
-// Excel Export
+// Excel Export (Admin, Pastor, Treasurer)
 router.get(
     "/collections/excel",
     authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.exportExcel
 );
 

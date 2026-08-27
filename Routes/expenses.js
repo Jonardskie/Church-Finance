@@ -8,58 +8,67 @@ const controller =
 const auth =
     require("../middleWare/authMiddleware");
 
+const roleMiddleware =
+    require("../middleWare/roleMiddleware");
+
 
 /*
 =========================================================
-EXPENSE ROUTES
+EXPENSE ROUTES - PROTECTED BY RBAC
 =========================================================
 */
 
 
-// GET ALL EXPENSES
+// GET ALL EXPENSES (Admin, Pastor, Treasurer)
 router.get(
     "/",
     auth,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.getExpenses
 );
 
 
-// GET ONE EXPENSE
+// GET ONE EXPENSE (Admin, Pastor, Treasurer)
 router.get(
     "/:id",
     auth,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.getExpenseById
 );
 
 
-// CREATE EXPENSE
+// CREATE EXPENSE (Admin, Pastor, Treasurer)
 router.post(
     "/",
     auth,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.createExpense
 );
 
 
-// UPDATE EXPENSE
+// UPDATE EXPENSE (Admin, Pastor, Treasurer)
 router.put(
     "/:id",
     auth,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.updateExpense
 );
 
 
-// APPROVE EXPENSE
+// APPROVE EXPENSE (Admin, Pastor, Treasurer)
 router.post(
     "/:id/approve",
     auth,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.approveExpense
 );
 
 
-// VOID EXPENSE
+// VOID EXPENSE (Admin, Pastor, Treasurer)
 router.post(
     "/:id/void",
     auth,
+    roleMiddleware("Admin", "Pastor", "Treasurer"),
     controller.voidExpense
 );
 

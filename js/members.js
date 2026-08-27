@@ -1,8 +1,8 @@
 async function loadMembers() {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
     try {
-        const res = await fetch("http://localhost:3000/api/members", {
+        const res = await fetch("/api/members", {
             headers: {
                 "Authorization": "Bearer " + token
             }

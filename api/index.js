@@ -53,13 +53,34 @@ try {
     console.error("⚠️ Database init warning:", error.message);
 }
 
-// Static files - serve from Dashboard folder
+// Static files - serve from Dashboard and Dashboard/pages folders
 const dashboardPath = path.join(__dirname, "../Dashboard");
+const pagesPath = path.join(__dirname, "../Dashboard/pages");
 app.use(express.static(dashboardPath));
+app.use(express.static(pagesPath));
 
 // Root route - serve login.html
 app.get("/", (req, res) => {
-    res.sendFile(path.join(dashboardPath, "pages", "login.html"));
+    res.sendFile(path.join(pagesPath, "login.html"));
+});
+
+// Explicit /pages/:page routing
+app.get("/pages/:page", (req, res, next) => {
+    const pageName = req.params.page.endsWith(".html") ? req.params.page : `${req.params.page}.html`;
+    const filePath = path.join(pagesPath, pageName);
+    res.sendFile(filePath, (err) => {
+        if (err) next();
+    });
+});
+
+// Direct root /:page routing (e.g. /index.html, /members.html)
+app.get("/:page", (req, res, next) => {
+    if (req.params.page.startsWith("api")) return next();
+    const pageName = req.params.page.endsWith(".html") ? req.params.page : `${req.params.page}.html`;
+    const filePath = path.join(pagesPath, pageName);
+    res.sendFile(filePath, (err) => {
+        if (err) next();
+    });
 });
 
 // Error handler

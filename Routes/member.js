@@ -78,17 +78,4 @@ router.delete(
     controller.deleteMember
 );
 
-
-module.exports = router;
-
-// =========================
-// DELETE MEMBER (ONLY ADMIN & PASTOR)
-// =========================
-router.delete(
-    "/:id",
-    authMiddleware,
-    roleMiddleware("Admin", "Pastor"),
-    controller.deleteMember
-);
-
 module.exports = router;

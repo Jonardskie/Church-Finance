@@ -1236,11 +1236,34 @@
 
 
                 <div class="form-group col-3">
-                    <label>Name 1 (First Name)</label>
+                    <label>First Name</label>
 
                     <input
                         type="text"
                         id="name1"
+                        placeholder="First Name"
+                    >
+                </div>
+
+
+                <div class="form-group col-3">
+                    <label>Middle Name</label>
+
+                    <input
+                        type="text"
+                        id="middleName"
+                        placeholder="Middle Name / M.I."
+                    >
+                </div>
+
+
+                <div class="form-group col-3">
+                    <label>Last Name</label>
+
+                    <input
+                        type="text"
+                        id="name2"
+                        placeholder="Last Name"
                     >
                 </div>
 
@@ -1252,16 +1275,6 @@
                         type="text"
                         id="govId"
                         placeholder="Passport / License No."
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Name 2 (Last Name)</label>
-
-                    <input
-                        type="text"
-                        id="name2"
                     >
                 </div>
 
@@ -1699,15 +1712,23 @@ function getToken() {
 
 const MEMBER_CACHE_TTL = 5 * 60 * 1000;
 
+function clearMemberCache() {
+    try {
+        localStorage.removeItem("cfmms:members:list");
+        sessionStorage.removeItem("cfmms:members:list");
+    } catch (_) {}
+}
+
 function getCachedJson(key, ttl = MEMBER_CACHE_TTL) {
     try {
-        const raw = localStorage.getItem(key);
+        const raw = sessionStorage.getItem(key) || localStorage.getItem(key);
         if (!raw) return null;
 
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== "object") return null;
 
         if (Date.now() > (parsed.expiresAt || 0)) {
+            sessionStorage.removeItem(key);
             localStorage.removeItem(key);
             return null;
         }
@@ -1720,10 +1741,12 @@ function getCachedJson(key, ttl = MEMBER_CACHE_TTL) {
 
 function setCachedJson(key, value, ttl = MEMBER_CACHE_TTL) {
     try {
-        localStorage.setItem(key, JSON.stringify({
+        const payload = JSON.stringify({
             value,
             expiresAt: Date.now() + ttl
-        }));
+        });
+        sessionStorage.setItem(key, payload);
+        localStorage.setItem(key, payload);
     } catch {
         // ignore storage quota issues
     }
@@ -2040,7 +2063,7 @@ function updateMemberStatistics() {
    LOAD MEMBERS
 ========================================================= */
 
-async function loadMembers({ resetFilters = false } = {}) {
+async function loadMembers({ resetFilters = false, forceRefresh = false } = {}) {
 
     const token =
         getToken();
@@ -2065,8 +2088,11 @@ async function loadMembers({ resetFilters = false } = {}) {
         }
     }
 
-    try {
+    if (forceRefresh) {
+        clearMemberCache();
+    }
 
+    try {
         const data =
             await cachedFetchJson(
                 "/api/members",
@@ -3005,7 +3031,7 @@ async function batchDeleteMembers() {
         selectedMemberIds.clear();
 
 
-        await loadMembers();
+        await loadMembers({ forceRefresh: true });
 
 
     } catch (err) {
@@ -3362,6 +3388,12 @@ async function editMember(id) {
 
 
         document.getElementById(
+            "middleName"
+        ).value =
+            member.middle_name || "";
+
+
+        document.getElementById(
             "name2"
         ).value =
             member.name_2 || "";
@@ -3511,7 +3543,7 @@ async function deleteMember(id) {
         );
 
 
-        await loadMembers();
+        await loadMembers({ forceRefresh: true });
 
 
     } catch (err) {
@@ -3604,6 +3636,11 @@ document
                 name_1:
                     document.getElementById(
                         "name1"
+                    ).value,
+
+                middle_name:
+                    document.getElementById(
+                        "middleName"
                     ).value,
 
                 name_2:
@@ -3732,7 +3769,7 @@ document
                 closeModal();
 
 
-                await loadMembers();
+                await loadMembers({ forceRefresh: true });
 
 
             } catch (err) {
@@ -3826,7 +3863,7 @@ async function handleExcelUpload(
             "Import successful!"
         );
 
-        await loadMembers({ resetFilters: true });
+        await loadMembers({ resetFilters: true, forceRefresh: true });
 
     } catch (err) {
 

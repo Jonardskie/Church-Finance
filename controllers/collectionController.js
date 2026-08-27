@@ -563,3 +563,207 @@ exports.updateCalculationConfig = async (req, res) => {
         });
     }
 };
+
+
+// ============================================================
+// GET AUTHENTICATED MEMBER CONTRIBUTIONS (USER SIDE)
+// ============================================================
+
+exports.getMyContributions = async (req, res) => {
+    try {
+        const username = req.user?.username || "";
+        const name = req.user?.name || "";
+        const { year, type, status, search } = req.query;
+
+        let query = `
+            SELECT
+                c.id,
+                c.receipt_no,
+                COALESCE(c.collection_date, c.date)::date AS date,
+                c.member_id,
+                c.member_name,
+                c.type,
+                c.fund_category,
+                c.amount,
+                c.payment_method,
+                c.reference_no,
+                c.status,
+                c.target
+            FROM collections c
+            WHERE (
+                (c.member_id IS NOT NULL AND LOWER(TRIM(c.member_id)) = LOWER(TRIM($1)))
+                OR (c.member_name IS NOT NULL AND LOWER(TRIM(c.member_name)) = LOWER(TRIM($2)))
+                OR (c.member_name IS NOT NULL AND LOWER(TRIM(c.member_name)) = LOWER(TRIM($1)))
+            )
+        `;
+
+        const values = [username, name];
+
+        if (year && year !== "all") {
+            values.push(year);
+            query += ` AND EXTRACT(YEAR FROM COALESCE(c.collection_date, c.date)) = $${values.length}`;
+        }
+
+        if (type && type !== "all") {
+            values.push(type);
+            query += ` AND LOWER(c.type) = LOWER($${values.length})`;
+        }
+
+        if (status && status !== "all") {
+            values.push(status);
+            query += ` AND LOWER(c.status) = LOWER($${values.length})`;
+        }
+
+        if (search && search.trim()) {
+            values.push(`%${search.trim().toLowerCase()}%`);
+            query += ` AND (
+                LOWER(COALESCE(c.receipt_no, '')) LIKE $${values.length}
+                OR LOWER(COALESCE(c.type, '')) LIKE $${values.length}
+                OR LOWER(COALESCE(c.fund_category, '')) LIKE $${values.length}
+                OR LOWER(COALESCE(c.payment_method, '')) LIKE $${values.length}
+            )`;
+        }
+
+        query += ` ORDER BY COALESCE(c.collection_date, c.date) DESC, c.id DESC`;
+
+        const result = await pool.query(query, values);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error("GET MY CONTRIBUTIONS ERROR:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+// ============================================================
+// GET AUTHENTICATED MEMBER SUMMARY & BREAKDOWN (USER SIDE)
+// ============================================================
+
+exports.getMySummary = async (req, res) => {
+    try {
+        const username = req.user?.username || "";
+        const name = req.user?.name || "";
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+
+        const result = await pool.query(
+            `
+            SELECT
+                c.id,
+                c.receipt_no,
+                COALESCE(c.collection_date, c.date)::date AS date,
+                c.type,
+                c.fund_category,
+                c.amount,
+                c.payment_method,
+                c.status,
+                EXTRACT(YEAR FROM COALESCE(c.collection_date, c.date))::int AS year,
+                EXTRACT(MONTH FROM COALESCE(c.collection_date, c.date))::int AS month
+            FROM collections c
+            WHERE (
+                (c.member_id IS NOT NULL AND LOWER(TRIM(c.member_id)) = LOWER(TRIM($1)))
+                OR (c.member_name IS NOT NULL AND LOWER(TRIM(c.member_name)) = LOWER(TRIM($2)))
+                OR (c.member_name IS NOT NULL AND LOWER(TRIM(c.member_name)) = LOWER(TRIM($1)))
+            )
+            ORDER BY COALESCE(c.collection_date, c.date) DESC
+            `,
+            [username, name]
+        );
+
+        const rows = result.rows;
+
+        let totalLifetime = 0;
+        let totalYTD = 0;
+        let totalMTD = 0;
+        let verifiedCount = 0;
+        let pendingCount = 0;
+
+        const fundBreakdownMap = {};
+        const methodBreakdownMap = {};
+        const monthlyBreakdown = Array(12).fill(0);
+        const yearlyBreakdownMap = {};
+
+        rows.forEach(r => {
+            const amt = Number(r.amount) || 0;
+            totalLifetime += amt;
+
+            if (r.year === currentYear) {
+                totalYTD += amt;
+                if (r.month >= 1 && r.month <= 12) {
+                    monthlyBreakdown[r.month - 1] += amt;
+                }
+            }
+
+            if (r.year === currentYear && r.month === currentMonth) {
+                totalMTD += amt;
+            }
+
+            if (String(r.status).toLowerCase() === "verified") {
+                verifiedCount++;
+            } else {
+                pendingCount++;
+            }
+
+            const fundKey = (r.type || r.fund_category || "General").trim();
+            if (!fundBreakdownMap[fundKey]) {
+                fundBreakdownMap[fundKey] = { category: fundKey, amount: 0, count: 0 };
+            }
+            fundBreakdownMap[fundKey].amount += amt;
+            fundBreakdownMap[fundKey].count += 1;
+
+            const methodKey = (r.payment_method || "CASH").trim().toUpperCase();
+            if (!methodBreakdownMap[methodKey]) {
+                methodBreakdownMap[methodKey] = { method: methodKey, amount: 0, count: 0 };
+            }
+            methodBreakdownMap[methodKey].amount += amt;
+            methodBreakdownMap[methodKey].count += 1;
+
+            if (r.year) {
+                yearlyBreakdownMap[r.year] = (yearlyBreakdownMap[r.year] || 0) + amt;
+            }
+        });
+
+        const fundBreakdown = Object.values(fundBreakdownMap)
+            .map(item => ({
+                ...item,
+                percentage: totalLifetime > 0 ? Number(((item.amount / totalLifetime) * 100).toFixed(1)) : 0
+            }))
+            .sort((a, b) => b.amount - a.amount);
+
+        const methodBreakdown = Object.values(methodBreakdownMap)
+            .sort((a, b) => b.amount - a.amount);
+
+        const availableYears = Object.keys(yearlyBreakdownMap).map(Number).sort((a, b) => b - a);
+        if (!availableYears.includes(currentYear)) {
+            availableYears.unshift(currentYear);
+        }
+
+        res.json({
+            success: true,
+            member: {
+                memberId: username,
+                name: name || username
+            },
+            totals: {
+                lifetime: totalLifetime,
+                ytd: totalYTD,
+                mtd: totalMTD,
+                count: rows.length,
+                verifiedCount,
+                pendingCount
+            },
+            currentYear,
+            fundBreakdown,
+            methodBreakdown,
+            monthlyBreakdown,
+            yearlyBreakdown: yearlyBreakdownMap,
+            availableYears,
+            recentTransactions: rows.slice(0, 10)
+        });
+
+    } catch (err) {
+        console.error("GET MY SUMMARY ERROR:", err);
+        res.status(500).json({ error: err.message });
+    }
+};

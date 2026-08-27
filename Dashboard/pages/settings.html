@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFMMS - Settings & Configuration</title>
+    <link rel="icon" href="/images/logo.png" type="image/png">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f4f6f8; color: #263247; }
+        .container { display: flex; min-height: 100vh; }
+        .content { flex: 1; padding: 30px; min-width: 0; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        .topbar h1 { color: #1b365d; font-size: 28px; font-weight: 700; }
+        .topbar p { color: #718096; font-size: 14px; margin-top: 4px; }
+        
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+        .card { background: white; border-radius: 12px; padding: 26px; border: 1px solid #e5e9ef; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+        .card-header { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #e5e9ef; }
+        .card-header h2 { font-size: 1.15rem; color: #1b365d; font-weight: 600; }
+        .card-header p { font-size: 0.85rem; color: #718096; margin-top: 2px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #4a5568; margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid #d5dbe4; border-radius: 8px; font-family: inherit; font-size: 0.9rem; outline: none; }
+        .form-control:focus { border-color: #1b365d; box-shadow: 0 0 0 3px rgba(27, 54, 93, 0.1); }
+        .form-control:disabled { background: #f8fafc; color: #64748b; }
+
+        .btn-primary { background: #1b365d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: inherit; }
+        .btn-primary:hover { background: #0f2038; }
+
+        .role-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.8rem; text-transform: capitalize; }
+        .status-msg { padding: 12px 16px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 16px; display: none; font-weight: 500; }
+        .status-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .status-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        @media (max-width: 850px) {
+            .settings-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <aside class="sidebar"></aside>
+
+    <main class="content">
+        <div class="topbar">
+            <div>
+                <h1>Settings & System Roles</h1>
+                <p>Manage system configuration, calculation formulas, and profile settings.</p>
+            </div>
+        </div>
+
+        <div class="settings-grid">
+            <!-- CURRENT USER PROFILE -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>👤 User Profile</h2>
+                    <p>Current authenticated session account details.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" class="form-control" id="profileName" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Username / Member ID</label>
+                    <input type="text" class="form-control" id="profileUsername" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label>Assigned System Role</label>
+                    <div><span class="role-badge" id="profileRole">Admin</span></div>
+                </div>
+            </div>
+
+            <!-- RBAC OVERVIEW -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🛡️ Role-Based Access Control (RBAC)</h2>
+                    <p>Active permission policies governing the system modules.</p>
+                </div>
+
+                <div style="font-size:0.88rem; line-height:1.6; color:#4a5568;">
+                    <p><strong>Admin:</strong> Complete administrative, financial, and user management authority.</p>
+                    <p style="margin-top:8px;"><strong>Pastor:</strong> Pastoral oversight, financial summaries, expense approvals, and audit review.</p>
+                    <p style="margin-top:8px;"><strong>Treasurer:</strong> Collection ledger, fund calculation settings, expense disbursements, and reports.</p>
+                    <p style="margin-top:8px;"><strong>Secretary:</strong> Membership records, church directory, and tithes registration.</p>
+                    <p style="margin-top:8px;"><strong>Member:</strong> Access to the personal Member Stewardship Portal for individual contribution tracking.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+// Authentication check
+const token = sessionStorage.getItem("token");
+if (!token || token === "undefined" || token === "null") {
+    sessionStorage.clear();
+    window.location.replace("login.html");
+}
+
+document.getElementById("profileName").value = sessionStorage.getItem("name") || sessionStorage.getItem("username") || "User";
+document.getElementById("profileUsername").value = sessionStorage.getItem("username") || "—";
+document.getElementById("profileRole").textContent = sessionStorage.getItem("role") || "Member";
+</script>
+<script src="../js/sidebar.js"></script>
+</body>
+</html>

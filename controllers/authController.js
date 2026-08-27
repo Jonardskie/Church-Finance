@@ -47,11 +47,14 @@ exports.login = async (req, res) => {
             });
         }
 
-        // Make sure the token payload includes the exact role string format
+        // Make sure the token payload includes the exact role string format, username, and name
+        const normalizedRole = user.role ? String(user.role).trim() : "member";
         const token = jwt.sign(
             {
                 id: user.id,
-                role: user.role || "member"
+                username: user.username,
+                role: normalizedRole,
+                name: user.name || user.username
             },
             process.env.JWT_SECRET,
             { expiresIn: "8h" }
@@ -62,8 +65,9 @@ exports.login = async (req, res) => {
         return res.json({
             success: true,
             token,
-            role: user.role || "member",
-            username: user.username
+            role: normalizedRole,
+            username: user.username,
+            name: user.name || user.username
         });
 
     } catch (err) {
