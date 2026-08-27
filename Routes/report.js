@@ -50,4 +50,12 @@ router.get(
 );
 
 
+// Dashboard Summary Metrics & Analytics (All authenticated system users)
+router.get(
+    "/dashboard-summary",
+    authMiddleware,
+    controller.getDashboardSummary
+);
+
+
 module.exports = router;

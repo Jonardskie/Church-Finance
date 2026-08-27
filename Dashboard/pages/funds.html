@@ -1,1468 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CFMMS - Collection Types</title>
-
-    <link
-        rel="icon"
-        href="/images/logo.png"
-        type="image/png"
-    >
+    <link rel="icon" href="/images/logo.png" type="image/png">
     <link rel="stylesheet" href="../css/sidebar.css">
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { DEFAULT: '#1B365D', dark: '#0F2038', light: '#2A4D7E' }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        /* Dynamic Row Badges & Actions */
+        .type-name { font-weight: 600; color: #1B365D; }
+        .calc-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .calc-none { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
+        .calc-percentage { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+        .calc-fixed { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        .status { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .active-status { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+        .inactive-status { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
 
-        :root {
-            --navy: #1b365d;
-            --navy-dark: #0f2038;
-            --text: #263247;
-            --muted: #718096;
-            --border: #e5e9ef;
-            --bg: #f4f6f8;
-            --white: #ffffff;
-            --success: #18794e;
-            --danger: #b32034;
-            --warning: #a15c00;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        /* =====================================================
-           LAYOUT
-        ===================================================== */
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* =====================================================
-           SIDEBAR
-        ===================================================== */
-
-        .sidebar {
-            width: 260px;
-            min-width: 260px;
-            background:
-                linear-gradient(
-                    180deg,
-                    var(--navy) 0%,
-                    var(--navy-dark) 100%
-                );
-            color: white;
-            padding: 28px 18px;
-        }
-
-        .sidebar-brand {
-            padding: 0 10px 28px;
-        }
-
-        .sidebar-brand h2 {
-            font-size: 24px;
-            letter-spacing: .5px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 4px;
-        }
-
-        .sidebar-menu a {
-            color: #a4bcd4;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 12px;
-            border-radius: 8px;
-            transition: .2s ease;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu .active a {
-            background: rgba(255,255,255,.10);
-            color: white;
-        }
-
-        .icon {
-            width: 22px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        /* =====================================================
-           CONTENT
-        ===================================================== */
-
-        .content {
-            flex: 1;
-            min-width: 0;
-            padding: 30px;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 28px;
-        }
-
-        .topbar h1 {
-            color: var(--navy);
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-
-        .topbar p {
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        /* =====================================================
-           BUTTONS
-        ===================================================== */
-
-        .btn {
-            border: 0;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-weight: 600;
-            transition: .2s ease;
-        }
-
-        .btn-primary {
-            background: var(--navy);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #254a7b;
-        }
-
-        .btn-secondary {
-            background: #eef1f5;
-            color: var(--text);
-        }
-
-        .btn-secondary:hover {
-            background: #e2e6ec;
-        }
-
+        .action-buttons { display: flex; gap: 6px; }
         .btn-edit {
-            background: #eaaa00;
+            background: #1B365D;
             color: white;
             border: none;
-            padding: 7px 11px;
+            padding: 5px 12px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 0.75rem;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
         }
-
-        .btn-edit:hover {
-            opacity: .9;
-        }
+        .btn-edit:hover { background: #0F2038; }
 
         .btn-delete {
-            background: var(--danger);
-            color: white;
-            border: none;
-            padding: 7px 11px;
+            background: #FEF2F2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+            padding: 5px 12px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 0.75rem;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
         }
-
         .btn-delete:hover {
-            opacity: .9;
+            background: #DC2626;
+            color: white;
+            border-color: #DC2626;
         }
 
-        /* =====================================================
-           SUMMARY CARDS
-        ===================================================== */
-
-        .cards {
-            display: grid;
-            grid-template-columns:
-                repeat(3, minmax(0, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow:
-                0 3px 12px rgba(0,0,0,.04);
-        }
-
-        .card h3 {
-            color: var(--muted);
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--navy);
-        }
-
-        /* =====================================================
-           TABLE
-        ===================================================== */
-
-        .table-container {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow:
-                0 4px 12px rgba(0,0,0,.04);
-        }
-
-        .table-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 18px;
-        }
-
-        .table-toolbar h2 {
-            font-size: 18px;
-        }
-
-        .record-count {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .search-box {
-            width: 320px;
-            max-width: 100%;
-            height: 42px;
-            padding: 9px 12px;
-            border: 1px solid #d5dbe4;
-            border-radius: 7px;
-            outline: none;
-        }
-
-        .search-box:focus {
-            border-color: var(--navy);
-            box-shadow:
-                0 0 0 3px rgba(27,54,93,.08);
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            min-width: 1100px;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        th {
-            padding: 13px 12px;
-            text-align: left;
-            font-size: 12px;
-            color: #4b5563;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 13px 12px;
-            border-bottom: 1px solid #eee;
-            font-size: 13px;
-            color: #555;
-            vertical-align: middle;
-        }
-
-        tbody tr:hover {
-            background: #f7f9fc;
-        }
-
-        .type-name {
-            font-weight: 600;
-            color: var(--navy);
-        }
-
-        /* =====================================================
-           STATUS
-        ===================================================== */
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .active-status {
-            background: #d4f4dd;
-            color: #0d7a35;
-        }
-
-        .inactive-status {
-            background: #ffe0e0;
-            color: var(--danger);
-        }
-
-        /* =====================================================
-           CALCULATION BADGES
-        ===================================================== */
-
-        .calc-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 9px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .calc-none {
-            background: #f0f1f3;
-            color: #6b7280;
-        }
-
-        .calc-percentage {
-            background: #e8f0fb;
-            color: var(--navy);
-        }
-
-        .calc-fixed {
-            background: #fff3dc;
-            color: var(--warning);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        /* =====================================================
-           EMPTY / LOADING
-        ===================================================== */
-
-        .state-cell {
-            text-align: center;
-            padding: 45px 20px;
-            color: var(--muted);
-        }
-
-        .error-state {
-            color: var(--danger);
-        }
-
-        /* =====================================================
-           MODAL
-        ===================================================== */
-
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(10,20,35,.60);
-            padding: 20px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            width: min(700px, 100%);
-            max-height: 94vh;
-            overflow-y: auto;
-            background: white;
-            border-radius: 14px;
-            box-shadow:
-                0 20px 60px rgba(0,0,0,.25);
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 22px 24px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-            color: var(--navy);
-        }
-
-        .modal-subtitle {
-            margin-top: 3px;
-            font-size: 12px;
-            color: var(--muted);
-        }
-
-        .close {
-            border: 0;
-            background: transparent;
-            color: #6b7280;
-            font-size: 28px;
-            line-height: 1;
-        }
-
-        .modal-body {
-            padding: 22px 24px;
-        }
-
-        /* =====================================================
-           FORM
-        ===================================================== */
-
-        .form-section {
-            margin-bottom: 22px;
-        }
-
-        .form-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 13px;
-            color: var(--navy);
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-            gap: 15px;
-        }
-
-        .form-group {
-            margin-bottom: 0;
-        }
-
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #596579;
-        }
-
-        .required {
-            color: var(--danger);
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            height: 42px;
-            padding: 9px 11px;
-            border: 1px solid #d5dbe4;
-            border-radius: 7px;
-            outline: none;
-            background: white;
-        }
-
-        .form-group textarea {
-            height: 90px;
-            resize: vertical;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            border-color: var(--navy);
-            box-shadow:
-                0 0 0 3px rgba(27,54,93,.08);
-        }
-
-        .rate-wrapper {
-            position: relative;
-        }
-
-        .rate-wrapper input {
-            padding-right: 45px;
-        }
-
-        .rate-symbol {
-            position: absolute;
-            right: 13px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--muted);
-            font-weight: 600;
-            pointer-events: none;
-        }
-
-        .fixed-wrapper {
-            position: relative;
-        }
-
-        .fixed-wrapper input {
-            padding-left: 34px;
-        }
-
-        .peso-symbol {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--muted);
-            font-weight: 600;
-            pointer-events: none;
-        }
-
-        .help-text {
-            margin-top: 5px;
-            color: var(--muted);
-            font-size: 11px;
-        }
-
-        .calculation-card {
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 15px;
-            background: #fafbfc;
-        }
-
-        .calculation-card .form-grid {
-            margin-top: 12px;
-        }
-
-        .disabled-field {
-            opacity: .55;
-        }
-
-        .disabled-field input {
-            background: #f1f3f5;
-            cursor: not-allowed;
-        }
-
-        /* =====================================================
-           MODAL FOOTER
-        ===================================================== */
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            padding: 18px 24px;
-            border-top: 1px solid var(--border);
-        }
-
-        .btn-save {
-            min-width: 110px;
-        }
-
-        /* =====================================================
-           TOAST
-        ===================================================== */
-
+        /* Modal classes */
+        .modal { display: none; }
+        .modal.show, .modal[style*="display: flex"] { display: flex !important; }
+
+        /* Toast */
         .toast {
             position: fixed;
-            right: 22px;
-            bottom: 22px;
-            z-index: 2000;
-            min-width: 280px;
-            max-width: 420px;
-            padding: 14px 16px;
-            border-radius: 9px;
-            background: #1f2937;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
             color: white;
-            box-shadow:
-                0 10px 30px rgba(0,0,0,.18);
-            transform: translateY(20px);
-            opacity: 0;
-            pointer-events: none;
-            transition: .25s ease;
+            z-index: 3000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: none;
+            animation: modalScaleEnter 0.2s ease-out both;
         }
+        .toast.show { display: block; }
+        .toast.success { background: #059669; }
+        .toast.error { background: #DC2626; }
 
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
+        @keyframes modalScaleEnter {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
-
-        .toast.success {
-            background: var(--success);
-        }
-
-        .toast.error {
-            background: var(--danger);
-        }
-
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-
-        @media (max-width: 1100px) {
-
-            .sidebar {
-                width: 220px;
-                min-width: 220px;
-            }
-
-            .content {
-                padding: 24px;
-            }
-
-            .cards {
-                grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
-            }
-
-        }
-
-        @media (max-width: 850px) {
-
-            .sidebar {
-                width: 76px;
-                min-width: 76px;
-                padding: 22px 10px;
-            }
-
-            .sidebar-brand {
-                text-align: center;
-                padding-left: 0;
-                padding-right: 0;
-            }
-
-            .sidebar-brand h2 {
-                font-size: 18px;
-            }
-
-            .nav-text {
-                display: none;
-            }
-
-            .sidebar-menu a {
-                justify-content: center;
-                padding: 12px 5px;
-            }
-
-            .content {
-                padding: 20px 18px;
-            }
-
-            .cards {
-                grid-template-columns: 1fr;
-            }
-
-            .table-toolbar {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-        }
-
-        @media (max-width: 600px) {
-
-            .sidebar {
-                display: none;
-            }
-
-            .content {
-                padding: 16px;
-            }
-
-            .topbar {
-                flex-direction: column;
-            }
-
-            .topbar h1 {
-                font-size: 23px;
-            }
-
-            .topbar .btn {
-                width: 100%;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-group.full {
-                grid-column: auto;
-            }
-
-            .modal {
-                padding: 10px;
-            }
-
-            .modal-content {
-                max-height: 96vh;
-            }
-
-            .modal-header,
-            .modal-body,
-            .modal-footer {
-                padding-left: 18px;
-                padding-right: 18px;
-            }
-
-            .modal-footer {
-                flex-direction: column-reverse;
-            }
-
-            .modal-footer .btn {
-                width: 100%;
-            }
-
-            .toast {
-                left: 16px;
-                right: 16px;
-                bottom: 16px;
-                min-width: auto;
-            }
-
-        }
-
     </style>
-
 </head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
+<div class="flex min-h-screen app-wrapper">
 
-<body>
+    <aside class="sidebar"></aside>
 
-<div class="container">
+    <main class="flex-1 min-w-0 p-6 lg:p-8 page-content">
 
-
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
-
-    <aside class="sidebar">
-
-        <div class="sidebar-brand">
-            <h2>CFMMS</h2>
-        </div>
-
-
-        <ul class="sidebar-menu">
-
-            <li>
-                <a href="index.html">
-                    <span class="icon">📊</span>
-                    <span class="nav-text">Dashboard</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="members.html">
-                    <span class="icon">👥</span>
-                    <span class="nav-text">Members</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="collections.html">
-                    <span class="icon">📥</span>
-                    <span class="nav-text">Collections</span>
-                </a>
-            </li>
-
-            <li class="active">
-                <a href="funds.html">
-                    <span class="icon">💰</span>
-                    <span class="nav-text">Collection Types</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="expenses.html">
-                    <span class="icon">📤</span>
-                    <span class="nav-text">Expenses</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="vouchers.html">
-                    <span class="icon">🎫</span>
-                    <span class="nav-text">Vouchers</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="reports.html">
-                    <span class="icon">📈</span>
-                    <span class="nav-text">Reports</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="audit.html">
-                    <span class="icon">🛡️</span>
-                    <span class="nav-text">Audit Trail</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="users.html">
-                    <span class="icon">👤</span>
-                    <span class="nav-text">Users</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="settings.html">
-                    <span class="icon">⚙️</span>
-                    <span class="nav-text">Settings</span>
-                </a>
-            </li>
-
-            <li style="margin-top:20px;">
-                <a
-                    href="#"
-                    onclick="handleLogout(event)"
-                    style="
-                        background:rgba(179,32,52,.15);
-                        color:#ffe0e0;
-                        border:1px solid rgba(179,32,52,.3);
-                    "
-                >
-                    <span class="icon">🚪</span>
-                    <span class="nav-text">Logout</span>
-                </a>
-            </li>
-
-        </ul>
-
-    </aside>
-
-
-    <!-- =====================================================
-         MAIN CONTENT
-    ====================================================== -->
-
-    <main class="content">
-
-
-        <div class="topbar">
-
+        <!-- TOPBAR -->
+        <div class="flex justify-between items-start mb-6">
             <div>
-                <h1>Collection Types</h1>
-
-                <p>
-                    Manage collection categories and their
-                    PS and Apportionment calculation rules.
-                </p>
+                <h1 class="text-2xl lg:text-3xl font-bold text-navy">Collection Types</h1>
+                <p class="text-sm text-slate-500 mt-1">Manage collection categories and their calculation rules</p>
             </div>
 
-            <button
-                class="btn btn-primary"
-                type="button"
-                onclick="openAddModal()"
-            >
+            <button class="bg-navy hover:bg-navy-dark text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-1.5"
+                    type="button"
+                    onclick="openAddModal()">
                 + Add Collection Type
             </button>
-
         </div>
 
-
-        <!-- =================================================
-             SUMMARY CARDS
-        ================================================== -->
-
-        <section class="cards">
-
-            <div class="card">
-
-                <h3>Total Types</h3>
-
-                <div
-                    class="card-value"
-                    id="totalTypesCount"
-                >
-                    0
-                </div>
-
+        <!-- SUMMARY CARDS -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Types</div>
+                <div class="text-2xl lg:text-3xl font-bold text-slate-900 mt-2" id="totalTypesCount">0</div>
             </div>
 
-
-            <div class="card">
-
-                <h3>Active Types</h3>
-
-                <div
-                    class="card-value"
-                    id="activeTypesCount"
-                >
-                    0
-                </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Active Types</div>
+                <div class="text-2xl lg:text-3xl font-bold text-emerald-600 mt-2" id="activeTypesCount">0</div>
             </div>
 
-
-            <div class="card">
-
-                <h3>Inactive Types</h3>
-
-                <div
-                    class="card-value"
-                    id="inactiveTypesCount"
-                >
-                    0
-                </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Inactive Types</div>
+                <div class="text-2xl lg:text-3xl font-bold text-slate-400 mt-2" id="inactiveTypesCount">0</div>
             </div>
-
         </section>
 
-
-        <!-- =================================================
-             TABLE
-        ================================================== -->
-
-        <section class="table-container">
-
-            <div class="table-toolbar">
-
+        <!-- TABLE -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-
-                    <h2>
-                        Collection Type Configuration
-                    </h2>
-
-                    <span
-                        class="record-count"
-                        id="recordCount"
-                    >
-                        0 records
-                    </span>
-
+                    <h2 class="text-base font-bold text-navy">Collection Type Configuration</h2>
+                    <span class="text-xs text-slate-400 font-medium" id="recordCount">0 records</span>
                 </div>
 
-                <input
-                    type="search"
-                    id="searchBox"
-                    class="search-box"
-                    placeholder="Search collection type..."
-                >
-
+                <input type="search"
+                       id="searchBox"
+                       class="w-full sm:w-64 px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10"
+                       placeholder="Search collection type...">
             </div>
 
-
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr class="[&>th]:py-3.5 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
                             <th>ID</th>
-
                             <th>Collection Type</th>
-
                             <th>Description</th>
-
                             <th>PS Calculation</th>
-
                             <th>Apportionment</th>
-
                             <th>Status</th>
-
                             <th>Actions</th>
-
                         </tr>
-
                     </thead>
-
-
-                    <tbody id="typeTable">
-
+                    <tbody id="typeTable" class="divide-y divide-slate-100 [&>tr>td]:py-3.5 [&>tr>td]:px-4">
                         <tr>
-
-                            <td
-                                colspan="7"
-                                class="state-cell"
-                            >
-                                Loading collection types...
-                            </td>
-
+                            <td colspan="7" class="text-center py-8 text-slate-400">Loading collection types...</td>
                         </tr>
-
                     </tbody>
-
                 </table>
-
             </div>
-
         </section>
-
 
     </main>
 
 </div>
 
-
-<!-- =========================================================
-     COLLECTION TYPE MODAL
-========================================================= -->
-
-<div
-    class="modal"
-    id="collectionTypeModal"
-    onclick="handleModalBackdrop(event)"
->
-
-    <div class="modal-content">
-
-
-        <div class="modal-header">
-
+<!-- COLLECTION TYPE MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-center z-[2500] p-4 overflow-y-auto"
+     id="collectionTypeModal"
+     onclick="handleModalBackdrop(event)">
+    <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden m-auto relative flex flex-col max-h-[90vh] z-10"
+         onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
             <div>
-
-                <h2 id="modalTitle">
-                    Add Collection Type
-                </h2>
-
-                <div class="modal-subtitle">
-                    Configure the collection category and
-                    financial calculation rules.
-                </div>
-
+                <h2 class="text-base font-bold text-navy" id="modalTitle">Add Collection Type</h2>
+                <div class="text-xs text-slate-400 mt-0.5">Configure collection category and calculation rules.</div>
             </div>
-
-            <button
-                class="close"
-                type="button"
-                onclick="closeModal()"
-            >
-                ×
+            <button class="text-slate-400 hover:text-slate-600 text-2xl font-light leading-none"
+                    type="button"
+                    onclick="closeModal()">
+                &times;
             </button>
-
         </div>
 
+        <form id="collectionTypeForm" class="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
+            <div class="p-6 overflow-y-auto space-y-5 flex-1 min-h-0">
 
-        <form id="collectionTypeForm">
-
-
-            <div class="modal-body">
-
-
-                <!-- =========================================
-                     BASIC INFORMATION
-                ========================================== -->
-
-                <div class="form-section">
-
-                    <div class="section-title">
-                        📋 Basic Information
-                    </div>
-
-
-                    <div class="form-grid">
-
-
-                        <div class="form-group">
-
-                            <label for="typeName">
-                                Collection Type
-                                <span class="required">*</span>
-                            </label>
-
-                            <input
-                                type="text"
-                                id="typeName"
-                                placeholder="e.g. Tithes"
-                                required
-                            >
-
+                <!-- BASIC INFORMATION -->
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">Basic Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" for="typeName">Collection Type <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   id="typeName"
+                                   placeholder="e.g. Tithes"
+                                   required
+                                   class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
                         </div>
 
-
-                        <div class="form-group">
-
-                            <label for="status">
-                                Status
-                            </label>
-
-                            <select id="status">
-
-                                <option value="Active">
-                                    Active
-                                </option>
-
-                                <option value="Inactive">
-                                    Inactive
-                                </option>
-
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" for="status">Status</label>
+                            <select id="status"
+                                    class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
                             </select>
-
                         </div>
 
-
-                        <div class="form-group full">
-
-                            <label for="description">
-                                Description
-                            </label>
-
-                            <textarea
-                                id="description"
-                                placeholder="Describe this collection type..."
-                            ></textarea>
-
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" for="description">Description</label>
+                            <textarea id="description"
+                                      placeholder="Describe this collection type..."
+                                      rows="2"
+                                      class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10"></textarea>
                         </div>
-
-
                     </div>
-
                 </div>
 
-
-                <!-- =========================================
-                     PS CONFIGURATION
-                ========================================== -->
-
-                <div class="form-section">
-
-                    <div class="section-title">
-                        🧮 PS Configuration
-                    </div>
-
-
-                    <div class="calculation-card">
-
-
-                        <div class="form-grid">
-
-
-                            <div class="form-group">
-
-                                <label for="psCalculationType">
-                                    PS Calculation
-                                </label>
-
-                                <select
-                                    id="psCalculationType"
-                                >
-
-                                    <option value="none">
-                                        None
-                                    </option>
-
-                                    <option value="percentage">
-                                        Percentage
-                                    </option>
-
-                                    <option value="fixed">
-                                        Fixed Amount
-                                    </option>
-
-                                </select>
-
-                                <div class="help-text">
-                                    Choose how PS will be calculated.
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                class="form-group"
-                                id="psRateGroup"
-                            >
-
-                                <label for="psRate">
-                                    PS Rate
-                                </label>
-
-                                <div
-                                    class="rate-wrapper"
-                                    id="psPercentageWrapper"
-                                >
-
-                                    <input
-                                        type="number"
-                                        id="psRate"
-                                        min="0"
-                                        max="100"
-                                        step="0.01"
-                                        value="0"
-                                        placeholder="0.00"
-                                    >
-
-                                    <span class="rate-symbol">
-                                        %
-                                    </span>
-
-                                </div>
-
-
-                                <div
-                                    class="fixed-wrapper"
-                                    id="psFixedWrapper"
-                                    style="display:none;"
-                                >
-
-                                    <span class="peso-symbol">
-                                        ₱
-                                    </span>
-
-                                    <input
-                                        type="number"
-                                        id="psFixedAmount"
-                                        min="0"
-                                        step="0.01"
-                                        value="0"
-                                        placeholder="0.00"
-                                    >
-
-                                </div>
-
-
-                                <div
-                                    class="help-text"
-                                    id="psHelpText"
-                                >
-                                    No PS calculation.
-                                </div>
-
-                            </div>
-
-
+                <!-- PS CONFIGURATION -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">Personal Savings (PS) Configuration</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" for="psCalculationType">PS Calculation</label>
+                            <select id="psCalculationType"
+                                    class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                                <option value="none">None</option>
+                                <option value="percentage">Percentage</option>
+                                <option value="fixed">Fixed Amount</option>
+                            </select>
+                            <div class="text-[11px] text-slate-400 mt-1">Choose how PS is calculated.</div>
                         </div>
 
-                    </div>
+                        <div id="psRateGroup">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" for="psRate">PS Rate</label>
+                            <div class="relative" id="psPercentageWrapper">
+                                <input type="number"
+                                       id="psRate"
+                                       min="0"
+                                       max="100"
+                                       step="0.01"
+                                       value="0"
+                                       placeholder="0.00"
+                                       class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy pr-8">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">%</span>
+                            </div>
 
+                            <div class="relative" id="psFixedWrapper" style="display:none;">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">₱</span>
+                                <input type="number"
+                                       id="psFixedAmount"
+                                       min="0"
+                                       step="0.01"
+                                       value="0"
+                                       placeholder="0.00"
+                                       class="w-full pl-7 pr-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                            </div>
+
+                            <div class="text-[11px] text-slate-400 mt-1" id="psHelpText">No PS calculation.</div>
+                        </div>
+                    </div>
                 </div>
 
-
-                <!-- =========================================
-                     APPORTIONMENT CONFIGURATION
-                ========================================== -->
-
-                <div class="form-section">
-
-                    <div class="section-title">
-                        📊 Apportionment Configuration
-                    </div>
-
-
-                    <div class="calculation-card">
-
-
-                        <div class="form-grid">
-
-
-                            <div class="form-group">
-
-                                <label for="apportionmentCalculationType">
-                                    Apportionment Calculation
-                                </label>
-
-                                <select
-                                    id="apportionmentCalculationType"
-                                >
-
-                                    <option value="none">
-                                        None
-                                    </option>
-
-                                    <option value="percentage">
-                                        Percentage
-                                    </option>
-
-                                    <option value="fixed">
-                                        Fixed Amount
-                                    </option>
-
-                                </select>
-
-                                <div class="help-text">
-                                    Choose how Apportionment will be calculated.
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                class="form-group"
-                                id="apportionmentRateGroup"
-                            >
-
-                                <label for="apportionmentRate">
-                                    Apportionment Rate
-                                </label>
-
-
-                                <div
-                                    class="rate-wrapper"
-                                    id="apportionmentPercentageWrapper"
-                                >
-
-                                    <input
-                                        type="number"
-                                        id="apportionmentRate"
-                                        min="0"
-                                        max="100"
-                                        step="0.01"
-                                        value="0"
-                                        placeholder="0.00"
-                                    >
-
-                                    <span class="rate-symbol">
-                                        %
-                                    </span>
-
-                                </div>
-
-
-                                <div
-                                    class="fixed-wrapper"
-                                    id="apportionmentFixedWrapper"
-                                    style="display:none;"
-                                >
-
-                                    <span class="peso-symbol">
-                                        ₱
-                                    </span>
-
-                                    <input
-                                        type="number"
-                                        id="apportionmentFixedAmount"
-                                        min="0"
-                                        step="0.01"
-                                        value="0"
-                                        placeholder="0.00"
-                                    >
-
-                                </div>
-
-
-                                <div
-                                    class="help-text"
-                                    id="apportionmentHelpText"
-                                >
-                                    No Apportionment calculation.
-                                </div>
-
-                            </div>
-
-
+                <!-- APPORTIONMENT CONFIGURATION -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">Apportionment Configuration</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" for="apportionmentCalculationType">Apportionment Calculation</label>
+                            <select id="apportionmentCalculationType"
+                                    class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                                <option value="none">None</option>
+                                <option value="percentage">Percentage</option>
+                                <option value="fixed">Fixed Amount</option>
+                            </select>
+                            <div class="text-[11px] text-slate-400 mt-1">Choose how Apportionment is calculated.</div>
                         </div>
 
+                        <div id="apportionmentRateGroup">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1" for="apportionmentRate">Apportionment Rate</label>
+                            <div class="relative" id="apportionmentPercentageWrapper">
+                                <input type="number"
+                                       id="apportionmentRate"
+                                       min="0"
+                                       max="100"
+                                       step="0.01"
+                                       value="0"
+                                       placeholder="0.00"
+                                       class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy pr-8">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">%</span>
+                            </div>
+
+                            <div class="relative" id="apportionmentFixedWrapper" style="display:none;">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">₱</span>
+                                <input type="number"
+                                       id="apportionmentFixedAmount"
+                                       min="0"
+                                       step="0.01"
+                                       value="0"
+                                       placeholder="0.00"
+                                       class="w-full pl-7 pr-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                            </div>
+
+                            <div class="text-[11px] text-slate-400 mt-1" id="apportionmentHelpText">No Apportionment calculation.</div>
+                        </div>
                     </div>
-
                 </div>
-
 
             </div>
 
-
-            <div class="modal-footer">
-
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    onclick="closeModal()"
-                >
+            <div class="flex-shrink-0 flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+                <button type="button"
+                        class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-all font-sans"
+                        onclick="closeModal()">
                     Cancel
                 </button>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary btn-save"
-                    id="saveButton"
-                >
+                <button type="submit"
+                        class="px-5 py-2 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all font-sans"
+                        id="saveButton">
                     Save Type
                 </button>
-
             </div>
-
-
         </form>
-
     </div>
-
 </div>
 
-
-<!-- =========================================================
-     TOAST
-========================================================= -->
-
-<div
-    class="toast"
-    id="toast"
-></div>
-
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-
-
 // ============================================================
 // AUTHENTICATION
 // ============================================================
@@ -1731,7 +607,7 @@ async function loadTypesFromDB() {
         <tr>
             <td
                 colspan="7"
-                class="state-cell"
+                class="text-center py-8 text-slate-400"
             >
                 Loading collection types...
             </td>
@@ -1782,7 +658,7 @@ async function loadTypesFromDB() {
             <tr>
                 <td
                     colspan="7"
-                    class="state-cell error-state"
+                    class="text-center py-8 text-red-500"
                 >
                     Unable to load collection types.
                     Please try again.
@@ -1895,7 +771,7 @@ function renderTable() {
             <tr>
                 <td
                     colspan="7"
-                    class="state-cell"
+                    class="text-center py-8 text-slate-400"
                 >
                     No collection types found.
                 </td>
@@ -1931,7 +807,7 @@ function renderTable() {
 
                 return `
 
-                    <tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
 
                         <td>
                             <strong>
@@ -1941,13 +817,13 @@ function renderTable() {
 
 
                         <td>
-                            <span class="type-name">
+                            <span class="type-name font-semibold text-navy">
                                 ${escapeHtml(type.name)}
                             </span>
                         </td>
 
 
-                        <td>
+                        <td class="text-slate-600">
                             ${escapeHtml(
                                 type.description ||
                                 "—"
@@ -2088,6 +964,8 @@ function openAddModal() {
         .classList.add(
             "show"
         );
+    $("collectionTypeModal")
+        .style.display = "flex";
 
 }
 
@@ -2102,6 +980,8 @@ function closeModal() {
         .classList.remove(
             "show"
         );
+    $("collectionTypeModal")
+        .style.display = "none";
 
 }
 
@@ -2490,6 +1370,8 @@ function editType(id) {
         .classList.add(
             "show"
         );
+    $("collectionTypeModal")
+        .style.display = "flex";
 
 }
 
@@ -3112,5 +1994,4 @@ loadTypesFromDB();
 <script src="../js/form-validation.js"></script>
 <script src="../js/sidebar.js"></script>
 </body>
-
 </html>

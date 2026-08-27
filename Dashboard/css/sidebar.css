@@ -1,8 +1,24 @@
-.sidebar {
-    flex: 0 0 260px;
-    min-height: 100vh;
-    padding: 30px 20px;
+/* ============================================================
+   SIDEBAR.CSS — CFMMS Shared Sidebar & Animations
+   Buttons, modals, and layouts are now handled by Tailwind CSS
+   on each individual page.
+============================================================ */
+
+:root {
+    --sb-navy-primary: #1B365D;
+    --sb-navy-dark:    #0F2038;
+    --sb-navy-light:   #2A4D7E;
+    --sb-accent-blue:  #3B82F6;
+    --sb-text-light:   #A4BCD4;
+    --sb-text-white:   #FFFFFF;
+    --sb-danger:       #EF4444;
+    --sb-danger-bg:    rgba(239, 68, 68, 0.15);
+    --sb-danger-border: rgba(239, 68, 68, 0.35);
 }
+
+/* ============================================================
+   PAGE TRANSITIONS & SHARED MODAL RULES
+============================================================ */
 
 body {
     animation: pageEnter .14s ease-out both;
@@ -17,153 +33,281 @@ body.modal-open {
 }
 
 @keyframes pageEnter {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 @keyframes pageExit {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-3px); }
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+/* Fixed viewport overlay for all modals */
+.modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    width: 100dvw !important;
+    height: 100dvh !important;
+    z-index: 2500 !important;
+}
+
+.modal.show, .modal[style*="display: flex"] {
+    display: flex !important;
+}
+
+/* ============================================================
+   SIDEBAR CORE (DESKTOP)
+============================================================ */
+
+.sidebar {
+    flex: 0 0 260px;
+    width: 260px;
+    min-width: 260px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--sb-navy-primary) 0%, var(--sb-navy-dark) 100%);
+    color: var(--sb-text-white);
+    padding: 26px 18px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Poppins', system-ui, sans-serif;
 }
 
 .sidebar-brand {
-    height: 42px;
     display: flex;
+    justify-content: space-between;
     align-items: flex-start;
-}
-
-.sidebar-brand h2 {
-    margin: 0;
-    line-height: 1.2;
-}
-
-.sidebar-toggle {
-    display: none;
-    width: 100%;
+    padding-bottom: 20px;
     margin-bottom: 12px;
-    padding: 10px 12px;
-    border: 1px solid rgba(255, 255, 255, .25);
-    border-radius: 6px;
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    font: inherit;
-    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+.brand-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.brand-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.brand-title-wrap h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--sb-text-white);
+    letter-spacing: 0.5px;
+}
+
+.brand-subtitle {
+    font-size: 0.72rem;
+    color: var(--sb-text-light);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    margin: 0;
+}
+
+/* ============================================================
+   SIDEBAR NAVIGATION
+============================================================ */
 
 .sidebar-menu {
     list-style: none;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
 }
 
-.sidebar-menu li {
-    margin-bottom: 8px;
-}
+.sidebar-menu li { margin: 0; }
 
 .sidebar-menu a {
-    display: block;
-    padding: 10px;
-    border-radius: 6px;
-    color: #a4bcd4;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: var(--sb-text-light);
     text-decoration: none;
-    transition: background .2s ease, color .2s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.18s ease;
 }
 
-.sidebar-menu a:hover,
-.sidebar-menu .active a {
-    background: rgba(255, 255, 255, .1);
-    color: white;
+.sidebar-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--sb-text-white);
+    transform: translateX(3px);
 }
+
+.sidebar-menu .active a {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--sb-text-white);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--sb-accent-blue);
+}
+
+/* ============================================================
+   SIDEBAR LOGOUT (BOTTOM)
+============================================================ */
 
 .sidebar-logout {
-    margin-top: 20px;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-logout a {
-    background: rgba(179, 32, 52, .15);
-    border: 1px solid rgba(179, 32, 52, .3);
-    color: #ffe0e0;
+    background: var(--sb-danger-bg);
+    border: 1px solid var(--sb-danger-border);
+    color: #FCA5A5;
+    font-weight: 600;
 }
 
-@media (max-width: 768px) {
-    body {
-        overflow-x: hidden;
-    }
+.sidebar-logout a:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: #FFFFFF;
+    transform: none;
+}
 
-    .container {
+/* ============================================================
+   MOBILE CLOSE BUTTON (inside sidebar)
+============================================================ */
+
+.mobile-sidebar-close {
+    display: none;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    color: var(--sb-text-white);
+    font-size: 1.1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+    font-family: inherit;
+}
+
+.mobile-sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE — DRAWER LAYOUT (≤ 768px)
+============================================================ */
+
+@media (max-width: 768px) {
+    body { overflow-x: hidden; }
+
+    .app-wrapper {
         display: block;
         width: 100%;
+        min-height: 100vh;
         overflow-x: hidden;
     }
 
+    /* Slide-out mobile drawer */
     .sidebar {
         position: fixed;
         top: 0;
         left: 0;
         bottom: 0;
-        z-index: 2000;
-        width: min(280px, 86vw);
+        z-index: 2100;
+        width: min(290px, 84vw);
         min-height: 100dvh;
         height: 100dvh;
-        padding: 16px;
+        padding: 20px 16px;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         transform: translateX(-105%);
-        transition: transform .18s ease-out;
+        box-shadow: none;
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s ease;
     }
 
     .sidebar.mobile-open {
         transform: translateX(0);
+        box-shadow: 10px 0 35px rgba(0, 0, 0, 0.4);
     }
 
-    .sidebar-toggle {
-        display: none;
+    .mobile-sidebar-close {
+        display: flex;
     }
 
-    .sidebar-menu {
-        display: block;
+    /* Main content gets top padding to avoid overlap with floating menu button */
+    .page-content {
+        padding-top: 64px !important;
     }
 
-    .content {
-        width: 100%;
-        max-width: 100%;
-        padding: 16px;
-        overflow-x: auto;
-    }
-
+    /* Floating glassmorphic hamburger button */
     .mobile-sidebar-trigger {
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         position: fixed;
         top: 12px;
-        left: 12px;
-        z-index: 1900;
-        padding: 9px 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        background: #ffffff;
-        color: #1b365d;
+        left: 14px;
+        z-index: 1950;
+        padding: 8px 14px;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: var(--sb-navy-primary);
         cursor: pointer;
-        font: inherit;
-        font-size: .85rem;
+        font-family: inherit;
+        font-size: 0.84rem;
         font-weight: 600;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s ease;
     }
 
+    .mobile-sidebar-trigger:hover {
+        background: #FFFFFF;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .mobile-sidebar-trigger:active {
+        transform: scale(0.96);
+    }
+
+    /* Backdrop overlay with blur */
     .mobile-sidebar-overlay {
         display: block;
         position: fixed;
         inset: 0;
-        z-index: 1990;
-        background: rgba(15, 32, 56, .42);
+        z-index: 2050;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        opacity: 1;
+        transition: opacity 0.25s ease;
     }
 
     .mobile-sidebar-overlay[hidden] {
         display: none !important;
+        opacity: 0;
     }
 }
 
 @media (min-width: 769px) {
     .mobile-sidebar-trigger,
-    .mobile-sidebar-overlay {
-        display: none;
+    .mobile-sidebar-overlay,
+    .mobile-sidebar-close {
+        display: none !important;
     }
 }

@@ -3,435 +3,763 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CFMMS - Dashboard Overview</title>
+    <title>CFMMS - Executive Dashboard & Financial Analytics</title>
     <link rel="icon" href="/images/logo.png" type="image/png">
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: #f4f6f8; }
-        .container { display: flex; min-height: 100vh; }
-        
-        /* SIDEBAR */
-        .sidebar { width: 260px; background: linear-gradient(180deg, #1b365d 0%, #0f2038 100%); color: white; padding: 30px 20px; }
-        .sidebar h2 { margin-bottom: 30px; }
-        .sidebar-menu { list-style: none; }
-        .sidebar-menu li { margin-bottom: 10px; }
-        .sidebar-menu a { color: #a4bcd4; text-decoration: none; display: block; padding: 10px; border-radius: 8px; transition: all 0.2s ease; }
-        .sidebar-menu a:hover, .sidebar-menu .active a { background: rgba(255, 255, 255, .1); color: white; }
-        
-        /* CONTENT LAYER */
-        .content { flex: 1; padding: 30px; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .topbar h1 { color: #1b365d; }
-        .topbar p { color: #7f8c8d; }
-        .user-profile-badge { background: white; padding: 8px 16px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: 500; color: #1b365d; border: 1px solid #e2e8f0; }
-        
-        /* CARDS GRID */
-        .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .08); display: flex; justify-content: space-between; align-items: flex-start; }
-        .card h3 { color: #7f8c8d; font-size: .9rem; font-weight: 500; }
-        .card-value { font-size: 1.8rem; font-weight: 600; margin-top: 10px; color: #0f172a; }
-        .card-subtext { font-size: 0.8rem; margin-top: 5px; font-weight: 500; }
-        .text-green { color: #0d7a35; }
-        .text-red { color: #b32034; }
-        .card-icon { font-size: 1.3rem; padding: 8px; border-radius: 6px; background: #f5f5f5; }
-        
-        /* DASHBOARD SPLIT GRID */
-        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        
-        /* TABLE CONTAINER */
-        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .08); overflow-x: auto; }
-        .section-title { font-size: 1.1rem; color: #1b365d; font-weight: 600; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #ffffff; color: #7f8c8d; text-align: left; padding: 12px; font-weight: 500; border-bottom: 2px solid #f5f5f5; font-size: 0.85rem; }
-        td { padding: 14px 12px; border-top: 1px solid #eee; color: #333; font-size: 0.85rem; }
-        .text-bold { font-weight: 600; }
-        
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; text-transform: capitalize; }
-        .role-admin { background: #fee2e2; color: #991b1b; }
-        .role-pastor { background: #e0f2fe; color: #0369a1; }
-        .role-secretary { background: #f3e8ff; color: #6b21a8; }
-        .role-treasurer { background: #dcfce7; color: #166534; }
-        .role-member { background: #f1f5f9; color: #475569; }
-        
-        .btn-action { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; color: #1b365d; text-decoration: none; display: inline-block; }
-        .btn-action:hover { background: #e2e8f0; }
-        .mobile-hide { display: block; }
-    </style>
     <link rel="stylesheet" href="../css/sidebar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { DEFAULT: '#1B365D', dark: '#0F2038', light: '#2A4D7E' }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js 4.4 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* Pulse Animation */
+        @keyframes pulseDot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .pulse-dot {
+            animation: pulseDot 2s infinite;
+        }
+        /* Dynamic JS elements backward compatibility styles */
+        .tab-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748B;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background-color: #FFFFFF;
+            color: #1B365D;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .status-pill {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .status-verified { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+        .status-pending { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+        .status-approved { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+        .status-voided { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+        .tag-pill {
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .tag-green { background: #ECFDF5; color: #059669; }
+        .tag-red { background: #FEF2F2; color: #DC2626; }
+        .tag-blue { background: #EFF6FF; color: #2563EB; }
+        .audit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 12px;
+            background: #F8FAFC;
+            border-radius: 8px;
+            border-left: 3px solid #1B365D;
+        }
+        .audit-icon { font-size: 1rem; margin-top: 2px; }
+        .audit-info { flex: 1; }
+        .audit-action { font-size: 0.82rem; font-weight: 600; color: #1B365D; }
+        .audit-details { font-size: 0.76rem; color: #64748B; margin-top: 2px; word-break: break-word; }
+        .audit-time { font-size: 0.72rem; color: #94A3B8; margin-top: 4px; }
+    </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
-<div class="container">
+<div class="flex min-h-screen app-wrapper">
 
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <h2>CFMMS</h2>
-        </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar"></aside>
 
-        <ul class="sidebar-menu">
-            <li class="active">
-                <a href="index.html">
-                    <span class="icon">📊</span> 
-                    <span class="nav-text">Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="members.html">
-                    <span class="icon">👥</span> 
-                    <span class="nav-text">Members</span>
-                </a>
-            </li>
-            <li>
-                <a href="collections.html">
-                    <span class="icon">📥</span> 
-                    <span class="nav-text">Collections</span>
-                </a>
-            </li>
-            <li>
-                <a href="funds.html">
-                    <span class="icon">💰</span> 
-                    <span class="nav-text">Funds</span>
-                </a>
-            </li>
-            <li class="mobile-hide">
-                <a href="expenses.html">
-                    <span class="icon">📤</span> 
-                    <span class="nav-text">Expenses</span>
-                </a>
-            </li>
-            <li class="mobile-hide">
-                <a href="vouchers.html">
-                    <span class="icon">🎫</span> 
-                    <span class="nav-text">Vouchers</span>
-                </a>
-            </li>
-            <li class="mobile-hide">
-                <a href="reports.html">
-                    <span class="icon">📈</span> 
-                    <span class="nav-text">Reports</span>
-                </a>
-            </li>
-            <li class="mobile-hide">
-                <a href="audit.html">
-                    <span class="icon">🛡️</span> 
-                    <span class="nav-text">Audit Trail</span>
-                </a>
-            </li>
-            <li class="mobile-hide">
-                <a href="users.html">
-                    <span class="icon">👤</span> 
-                    <span class="nav-text">Users</span>
-                </a>
-            </li>
-            <li>
-                <a href="settings.html">
-                    <span class="icon">⚙️</span> 
-                    <span class="nav-text">Settings</span>
-                </a>
-            </li>
-            
-            <li style="margin-top: 20px;">
-                <a href="#" onclick="handleLogout(event)" style="background: rgba(179, 32, 52, 0.15); color: #ffe0e0; border: 1px solid rgba(179, 32, 52, 0.3);">
-                    <span class="icon">🚪</span> 
-                    <span class="nav-text">Logout</span>
-                </a>
-            </li>
-        </ul>
-    </aside>
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 min-w-0 p-6 lg:p-8 page-content">
 
-    <main class="content">
-
-        <div class="topbar">
+        <!-- TOP BAR -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-                <h1>Dashboard</h1>
-                <p>Church Financial Management & Monitoring System Overview.</p>
+                <h1 id="greetingHeading" class="text-2xl lg:text-3xl font-bold text-navy tracking-tight">Financial Overview Dashboard</h1>
+                <p id="subGreeting" class="text-xs lg:text-sm text-slate-500 mt-1">Maui United Methodist Church · Real-time Financial Monitoring</p>
             </div>
-            <div class="user-profile-badge" id="userBadgeProfile">
-                👤 Loading...
+
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="bg-white border border-slate-200 px-3.5 py-2 rounded-full text-xs font-medium text-navy flex items-center gap-2 shadow-sm">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
+                    <span id="liveStatusText">Database Online</span>
+                </div>
+                <div class="bg-white border border-slate-200 px-3.5 py-2 rounded-full text-xs font-medium text-navy shadow-sm" id="userBadgeProfile">
+                    Admin
+                </div>
+                <button class="btn-refresh bg-navy hover:bg-navy-dark text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all hover:-translate-y-0.5 active:translate-y-0" onclick="refreshDashboard(true)" title="Force reload live metrics">
+                    Refresh
+                </button>
             </div>
         </div>
 
-        <section class="cards">
-            <div class="card">
-                <div>
-                    <h3>Total Members</h3>
-                    <div class="card-value" id="dashTotalMembers">0</div>
-                    <div class="card-subtext text-green" id="dashActivePercent">0% Active</div>
+        <!-- 5 EXECUTIVE KPI METRIC CARDS -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+            <!-- Total Membership -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col justify-between border-l-4 border-l-blue-500">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Membership</span>
                 </div>
-                <div class="card-icon">👥</div>
+                <div class="text-2xl font-bold text-slate-900 tracking-tight my-1" id="kpiMembers">0</div>
+                <div class="text-xs text-slate-500 flex items-center gap-2 flex-wrap mt-2">
+                    <span class="tag-pill tag-green" id="kpiActivePercent">100% Active</span>
+                    <span id="kpiGenderRatio" class="text-slate-400">0 M / 0 F</span>
+                </div>
             </div>
-            <div class="card">
-                <div>
-                    <h3>Total Collections</h3>
-                    <div class="card-value" id="dashTotalCollections">₱0.00</div>
-                    <div class="card-subtext text-green">This Month</div>
+
+            <!-- Collections (This Month) -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col justify-between border-l-4 border-l-emerald-500">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Monthly Collections</span>
                 </div>
-                <div class="card-icon">📥</div>
+                <div class="text-2xl font-bold text-slate-900 tracking-tight my-1" id="kpiMonthCollections">₱0.00</div>
+                <div class="text-xs text-slate-500 flex items-center gap-2 flex-wrap mt-2">
+                    <span class="tag-pill tag-blue" id="kpiGiversCount">0 Givers</span>
+                    <span id="kpiAllTimeCol" class="text-slate-400 truncate">All-Time: ₱0.00</span>
+                </div>
             </div>
-            <div class="card">
-                <div>
-                    <h3>Available Funds</h3>
-                    <div class="card-value" id="dashAvailableFunds">₱0.00</div>
-                    <div class="card-subtext text-green">All Accounts</div>
+
+            <!-- Operational Expenses (This Month) -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col justify-between border-l-4 border-l-red-500">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Monthly Expenses</span>
                 </div>
-                <div class="card-icon">💰</div>
+                <div class="text-2xl font-bold text-slate-900 tracking-tight my-1" id="kpiMonthExpenses">₱0.00</div>
+                <div class="text-xs text-slate-500 flex items-center gap-2 flex-wrap mt-2">
+                    <span class="tag-pill tag-red" id="kpiExpVouchers">0 Vouchers</span>
+                    <span id="kpiAllTimeExp" class="text-slate-400 truncate">All-Time: ₱0.00</span>
+                </div>
             </div>
-            <div class="card">
-                <div>
-                    <h3>Total Expenses</h3>
-                    <div class="card-value" id="dashTotalExpenses">₱0.00</div>
-                    <div class="card-subtext text-red">Disbursed</div>
+
+            <!-- Net Operating Cashflow -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col justify-between border-l-4 border-l-amber-500">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Net Operating Cashflow</span>
                 </div>
-                <div class="card-icon">📤</div>
+                <div class="text-2xl font-bold text-slate-900 tracking-tight my-1" id="kpiNetCashflow">₱0.00</div>
+                <div class="text-xs text-slate-500 flex items-center gap-2 flex-wrap mt-2">
+                    <span class="tag-pill tag-green" id="kpiNetStatus">Monthly Balance</span>
+                    <span id="kpiAllTimeNet" class="text-slate-400 truncate">All-Time: ₱0.00</span>
+                </div>
+            </div>
+
+            <!-- Allocations Reserve -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col justify-between border-l-4 border-l-purple-500">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Allocated Reserves</span>
+                </div>
+                <div class="text-2xl font-bold text-slate-900 tracking-tight my-1" id="kpiTotalReserves">₱0.00</div>
+                <div class="text-xs text-slate-400 flex items-center gap-1 truncate mt-2">
+                    <span id="kpiReservesBreakdown" class="truncate">PS: ₱0.00 · App: ₱0.00</span>
+                </div>
             </div>
         </section>
 
-        <div class="dashboard-grid">
-            
-            <section class="table-container">
-                <div class="section-title">Recently Added Members</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Member ID</th>
-                            <th>Full Name</th>
-                            <th>Contact Number</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dashMemberTableBody">
-                        <tr>
-                            <td colspan="5" style="text-align:center; color:#94a3b8;">Loading system metrics...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-
-            <section class="table-container">
-                <div class="section-title">System Monitoring Actions</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <a href="members.html" class="btn-action">👥 Manage System Members</a>
-                    <a href="collections.html" class="btn-action">📥 Log Tithes & Collections</a>
-                    <a href="funds.html" class="btn-action">💰 Review Fund Allocation Balance</a>
-                    <a href="expenses.html" class="btn-action">📤 Track Church Operational Expenses</a>
+        <!-- ANALYTICS CHARTS SECTION -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+            <!-- 6-Month Inflow vs Outflow Cashflow Trend -->
+            <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                    <h2 class="text-sm font-bold text-navy">Cashflow Dynamics (Inflows vs Outflows)</h2>
+                    <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-500 font-medium">6-Month Ledger</span>
                 </div>
-            </section>
+                <div class="relative w-full h-72">
+                    <canvas id="cashflowChart"></canvas>
+                </div>
+            </div>
 
-        </div>
+            <!-- Fund Categories Breakdown -->
+            <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                    <h2 class="text-sm font-bold text-navy">Collections by Fund Category</h2>
+                    <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-500 font-medium">Volume Share</span>
+                </div>
+                <div class="relative w-full h-72">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Payment Methods Distribution -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                    <h2 class="text-sm font-bold text-navy">Payment Channels & Methods</h2>
+                    <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-500 font-medium">Transaction Share</span>
+                </div>
+                <div class="relative w-full h-56">
+                    <canvas id="methodChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Membership Demographics & Status -->
+            <div class="bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                    <h2 class="text-sm font-bold text-navy">Membership Engagement & Demographics</h2>
+                    <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-500 font-medium">Active Directory</span>
+                </div>
+                <div class="relative w-full h-56">
+                    <canvas id="demographicsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- RECENT FINANCIAL ACTIVITY & SYSTEM MONITORING HUB -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- RECENT TRANSACTIONS TABLE -->
+            <div class="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                        <h2 class="text-base font-bold text-navy">Recent Financial Transactions</h2>
+                        <div class="flex bg-slate-100 p-1 rounded-lg gap-1">
+                            <button class="tab-btn active" id="tabColBtn" onclick="switchRecentTab('collections')">Collections</button>
+                            <button class="tab-btn" id="tabExpBtn" onclick="switchRecentTab('expenses')">Expenses</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left text-xs" id="recentDataTable">
+                            <thead class="bg-slate-50 text-slate-500 border-b border-slate-200">
+                                <tr id="recentTableHead" class="[&>th]:py-3 [&>th]:px-3 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                                    <th>Receipt #</th>
+                                    <th>Date</th>
+                                    <th>Donor</th>
+                                    <th>Category</th>
+                                    <th>Method</th>
+                                    <th class="text-right">Amount</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTableBody" class="divide-y divide-slate-100 [&>tr>td]:py-3 [&>tr>td]:px-3">
+                                <tr>
+                                    <td colspan="7" class="text-center py-6 text-slate-400">Loading live ledger entries...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                    <a href="collections.html" id="viewAllLink" class="text-xs font-semibold text-blue-600 hover:text-navy transition-colors">View Full Collections Ledger →</a>
+                </div>
+            </div>
+
+            <!-- SYSTEM AUDIT STREAM & QUICK SHORTCUTS -->
+            <div class="lg:col-span-4 bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                        <h2 class="text-base font-bold text-navy">System Activity</h2>
+                        <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">Live Audit</span>
+                    </div>
+
+                    <ul class="flex flex-col gap-2.5 max-h-80 overflow-y-auto pr-1" id="auditStreamList">
+                        <li class="text-center py-4 text-slate-400 text-xs">Loading system audit trail...</li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-100">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">Quick Financial Operations</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="collections.html" class="flex items-center justify-center p-2.5 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all shadow-sm text-center">
+                            Log Collection
+                        </a>
+                        <a href="expenses.html" class="flex items-center justify-center p-2.5 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all shadow-sm text-center">
+                            New Expense
+                        </a>
+                        <a href="members.html" class="flex items-center justify-center p-2.5 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all shadow-sm text-center">
+                            Add Member
+                        </a>
+                        <a href="reports.html" class="flex items-center justify-center p-2.5 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all shadow-sm text-center">
+                            Export Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </section>
 
     </main>
 
 </div>
 
 <script>
-// 1. 🔥 SECURITY NAV GUARD (MUST EXECUTE FIRST)
+// ============================================================
+// 1. SECURITY NAV GUARD
+// ============================================================
 (() => {
     const token = sessionStorage.getItem("token");
-    
     if (!token || token === "undefined" || token === "null") {
         sessionStorage.clear();
-        document.documentElement.style.display = "none"; 
+        document.documentElement.style.display = "none";
         alert("Access Denied: Please log in first.");
-        window.location.replace("login.html"); // 🔥 FIXED: Removed space
-        throw new Error("Unauthenticated session intercepted."); 
+        window.location.replace("login.html");
+        throw new Error("Unauthenticated session intercepted.");
     }
 })();
 
-// 🔥 NEWLY ADDED LOGOUT FUNCTION
+// LOGOUT HANDLER
 function handleLogout(event) {
-    event.preventDefault();
-    if (confirm("Are you sure you want to log out?")) {
+    if (event) event.preventDefault();
+    if (confirm("Are you sure you want to log out of CFMMS?")) {
         sessionStorage.clear();
-        window.location.replace("login.html"); // 🔥 FIXED: Removed space
+        localStorage.removeItem("cfmms:dashboard:summary");
+        window.location.replace("login.html");
     }
 }
 
-// Initialize Profile Badge Interface
+// User Profile Badge
 const storedUsername = sessionStorage.getItem("username") || "User";
-const storedRole = sessionStorage.getItem("role") || "Member";
-document.getElementById("userBadgeProfile").innerText = `👤 ${storedUsername} (${storedRole})`;
+const storedRole = sessionStorage.getItem("role") || "Staff";
+document.getElementById("userBadgeProfile").innerText = `${storedUsername} (${storedRole})`;
+document.getElementById("greetingHeading").innerText = `Welcome, ${storedUsername}`;
 
-const DASHBOARD_CACHE_TTL = 5 * 60 * 1000;
+// Date subtitle
+const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+document.getElementById("subGreeting").innerText = `Maui United Methodist Church · ${new Date().toLocaleDateString('en-US', options)}`;
 
-function getCachedJson(key, ttl = DASHBOARD_CACHE_TTL) {
-    try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return null;
 
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object") return null;
+// ============================================================
+// 2. DASHBOARD DATA & CACHE ENGINE
+// ============================================================
+const DASHBOARD_CACHE_KEY = "cfmms:dashboard:summary";
+const DASHBOARD_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
-        if (Date.now() > (parsed.expiresAt || 0)) {
-            localStorage.removeItem(key);
-            return null;
-        }
+// Global Chart Instances
+let chartCashflow = null;
+let chartCategory = null;
+let chartMethod = null;
+let chartDemographics = null;
 
-        return parsed.value;
-    } catch {
-        return null;
-    }
+// Global Data Store
+let currentDashboardData = null;
+let currentRecentTab = "collections";
+
+function formatCurrency(val) {
+    const num = Number(val) || 0;
+    return `₱${num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function setCachedJson(key, value, ttl = DASHBOARD_CACHE_TTL) {
-    try {
-        localStorage.setItem(key, JSON.stringify({
-            value,
-            expiresAt: Date.now() + ttl
-        }));
-    } catch {
-        // ignore cache write failures in private browsing / quota limits
-    }
-}
-
-async function cachedFetchJson(url, options = {}, key, ttl = DASHBOARD_CACHE_TTL) {
-    const method = (options.method || "GET").toUpperCase();
-    const cacheKey = key || `cfmms:${method}:${url}`;
-
-    if (method === "GET") {
-        const cached = getCachedJson(cacheKey, ttl);
-        if (cached !== null) {
-            return cached;
-        }
-    }
-
-    try {
-        const response = await fetch(url, options);
-
-        const responseText = await response.text();
-        let data;
-
-        try {
-            data = responseText ? JSON.parse(responseText) : null;
-        } catch {
-            data = responseText;
-        }
-
-        if (response.ok && method === "GET") {
-            setCachedJson(cacheKey, data, ttl);
-        }
-
-        return data;
-    } catch (error) {
-        if (method === "GET") {
-            const cached = getCachedJson(cacheKey, ttl);
-            if (cached !== null) {
-                return cached;
-            }
-        }
-
-        throw error;
-    }
-}
-
-/* ==========================================
-   LOAD SYSTEM MONITOR METRICS & TABLES
-========================================== */
-async function loadDashboardMetrics() {
+async function fetchDashboardData(forceRefresh = false) {
     const token = sessionStorage.getItem("token");
 
-    try {
-        const [data, collections] = await Promise.all([
-            cachedFetchJson("/api/members", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            }
-            }, "cfmms:dashboard:members"),
-            cachedFetchJson("/api/collections", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + token
+    if (!forceRefresh) {
+        try {
+            const raw = localStorage.getItem(DASHBOARD_CACHE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && Date.now() < (parsed.expiresAt || 0)) {
+                    return parsed.value;
                 }
-            }, "cfmms:dashboard:collections")
-        ]);
+            }
+        } catch (e) {}
+    }
 
-        const res = { ok: true };
+    const response = await fetch("/api/reports/dashboard-summary", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    });
 
-        if (!Array.isArray(data)) {
-            console.warn("Backend metrics fetch rejected:", data?.message || "Invalid members payload");
+    if (response.status === 401) {
+        sessionStorage.clear();
+        window.location.replace("login.html");
+        return null;
+    }
+
+    if (!response.ok) {
+        throw new Error("Failed to load dashboard metrics.");
+    }
+
+    const json = await response.json();
+    try {
+        localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({
+            value: json,
+            expiresAt: Date.now() + DASHBOARD_CACHE_TTL
+        }));
+    } catch (e) {}
+
+    return json;
+}
+
+// ============================================================
+// 3. RENDER METRICS & CHARTS
+// ============================================================
+function updateDashboardUI(data) {
+    if (!data || !data.overview) return;
+    currentDashboardData = data;
+    const { overview, charts, recentFeeds } = data;
+
+    // 1. KPI Cards
+    document.getElementById("kpiMembers").innerText = (overview.totalMembers || 0).toLocaleString();
+    document.getElementById("kpiActivePercent").innerText = `${overview.activePercentage || 0}% Active`;
+    document.getElementById("kpiGenderRatio").innerText = `${overview.maleMembers || 0} M / ${overview.femaleMembers || 0} F`;
+
+    document.getElementById("kpiMonthCollections").innerText = formatCurrency(overview.totalCollectionsThisMonth);
+    document.getElementById("kpiGiversCount").innerText = `${overview.activeGiversThisMonth || 0} Active Givers`;
+    document.getElementById("kpiAllTimeCol").innerText = `All-Time: ${formatCurrency(overview.totalCollectionsAllTime)}`;
+
+    document.getElementById("kpiMonthExpenses").innerText = formatCurrency(overview.totalExpensesThisMonth);
+    document.getElementById("kpiExpVouchers").innerText = `${overview.expenseCountThisMonth || 0} Vouchers`;
+    document.getElementById("kpiAllTimeExp").innerText = `All-Time: ${formatCurrency(overview.totalExpensesAllTime)}`;
+
+    const netMonthly = overview.netCashflowThisMonth || 0;
+    const kpiNetEl = document.getElementById("kpiNetCashflow");
+    kpiNetEl.innerText = `${netMonthly >= 0 ? '+' : ''}${formatCurrency(netMonthly)}`;
+    kpiNetEl.style.color = netMonthly >= 0 ? '#10B981' : '#EF4444';
+    document.getElementById("kpiNetStatus").className = `tag-pill ${netMonthly >= 0 ? 'tag-green' : 'tag-red'}`;
+    document.getElementById("kpiNetStatus").innerText = netMonthly >= 0 ? 'Net Surplus' : 'Net Deficit';
+    document.getElementById("kpiAllTimeNet").innerText = `All-Time: ${formatCurrency(overview.netCashflowAllTime)}`;
+
+    const totalAllocated = (overview.totalPersonalSavingsAllTime || 0) + (overview.totalApportionmentAllTime || 0);
+    document.getElementById("kpiTotalReserves").innerText = formatCurrency(totalAllocated);
+    document.getElementById("kpiReservesBreakdown").innerText = `PS: ${formatCurrency(overview.totalPersonalSavingsAllTime)} · App: ${formatCurrency(overview.totalApportionmentAllTime)}`;
+
+    // 2. Render Charts
+    renderCharts(charts);
+
+    // 3. Render Recent Table & Audit
+    renderRecentTable();
+    renderAuditStream(recentFeeds?.auditLogs || []);
+}
+
+function renderCharts(charts) {
+    if (!charts) return;
+
+    // --- CHART 1: Monthly Cashflow Trend (Combo Bar & Line) ---
+    const monthlyTrend = charts.monthlyTrend || [];
+    const labels = monthlyTrend.map(m => m.month_label);
+    const colData = monthlyTrend.map(m => Number(m.collections) || 0);
+    const expData = monthlyTrend.map(m => Number(m.expenses) || 0);
+    const netData = monthlyTrend.map(m => Number(m.net_cashflow) || 0);
+
+    const ctxCashflow = document.getElementById("cashflowChart");
+    if (ctxCashflow) {
+        if (chartCashflow) chartCashflow.destroy();
+        chartCashflow = new Chart(ctxCashflow, {
+            type: 'bar',
+            data: {
+                labels: labels.length ? labels : ['No Data'],
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Net Cashflow (₱)',
+                        data: netData.length ? netData : [0],
+                        borderColor: '#10B981',
+                        backgroundColor: '#10B981',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.35,
+                        fill: false,
+                        yAxisID: 'y'
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Collections Inflow (₱)',
+                        data: colData.length ? colData : [0],
+                        backgroundColor: '#1B365D',
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Disbursements (₱)',
+                        data: expData.length ? expData : [0],
+                        backgroundColor: '#EF4444',
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { family: 'Poppins', size: 11, weight: '500' } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.dataset.label}: ₱${Number(ctx.raw || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 10.5 } } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#F1F5F9' },
+                        ticks: {
+                            font: { family: 'Poppins', size: 10.5 },
+                            callback: (val) => `₱${Number(val).toLocaleString()}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- CHART 2: Fund Categories Breakdown (Doughnut) ---
+    const categories = charts.categoryBreakdown || [];
+    const catLabels = categories.map(c => c.category_name);
+    const catData = categories.map(c => Number(c.total_amount) || 0);
+
+    const ctxCat = document.getElementById("categoryChart");
+    if (ctxCat) {
+        if (chartCategory) chartCategory.destroy();
+        chartCategory = new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels.length ? catLabels : ['General Fund'],
+                datasets: [{
+                    data: catData.length ? catData : [1],
+                    backgroundColor: [
+                        '#1B365D', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { boxWidth: 12, font: { family: 'Poppins', size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.label}: ₱${Number(ctx.raw || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+
+    // --- CHART 3: Payment Methods Distribution (Doughnut) ---
+    const methods = charts.paymentMethods || [];
+    const methodLabels = methods.map(m => m.method_name);
+    const methodData = methods.map(m => Number(m.total_amount) || 0);
+
+    const ctxMethod = document.getElementById("methodChart");
+    if (ctxMethod) {
+        if (chartMethod) chartMethod.destroy();
+        chartMethod = new Chart(ctxMethod, {
+            type: 'doughnut',
+            data: {
+                labels: methodLabels.length ? methodLabels : ['CASH'],
+                datasets: [{
+                    data: methodData.length ? methodData : [1],
+                    backgroundColor: ['#059669', '#2563EB', '#D97706', '#7C3AED'],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Poppins', size: 10.5 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.label}: ₱${Number(ctx.raw || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    // --- CHART 4: Membership Demographics (Doughnut) ---
+    const demo = charts.demographics || {};
+    const ctxDemo = document.getElementById("demographicsChart");
+    if (ctxDemo) {
+        if (chartDemographics) chartDemographics.destroy();
+        chartDemographics = new Chart(ctxDemo, {
+            type: 'doughnut',
+            data: {
+                labels: ['Male Members', 'Female Members'],
+                datasets: [{
+                    data: [demo.male || 0, demo.female || 0],
+                    backgroundColor: ['#3B82F6', '#EC4899'],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Poppins', size: 10.5 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.label}: ${ctx.raw} members`
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+}
+
+// ============================================================
+// 4. RECENT FINANCIAL ACTIVITY & AUDIT STREAM
+// ============================================================
+function switchRecentTab(tab) {
+    currentRecentTab = tab;
+    document.getElementById("tabColBtn").className = `tab-btn ${tab === 'collections' ? 'active' : ''}`;
+    document.getElementById("tabExpBtn").className = `tab-btn ${tab === 'expenses' ? 'active' : ''}`;
+    renderRecentTable();
+}
+
+function renderRecentTable() {
+    if (!currentDashboardData || !currentDashboardData.recentFeeds) return;
+    const { collections, expenses } = currentDashboardData.recentFeeds;
+    const thead = document.getElementById("recentTableHead");
+    const tbody = document.getElementById("recentTableBody");
+    const viewAllLink = document.getElementById("viewAllLink");
+
+    if (currentRecentTab === "collections") {
+        thead.innerHTML = `
+            <th class="py-3 px-3">Receipt #</th>
+            <th class="py-3 px-3">Date</th>
+            <th class="py-3 px-3">Donor / Contributor</th>
+            <th class="py-3 px-3">Fund Category</th>
+            <th class="py-3 px-3">Method</th>
+            <th class="py-3 px-3 text-right">Amount</th>
+            <th class="py-3 px-3 text-center">Status</th>
+        `;
+        viewAllLink.href = "collections.html";
+        viewAllLink.innerText = "View Full Collections Ledger →";
+
+        if (!collections || collections.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No collection records found.</td></tr>`;
             return;
         }
 
-        const members = data;
-        const table = document.getElementById("dashMemberTableBody");
-        if (!table) return;
-        
-        table.innerHTML = "";
-
-        let activeCount = 0;
-
-        // Display up to 5 members in recent overview grid
-        const limitedDisplayList = members.slice(0, 5);
-
-        if (limitedDisplayList.length === 0) {
-            table.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No records registered.</td></tr>`;
-        }
-
-        members.forEach((m) => {
-            if (m.status === "Active") activeCount++;
-        });
-
-        limitedDisplayList.forEach((m) => {
-            table.innerHTML += `
-                <tr>
-                    <td class="text-bold">${m.member_id ?? "N/A"}</td>
-                    <td>${m.official_name ?? ""}</td>
-                    <td>${m.phone ?? ""}</td>
-                    <td><span class="badge role-${m.role ? m.role.toLowerCase() : "member"}">${m.role ?? "member"}</span></td>
-                    <td>
-                        <span class="status ${m.status === "Active" ? "active-status" : "inactive-status"}">
-                            ${m.status ?? "Active"}
-                        </span>
-                    </td>
+        tbody.innerHTML = collections.map(c => {
+            const rawDate = c.date ? String(c.date).split('T')[0] : '—';
+            const statusClass = (c.status || '').toLowerCase() === 'verified' ? 'status-verified' : 'status-pending';
+            return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="font-semibold text-navy py-3 px-3">${c.receipt_no || '—'}</td>
+                    <td class="text-slate-500 py-3 px-3">${rawDate}</td>
+                    <td class="font-medium text-slate-800 py-3 px-3">${c.giver_name || 'Anonymous'}</td>
+                    <td class="py-3 px-3"><span class="tag-pill tag-blue">${c.category || 'General Fund'}</span></td>
+                    <td class="text-slate-500 text-xs py-3 px-3">${c.method || 'CASH'}</td>
+                    <td class="text-right font-bold text-emerald-600 py-3 px-3">${formatCurrency(c.amount)}</td>
+                    <td class="text-center py-3 px-3"><span class="status-pill ${statusClass}">${c.status || 'Verified'}</span></td>
                 </tr>
             `;
-        });
+        }).join("");
+    } else {
+        thead.innerHTML = `
+            <th class="py-3 px-3">Voucher #</th>
+            <th class="py-3 px-3">Date</th>
+            <th class="py-3 px-3">Payee / Recipient</th>
+            <th class="py-3 px-3">Expense Category</th>
+            <th class="py-3 px-3">Method</th>
+            <th class="py-3 px-3 text-right">Amount</th>
+            <th class="py-3 px-3 text-center">Status</th>
+        `;
+        viewAllLink.href = "expenses.html";
+        viewAllLink.innerText = "View Full Expenses Ledger →";
 
-        // Safe Dashboard Calculation Metrics
-        document.getElementById("dashTotalMembers").innerText = members.length;
-        const percentCalculation = members.length > 0 ? Math.round((activeCount / members.length) * 100) : 0;
-        document.getElementById("dashActivePercent").innerText = `${percentCalculation}% Active`;
+        if (!expenses || expenses.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No expense records found.</td></tr>`;
+            return;
+        }
 
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        const monthlyCollections = Array.isArray(collections)
-            ? collections.filter(collection => {
-                const collectionDate = new Date(
-                    collection.collection_date || collection.date
-                );
-                return collectionDate.getMonth() === currentMonth &&
-                    collectionDate.getFullYear() === currentYear;
-            })
-            : [];
-        const monthlyTotal = monthlyCollections.reduce(
-            (total, collection) => total + Number(collection.amount || 0),
-            0
-        );
-
-        document.getElementById("dashTotalCollections").innerText =
-            `₱${monthlyTotal.toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })}`;
-        document.getElementById("dashAvailableFunds").innerText = "₱0.00";
-        document.getElementById("dashTotalExpenses").innerText = "₱0.00";
-
-    } catch (err) {
-        console.error("Dashboard monitor runtime execution crash:", err);
+        tbody.innerHTML = expenses.map(e => {
+            const rawDate = e.date ? String(e.date).split('T')[0] : '—';
+            const statusClass = (e.status || '').toLowerCase() === 'approved' ? 'status-approved' : (e.status || '').toLowerCase() === 'voided' ? 'status-voided' : 'status-pending';
+            return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="font-semibold text-navy py-3 px-3">${e.voucher_number || '—'}</td>
+                    <td class="text-slate-500 py-3 px-3">${rawDate}</td>
+                    <td class="font-medium text-slate-800 py-3 px-3">${e.payee || 'General Payee'}</td>
+                    <td class="py-3 px-3"><span class="tag-pill tag-red">${e.category || 'Operational'}</span></td>
+                    <td class="text-slate-500 text-xs py-3 px-3">${e.method || 'Cash'}</td>
+                    <td class="text-right font-bold text-red-600 py-3 px-3">${formatCurrency(e.amount)}</td>
+                    <td class="text-center py-3 px-3"><span class="status-pill ${statusClass}">${e.status || 'Approved'}</span></td>
+                </tr>
+            `;
+        }).join("");
     }
 }
 
-// Run monitor updates on page launch
-loadDashboardMetrics();
+function renderAuditStream(logs) {
+    const list = document.getElementById("auditStreamList");
+    if (!logs || logs.length === 0) {
+        list.innerHTML = `<li class="text-center py-4 text-slate-400 text-xs">No recent audit logs available.</li>`;
+        return;
+    }
+
+    list.innerHTML = logs.map(log => {
+        const timeAgo = log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        return `
+            <li class="audit-item">
+                <div class="audit-info">
+                    <div class="audit-action">${log.action_type || 'SYSTEM_ACTION'} by <strong class="text-slate-700">${log.user_name || 'System'}</strong></div>
+                    <div class="audit-details">${log.details || log.table_name || 'Action processed'}</div>
+                    <div class="audit-time">${timeAgo}</div>
+                </div>
+            </li>
+        `;
+    }).join("");
+}
+
+// ============================================================
+// 5. REFRESH CONTROLLER
+// ============================================================
+async function refreshDashboard(forceRefresh = false) {
+    const refreshBtn = document.querySelector(".btn-refresh");
+    if (refreshBtn) refreshBtn.innerHTML = "Loading...";
+
+    try {
+        const data = await fetchDashboardData(forceRefresh);
+        if (data) {
+            updateDashboardUI(data);
+        }
+    } catch (err) {
+        console.error("Dashboard refresh error:", err);
+    } finally {
+        if (refreshBtn) refreshBtn.innerHTML = "Refresh";
+    }
+}
+
+// Initial Load
+document.addEventListener("DOMContentLoaded", () => {
+    refreshDashboard(false);
+});
 </script>
-<script src="../js/form-validation.js"></script>
+
 <script src="../js/sidebar.js"></script>
 </body>
 </html>

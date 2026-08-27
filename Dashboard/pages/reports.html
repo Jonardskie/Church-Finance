@@ -1,873 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CFMMS - Collection Reports</title>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
+    <link rel="icon" href="/images/logo.png" type="image/png">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { DEFAULT: '#1B365D', dark: '#0F2038', light: '#2A4D7E' }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Poppins, sans-serif;
-            background: #f4f6f8;
-            color: #111827;
-        }
-
-        .container {
-            min-height: 100vh;
-            display: flex;
-        }
-
-        .sidebar {
-            width: 260px;
-            min-height: 100vh;
-            background:
-                linear-gradient(
-                    180deg,
-                    #1b365d,
-                    #0f2038
-                );
-            color: white;
-            padding: 30px 20px;
-            flex-shrink: 0;
-        }
-
-        .sidebar h2 {
-            margin-bottom: 30px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 8px;
-        }
-
-        .sidebar-menu a {
-            display: block;
-            padding: 11px;
-            border-radius: 8px;
-            color: #a4bcd4;
-            text-decoration: none;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu .active a {
-            background: rgba(255,255,255,.1);
-            color: white;
-        }
-
-        .content {
-            flex: 1;
-            padding: 30px;
-            min-width: 0;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        h1 {
-            color: #1b365d;
-            font-size: 2rem;
-        }
-
-        .subtitle {
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        .toolbar {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: end;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .field label {
-            font-size: .8rem;
-            font-weight: 600;
-            color: #4b5563;
-        }
-
-        input,
-        select {
-            height: 42px;
-            border: 1px solid #d1d5db;
-            border-radius: 7px;
-            padding: 0 12px;
-            font-family: inherit;
-            background: white;
-        }
-
-        button {
-            height: 42px;
-            border: 0;
-            border-radius: 7px;
-            padding: 0 16px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 600;
-        }
-
-        .btn-primary {
-            background: #1b365d;
-            color: white;
-        }
-
-        .btn-dark {
-            background: #111827;
-            color: white;
-        }
-
-        .btn-print {
-            background: #e5e7eb;
-            color: #111827;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns:
-                repeat(5, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .card-label {
-            color: #6b7280;
-            font-size: .8rem;
-            font-weight: 500;
-        }
-
-        .card-value {
-            margin-top: 8px;
-            font-size: 1.45rem;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .report-section {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            overflow: hidden;
-        }
-
-        .section-header {
-            padding: 20px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .section-header h2 {
-            font-size: 1.15rem;
-        }
-
-        .section-header p {
-            color: #6b7280;
-            font-size: .85rem;
-            margin-top: 4px;
-        }
-
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 850px;
-        }
-
-        th {
-            background: #f8fafc;
-            padding: 13px 14px;
-            text-align: left;
-            font-size: .82rem;
-            border-bottom: 1px solid #e5e7eb;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 13px 14px;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: .84rem;
-            white-space: nowrap;
-        }
-
-        td.amount {
-            text-align: right;
-            font-weight: 600;
-        }
-
-        tfoot td {
-            font-weight: 700;
-            background: #f8fafc;
-        }
-
-        .empty {
-            padding: 35px;
-            text-align: center;
-            color: #6b7280;
-        }
-
-        .settings-grid {
-            padding: 20px;
-            display: grid;
-            gap: 12px;
-        }
-
         .setting-row {
             display: grid;
-            grid-template-columns:
-                minmax(180px, 1.5fr)
-                1fr
-                120px
-                1fr
-                120px
-                100px;
+            grid-template-columns: minmax(180px, 1.5fr) 1fr 120px 1fr 120px 100px;
             gap: 10px;
             align-items: center;
             padding: 12px;
             border: 1px solid #edf0f3;
             border-radius: 8px;
         }
-
-        .setting-title {
-            font-weight: 600;
-        }
-
-        .small {
-            font-size: .75rem;
-            color: #6b7280;
-        }
+        .setting-title { font-weight: 600; }
+        .small { font-size: .75rem; color: #6b7280; }
+        td.amount { text-align: right; font-weight: 600; }
+        .empty { padding: 35px; text-align: center; color: #6b7280; }
 
         @media(max-width: 1100px) {
-
-            .cards {
-                grid-template-columns:
-                    repeat(3, 1fr);
-            }
-
-            .setting-row {
-                grid-template-columns:
-                    1fr 1fr;
-            }
-        }
-
-        @media(max-width: 800px) {
-
-            .container {
-                display: block;
-            }
-
-            .sidebar {
-                width: 100%;
-                min-height: auto;
-                padding: 15px;
-            }
-
-            .sidebar h2 {
-                margin-bottom: 10px;
-            }
-
-            .sidebar-menu {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 5px;
-            }
-
-            .sidebar-menu li {
-                margin: 0;
-            }
-
-            .content {
-                padding: 15px;
-            }
-
-            .topbar {
-                display: block;
-            }
-
-            .topbar button {
-                margin-top: 15px;
-            }
-
-            .cards {
-                grid-template-columns:
-                    repeat(2, 1fr);
-            }
-        }
-
-        @media(max-width: 500px) {
-
-            .cards {
-                grid-template-columns: 1fr;
-            }
-
-            .toolbar {
-                display: grid;
-            }
-
-            .field,
-            input,
-            select,
-            .toolbar button {
-                width: 100%;
-            }
+            .setting-row { grid-template-columns: 1fr 1fr; }
         }
 
         @media print {
-
-            .sidebar,
-            .toolbar,
-            .settings-section,
-            .no-print {
+            .sidebar, .toolbar, .settings-section, .no-print {
                 display: none !important;
             }
-
-            .content {
-                padding: 0;
+            .page-content {
+                padding: 0 !important;
             }
-
             body {
-                background: white;
-            }
-
-            .report-section {
-                border: 0;
-                margin-bottom: 20px;
-            }
-
-            .cards {
-                grid-template-columns:
-                    repeat(5, 1fr);
+                background: white !important;
             }
         }
-
     </style>
-
-    <link rel="stylesheet" href="../css/sidebar.css">
 </head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
-<body>
+<div class="flex min-h-screen app-wrapper">
 
-<div class="container">
+    <aside class="sidebar"></aside>
 
-    <aside class="sidebar">
+    <main class="flex-1 min-w-0 p-6 lg:p-8 page-content">
 
-        <h2>CFMMS</h2>
-
-        <ul class="sidebar-menu">
-
-            <li>
-                <a href="index.html">
-                    📊 Dashboard
-                </a>
-            </li>
-
-            <li>
-                <a href="members.html">
-                    👥 Members
-                </a>
-            </li>
-
-            <li>
-                <a href="collections.html">
-                    📥 Collections
-                </a>
-            </li>
-
-            <li>
-                <a href="funds.html">
-                    💰 Funds
-                </a>
-            </li>
-
-            <li>
-                <a href="expenses.html">
-                    📤 Expenses
-                </a>
-            </li>
-
-            <li class="active">
-                <a href="reports.html">
-                    📈 Reports
-                </a>
-            </li>
-
-            <li>
-                <a href="settings.html">
-                    ⚙️ Settings
-                </a>
-            </li>
-
-        </ul>
-
-    </aside>
-
-
-    <main class="content">
-
-        <div class="topbar">
-
+        <!-- TOPBAR -->
+        <div class="flex justify-between items-start mb-6">
             <div>
-
-                <h1>
-                    Collection Reports
-                </h1>
-
-                <p class="subtitle">
-                    Receipt Summary and Receipt Detail Reports
-                </p>
-
+                <h1 class="text-2xl lg:text-3xl font-bold text-navy">Collection Reports</h1>
+                <p class="text-sm text-slate-500 mt-1">Receipt Summary, Breakdown, and Detail Reports</p>
             </div>
-
         </div>
 
+        <!-- FILTERS & ACTIONS TOOLBAR -->
+        <div class="toolbar bg-white rounded-xl border border-slate-200 shadow-sm p-4 lg:p-5 mb-6 flex flex-wrap items-end gap-3">
 
-        <!-- FILTERS -->
-
-        <div class="toolbar">
-
-            <div class="field">
-
-                <label>
-                    From
-                </label>
-
-                <input
-                    type="date"
-                    id="fromDate"
-                >
-
+            <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">From</label>
+                <input type="date"
+                       id="fromDate"
+                       class="h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-2 focus:ring-navy/10">
             </div>
 
-
-            <div class="field">
-
-                <label>
-                    To
-                </label>
-
-                <input
-                    type="date"
-                    id="toDate"
-                >
-
+            <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">To</label>
+                <input type="date"
+                       id="toDate"
+                       class="h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-2 focus:ring-navy/10">
             </div>
 
-
-            <div class="field">
-
-                <label>
-                    Status
-                </label>
-
-                <select id="statusFilter">
-
-                    <option value="all">
-                        All Status
-                    </option>
-
-                    <option value="verified">
-                        Verified
-                    </option>
-
-                    <option value="pending">
-                        Pending
-                    </option>
-
+            <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Status</label>
+                <select id="statusFilter"
+                        class="h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    <option value="all">All Status</option>
+                    <option value="verified">Verified</option>
+                    <option value="pending">Pending</option>
                 </select>
-
             </div>
 
+            <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:ml-auto">
+                <button class="h-10 px-4 bg-navy hover:bg-navy-dark text-white rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
+                        onclick="loadReports()">
+                    Generate Report
+                </button>
 
-            <button
-                class="btn-primary"
-                onclick="loadReports()"
-            >
-                Generate Report
-            </button>
+                <button class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
+                        onclick="exportExcel()">
+                    Export Excel
+                </button>
 
-
-            <button
-                class="btn-dark"
-                onclick="exportExcel()"
-            >
-                Export Excel
-            </button>
-
-
-            <button
-                class="btn-print"
-                onclick="window.print()"
-            >
-                Print
-            </button>
+                <button class="h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
+                        onclick="window.print()">
+                    Print
+                </button>
+            </div>
 
         </div>
-
 
         <!-- METRICS -->
+        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
 
-        <section class="cards">
-
-            <div class="card">
-
-                <div class="card-label">
-                    Members
-                </div>
-
-                <div
-                    class="card-value"
-                    id="totalMembers"
-                >
-                    0
-                </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Members</div>
+                <div class="text-2xl font-bold text-slate-900 mt-2" id="totalMembers">0</div>
             </div>
 
-
-            <div class="card">
-
-                <div class="card-label">
-                    Collections
-                </div>
-
-                <div
-                    class="card-value"
-                    id="totalCounts"
-                >
-                    0
-                </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Collections</div>
+                <div class="text-2xl font-bold text-slate-900 mt-2" id="totalCounts">0</div>
             </div>
 
-
-            <div class="card">
-
-                <div class="card-label">
-                    Total Amount
-                </div>
-
-                <div
-                    class="card-value"
-                    id="totalAmount"
-                >
-                    ₱0.00
-                </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Amount</div>
+                <div class="text-2xl font-bold text-emerald-600 mt-2" id="totalAmount">₱0.00</div>
             </div>
 
-
-            <div class="card">
-
-                <div class="card-label">
-                    Total PS
-                </div>
-
-                <div
-                    class="card-value"
-                    id="totalPS"
-                >
-                    ₱0.00
-                </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total PS</div>
+                <div class="text-2xl font-bold text-navy mt-2" id="totalPS">₱0.00</div>
             </div>
 
-
-            <div class="card">
-
-                <div class="card-label">
-                    Total Apportionment
-                </div>
-
-                <div
-                    class="card-value"
-                    id="totalApportionment"
-                >
-                    ₱0.00
-                </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 col-span-2 sm:col-span-1">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Apportionment</div>
+                <div class="text-2xl font-bold text-purple-600 mt-2" id="totalApportionment">₱0.00</div>
             </div>
 
         </section>
 
-
-        <!-- SUMMARY -->
-
-        <section class="report-section">
-
-            <div class="section-header">
-
-                <h2>
-                    1. Receipt Summary Report
-                </h2>
-
-                <p>
-                    Collection totals grouped by collection item.
-                </p>
-
+        <!-- 1. RECEIPT SUMMARY -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="text-base font-bold text-navy">1. Receipt Summary Report</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Collection totals grouped by collection item.</p>
             </div>
 
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                Item
-                            </th>
-
-                            <th>
-                                Members
-                            </th>
-
-                            <th>
-                                Counts
-                            </th>
-
-                            <th>
-                                Amount
-                            </th>
-
-                            <th>
-                                PS
-                            </th>
-
-                            <th>
-                                Apportionment
-                            </th>
-
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr class="[&>th]:py-3 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th>Item</th>
+                            <th>Members</th>
+                            <th>Counts</th>
+                            <th class="text-right">Amount</th>
+                            <th class="text-right">PS</th>
+                            <th class="text-right">Apportionment</th>
                         </tr>
-
                     </thead>
-
-                    <tbody id="summaryBody">
-                    </tbody>
-
-                    <tfoot id="summaryFooter">
-                    </tfoot>
-
+                    <tbody id="summaryBody" class="divide-y divide-slate-100 [&>tr>td]:py-3 [&>tr>td]:px-4"></tbody>
+                    <tfoot id="summaryFooter" class="bg-slate-50 font-bold [&>tr>td]:py-3 [&>tr>td]:px-4 border-t border-slate-200"></tfoot>
                 </table>
-
             </div>
-
         </section>
 
-
-        <!-- METHOD SUMMARY -->
-
-        <section class="report-section">
-
-            <div class="section-header">
-
-                <h2>
-                    Collection Method Summary
-                </h2>
-
+        <!-- COLLECTION METHOD SUMMARY -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="text-base font-bold text-navy">Collection Method Summary</h2>
             </div>
 
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                Method
-                            </th>
-
-                            <th>
-                                Counts
-                            </th>
-
-                            <th>
-                                Amount
-                            </th>
-
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr class="[&>th]:py-3 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th>Method</th>
+                            <th>Counts</th>
+                            <th class="text-right">Amount</th>
                         </tr>
-
                     </thead>
-
-                    <tbody id="methodBody">
-                    </tbody>
-
+                    <tbody id="methodBody" class="divide-y divide-slate-100 [&>tr>td]:py-3 [&>tr>td]:px-4"></tbody>
                 </table>
-
             </div>
-
         </section>
 
-
-        <!-- DETAIL -->
-
-        <section class="report-section">
-
-            <div class="section-header">
-
-                <h2>
-                    2. Receipt Detail Report
-                </h2>
-
-                <p>
-                    Complete receipt-level collection records.
-                </p>
-
+        <!-- 2. RECEIPT DETAIL -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="text-base font-bold text-navy">2. Receipt Detail Report</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Complete receipt-level collection records.</p>
             </div>
 
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                Receipt #
-                            </th>
-
-                            <th>
-                                Date
-                            </th>
-
-                            <th>
-                                Donor
-                            </th>
-
-                            <th>
-                                Method
-                            </th>
-
-                            <th>
-                                Cheque/Ref #
-                            </th>
-
-                            <th>
-                                Status
-                            </th>
-
-                            <th>
-                                Type
-                            </th>
-
-                            <th>
-                                Item
-                            </th>
-
-                            <th>
-                                Target
-                            </th>
-
-                            <th>
-                                Amount
-                            </th>
-
-                            <th>
-                                PS
-                            </th>
-
-                            <th>
-                                Apportionment
-                            </th>
-
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr class="[&>th]:py-3 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th>Receipt #</th>
+                            <th>Date</th>
+                            <th>Donor</th>
+                            <th>Method</th>
+                            <th>Cheque/Ref #</th>
+                            <th>Status</th>
+                            <th>Type</th>
+                            <th>Item</th>
+                            <th>Target</th>
+                            <th class="text-right">Amount</th>
+                            <th class="text-right">PS</th>
+                            <th class="text-right">Apportionment</th>
                         </tr>
-
                     </thead>
-
-                    <tbody id="detailBody">
-                    </tbody>
-
+                    <tbody id="detailBody" class="divide-y divide-slate-100 [&>tr>td]:py-3 [&>tr>td]:px-4"></tbody>
                 </table>
-
             </div>
-
         </section>
-
 
         <!-- ACCOUNTING SETTINGS -->
-
-        <section class="report-section settings-section">
-
-            <div class="section-header">
-
-                <h2>
-                    Accounting Calculation Settings
-                </h2>
-
-                <p>
-                    Configure PS and Apportionment rules used for
-                    future collections.
-                </p>
-
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden settings-section">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="text-base font-bold text-navy">Accounting Calculation Settings</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Configure PS and Apportionment rules used for future collections.</p>
             </div>
 
-            <div
-                class="settings-grid"
-                id="settingsGrid"
-            >
-            </div>
-
+            <div class="p-5 grid gap-3" id="settingsGrid"></div>
         </section>
 
     </main>
 
 </div>
 
-
 <script src="/js/collection-reports.js"></script>
-
 <script src="../js/form-validation.js"></script>
 <script src="../js/sidebar.js"></script>
 </body>
-
 </html>

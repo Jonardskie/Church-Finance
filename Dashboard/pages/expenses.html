@@ -1,2168 +1,437 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>CFMMS - Expense Management</title>
-
-<link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet"
->
-
-<link
-    rel="icon"
-    href="/images/logo.png"
-    type="image/png"
->
-<link rel="stylesheet" href="../css/sidebar.css">
-
-<style>
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-:root {
-
-    --navy: #1b365d;
-    --navy-dark: #0f2038;
-
-    --text: #263247;
-
-    --muted: #718096;
-
-    --border: #e5e9ef;
-
-    --bg: #f4f6f8;
-
-    --white: #ffffff;
-
-    --danger: #b32034;
-
-    --danger-bg: #fff0f1;
-
-    --success: #18794e;
-
-    --success-bg: #e9f8f0;
-
-    --warning: #a15c00;
-
-    --warning-bg: #fff6e6;
-
-}
-
-body {
-
-    font-family: "Poppins", sans-serif;
-
-    background: var(--bg);
-
-    color: var(--text);
-
-}
-
-button,
-input,
-select,
-textarea {
-
-    font: inherit;
-
-}
-
-button {
-
-    cursor: pointer;
-
-}
-
-.container {
-
-    display: flex;
-
-    min-height: 100vh;
-
-}
-
-
-/* =====================================================
-SIDEBAR
-===================================================== */
-
-.sidebar {
-
-    width: 260px;
-
-    min-width: 260px;
-
-    background:
-        linear-gradient(
-            180deg,
-            var(--navy) 0%,
-            var(--navy-dark) 100%
-        );
-
-    color: white;
-
-    padding: 28px 18px;
-
-}
-
-.sidebar-brand {
-
-    padding: 0 10px 28px;
-
-}
-
-.sidebar-brand h2 {
-
-    font-size: 24px;
-
-}
-
-.sidebar-menu {
-
-    list-style: none;
-
-}
-
-.sidebar-menu li {
-
-    margin-bottom: 4px;
-
-}
-
-.sidebar-menu a {
-
-    color: #a4bcd4;
-
-    text-decoration: none;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    padding: 11px 12px;
-
-    border-radius: 8px;
-
-}
-
-.sidebar-menu a:hover,
-.sidebar-menu .active a {
-
-    background: rgba(255,255,255,.10);
-
-    color: white;
-
-}
-
-.icon {
-
-    width: 22px;
-
-    text-align: center;
-
-}
-
-
-/* =====================================================
-CONTENT
-===================================================== */
-
-.content {
-
-    flex: 1;
-
-    min-width: 0;
-
-    padding: 30px;
-
-}
-
-.page-header {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: flex-start;
-
-    gap: 20px;
-
-    margin-bottom: 24px;
-
-}
-
-.page-header h1 {
-
-    font-size: 28px;
-
-    margin-bottom: 5px;
-
-}
-
-.page-header p {
-
-    color: var(--muted);
-
-    font-size: 14px;
-
-}
-
-
-/* =====================================================
-BUTTONS
-===================================================== */
-
-.btn {
-
-    border: none;
-
-    border-radius: 8px;
-
-    padding: 10px 16px;
-
-    font-weight: 600;
-
-    transition: .2s ease;
-
-}
-
-.btn-primary {
-
-    background: var(--navy);
-
-    color: white;
-
-}
-
-.btn-primary:hover {
-
-    background: #254a7b;
-
-}
-
-.btn-secondary {
-
-    background: #eef1f5;
-
-    color: var(--text);
-
-}
-
-.btn-secondary:hover {
-
-    background: #e2e6ec;
-
-}
-
-.btn-success {
-
-    background: var(--success-bg);
-
-    color: var(--success);
-
-}
-
-.btn-danger {
-
-    background: var(--danger-bg);
-
-    color: var(--danger);
-
-}
-
-.btn-warning {
-
-    background: var(--warning-bg);
-
-    color: var(--warning);
-
-}
-
-.btn:disabled {
-
-    opacity: .6;
-
-    cursor: not-allowed;
-
-}
-
-
-/* =====================================================
-SUMMARY
-===================================================== */
-
-.summary-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    gap: 16px;
-
-    margin-bottom: 20px;
-
-}
-
-.summary-card {
-
-    background: white;
-
-    border: 1px solid var(--border);
-
-    border-radius: 12px;
-
-    padding: 20px;
-
-    box-shadow:
-        0 3px 12px rgba(0,0,0,.04);
-
-}
-
-.summary-label {
-
-    color: var(--muted);
-
-    font-size: 13px;
-
-    margin-bottom: 8px;
-
-}
-
-.summary-value {
-
-    font-size: 25px;
-
-    font-weight: 700;
-
-    color: var(--navy);
-
-}
-
-
-/* =====================================================
-FILTER
-===================================================== */
-
-.filter-card {
-
-    background: white;
-
-    padding: 18px;
-
-    border-radius: 12px;
-
-    border: 1px solid var(--border);
-
-    margin-bottom: 20px;
-
-}
-
-.filter-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        2fr 1fr 1fr 1fr auto;
-
-    gap: 12px;
-
-    align-items: end;
-
-}
-
-.field label {
-
-    display: block;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-    color: #596579;
-
-    margin-bottom: 6px;
-
-}
-
-.field input,
-.field select {
-
-    width: 100%;
-
-    height: 42px;
-
-    padding: 9px 11px;
-
-    border: 1px solid #d5dbe4;
-
-    border-radius: 7px;
-
-    outline: none;
-
-    background: white;
-
-}
-
-
-/* =====================================================
-TABLE
-===================================================== */
-
-.table-container {
-
-    background: white;
-
-    padding: 20px;
-
-    border-radius: 12px;
-
-    border: 1px solid var(--border);
-
-}
-
-.table-heading {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 12px;
-
-}
-
-.table-heading h2 {
-
-    font-size: 18px;
-
-}
-
-.record-count {
-
-    color: var(--muted);
-
-    font-size: 13px;
-
-}
-
-.table-wrapper {
-
-    overflow-x: auto;
-
-}
-
-table {
-
-    width: 100%;
-
-    min-width: 1000px;
-
-    border-collapse: collapse;
-
-}
-
-thead {
-
-    background: #f8f9fa;
-
-}
-
-th {
-
-    padding: 13px 15px;
-
-    text-align: left;
-
-    font-size: 12px;
-
-    color: #4b5563;
-
-}
-
-td {
-
-    padding: 14px 15px;
-
-    border-bottom: 1px solid #eee;
-
-    font-size: 13px;
-
-}
-
-tbody tr:hover {
-
-    background: #f7f9fc;
-
-}
-
-.amount {
-
-    font-weight: 700;
-
-    color: var(--navy);
-
-}
-
-.voucher {
-
-    font-weight: 600;
-
-    color: var(--navy);
-
-}
-
-.actions {
-
-    display: flex;
-
-    gap: 6px;
-
-    flex-wrap: wrap;
-
-}
-
-.action-btn {
-
-    border: 1px solid #d7dee8;
-
-    background: white;
-
-    color: var(--navy);
-
-    border-radius: 6px;
-
-    padding: 6px 9px;
-
-    font-size: 11px;
-
-}
-
-.action-btn:hover {
-
-    background: #f5f7fa;
-
-}
-
-
-/* =====================================================
-STATUS
-===================================================== */
-
-.status {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    padding: 5px 9px;
-
-    border-radius: 999px;
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-}
-
-.status-pending {
-
-    background: var(--warning-bg);
-
-    color: var(--warning);
-
-}
-
-.status-approved {
-
-    background: var(--success-bg);
-
-    color: var(--success);
-
-}
-
-.status-voided {
-
-    background: var(--danger-bg);
-
-    color: var(--danger);
-
-}
-
-
-/* =====================================================
-MODAL
-===================================================== */
-
-.modal {
-
-    display: none;
-
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 1000;
-
-    background: rgba(10,20,35,.58);
-
-    padding: 20px;
-
-    align-items: center;
-
-    justify-content: center;
-
-}
-
-.modal.show {
-
-    display: flex;
-
-}
-
-.modal-content {
-
-    background: white;
-
-    width: min(720px, 100%);
-
-    max-height: 94vh;
-
-    overflow-y: auto;
-
-    border-radius: 14px;
-
-    box-shadow:
-        0 20px 60px rgba(0,0,0,.25);
-
-}
-
-.modal-header {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    padding: 20px 24px;
-
-    border-bottom: 1px solid var(--border);
-
-}
-
-.modal-header h3 {
-
-    font-size: 20px;
-
-}
-
-.close-btn {
-
-    border: none;
-
-    background: transparent;
-
-    font-size: 26px;
-
-    color: #6b7280;
-
-}
-
-.modal-body {
-
-    padding: 22px 24px;
-
-}
-
-.modal-footer {
-
-    display: flex;
-
-    justify-content: flex-end;
-
-    gap: 10px;
-
-    padding: 18px 24px;
-
-    border-top: 1px solid var(--border);
-
-}
-
-
-/* =====================================================
-FORM
-===================================================== */
-
-.form-grid {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 16px;
-
-}
-
-.form-group.full {
-
-    grid-column: 1 / -1;
-
-}
-
-.form-group label {
-
-    display: block;
-
-    font-size: 13px;
-
-    font-weight: 600;
-
-    margin-bottom: 7px;
-
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-
-    width: 100%;
-
-    border: 1px solid #d5dbe4;
-
-    border-radius: 7px;
-
-    padding: 11px 12px;
-
-    outline: none;
-
-}
-
-.form-group textarea {
-
-    min-height: 90px;
-
-    resize: vertical;
-
-}
-
-
-/* =====================================================
-DETAILS
-===================================================== */
-
-.detail-grid {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 18px;
-
-}
-
-.detail-item span {
-
-    display: block;
-
-    color: var(--muted);
-
-    font-size: 11px;
-
-    margin-bottom: 4px;
-
-}
-
-.detail-item strong {
-
-    display: block;
-
-    font-size: 14px;
-
-    word-break: break-word;
-
-}
-
-
-/* =====================================================
-VOUCHER
-===================================================== */
-
-.voucher-paper {
-
-    padding: 35px;
-
-    background: white;
-
-}
-
-.voucher-header {
-
-    text-align: center;
-
-    border-bottom: 2px solid #222;
-
-    padding-bottom: 15px;
-
-    margin-bottom: 25px;
-
-}
-
-.voucher-header h1 {
-
-    font-size: 24px;
-
-}
-
-.voucher-header p {
-
-    font-size: 12px;
-
-    color: #666;
-
-}
-
-.voucher-title {
-
-    text-align: center;
-
-    font-size: 20px;
-
-    font-weight: 700;
-
-    margin-bottom: 25px;
-
-}
-
-.voucher-info {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 16px;
-
-}
-
-.voucher-field {
-
-    border-bottom: 1px solid #ddd;
-
-    padding-bottom: 8px;
-
-}
-
-.voucher-field small {
-
-    color: #777;
-
-    display: block;
-
-}
-
-.voucher-field strong {
-
-    display: block;
-
-    margin-top: 4px;
-
-}
-
-.voucher-description {
-
-    margin-top: 25px;
-
-    border: 1px solid #ddd;
-
-    padding: 15px;
-
-    min-height: 100px;
-
-}
-
-.signature-area {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 40px;
-
-    margin-top: 60px;
-
-}
-
-.signature {
-
-    border-top: 1px solid #222;
-
-    padding-top: 8px;
-
-    text-align: center;
-
-    font-size: 12px;
-
-}
-
-
-/* =====================================================
-EMPTY / ERROR
-===================================================== */
-
-.state {
-
-    text-align: center;
-
-    padding: 45px 20px;
-
-    color: var(--muted);
-
-}
-
-.error {
-
-    color: var(--danger);
-
-}
-
-
-/* =====================================================
-RESPONSIVE
-===================================================== */
-
-@media(max-width:1100px) {
-
-    .filter-grid {
-
-        grid-template-columns: 1fr 1fr;
-
-    }
-
-    .search-field {
-
-        grid-column: 1 / -1;
-
-    }
-
-}
-
-@media(max-width:850px) {
-
-    .sidebar {
-
-        width: 76px;
-
-        min-width: 76px;
-
-        padding: 22px 10px;
-
-    }
-
-    .nav-text {
-
-        display: none;
-
-    }
-
-    .sidebar-menu a {
-
-        justify-content: center;
-
-    }
-
-    .sidebar-brand {
-
-        text-align: center;
-
-    }
-
-    .sidebar-brand h2 {
-
-        font-size: 18px;
-
-    }
-
-    .content {
-
-        padding: 22px 18px;
-
-    }
-
-    .summary-grid {
-
-        grid-template-columns: 1fr;
-
-    }
-
-}
-
-@media(max-width:600px) {
-
-    .sidebar {
-
-        display: none;
-
-    }
-
-    .content {
-
-        padding: 16px;
-
-    }
-
-    .page-header {
-
-        flex-direction: column;
-
-    }
-
-    .page-header .btn {
-
-        width: 100%;
-
-    }
-
-    .filter-grid,
-    .form-grid,
-    .detail-grid,
-    .voucher-info,
-    .signature-area {
-
-        grid-template-columns: 1fr;
-
-    }
-
-    .form-group.full {
-
-        grid-column: auto;
-
-    }
-
-    .modal {
-
-        padding: 10px;
-
-    }
-
-    .modal-footer {
-
-        flex-direction: column-reverse;
-
-    }
-
-    .modal-footer .btn {
-
-        width: 100%;
-
-    }
-
-}
-
-
-/* =====================================================
-PRINT
-===================================================== */
-
-@media print {
-
-    body * {
-
-        visibility: hidden;
-
-    }
-
-    #voucherPrint,
-    #voucherPrint * {
-
-        visibility: visible;
-
-    }
-
-    #voucherPrint {
-
-        position: absolute;
-
-        left: 0;
-
-        top: 0;
-
-        width: 100%;
-
-    }
-
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFMMS - Expense Management</title>
+    <link rel="icon" href="/images/logo.png" type="image/png">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { DEFAULT: '#1B365D', dark: '#0F2038', light: '#2A4D7E' }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Modals */
+        .modal { display: none; }
+        .modal.show, .modal[style*="display: flex"] { display: flex !important; }
+
+        /* Dynamic Table Classes */
+        .voucher { font-weight: 600; color: #1B365D; }
+        .amount { font-weight: 700; color: #DC2626; text-align: right; }
+
+        .status { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .status-approved { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+        .status-voided { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+        .status-pending { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+
+        .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+        .action-btn {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #E2E8F0;
+            background: #FFFFFF;
+            color: #334155;
+            transition: all 0.15s ease;
+        }
+        .action-btn:hover {
+            background: #1B365D;
+            color: #FFFFFF;
+            border-color: #1B365D;
+        }
+
+        /* Voucher Paper */
+        .voucher-paper {
+            background: #FFFFFF;
+            padding: 24px;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+        }
+
+        @keyframes modalScaleEnter {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @media print {
+            body { background: white !important; }
+            .sidebar, .page-header, .summary-grid, .filter-card, .table-container, .modal-footer { display: none !important; }
+            .modal { position: static !important; display: block !important; background: transparent !important; padding: 0 !important; }
+            .modal-content { max-width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+        }
+    </style>
 </head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
+<div class="flex min-h-screen app-wrapper">
 
-<body>
+    <aside class="sidebar"></aside>
 
-<div class="container">
+    <main class="flex-1 min-w-0 p-6 lg:p-8 page-content">
 
-<aside class="sidebar">
+        <!-- HEADER -->
+        <div class="page-header flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-2xl lg:text-3xl font-bold text-navy">Expense Management</h1>
+                <p class="text-sm text-slate-500 mt-1">Record, monitor, approve, and review church expenses</p>
+            </div>
 
-    <div class="sidebar-brand">
-        <h2>CFMMS</h2>
-    </div>
+            <button class="bg-navy hover:bg-navy-dark text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-1.5"
+                    onclick="openExpenseModal()">
+                + Log New Expense
+            </button>
+        </div>
 
-    <ul class="sidebar-menu">
+        <!-- SUMMARY CARDS -->
+        <section class="summary-grid grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Expenses</div>
+                <div class="text-2xl lg:text-3xl font-bold text-red-600 mt-2" id="totalExpenses">₱0.00</div>
+            </div>
 
-        <li>
-            <a href="index.html">
-                <span class="icon">📊</span>
-                <span class="nav-text">Dashboard</span>
-            </a>
-        </li>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Number of Expenses</div>
+                <div class="text-2xl lg:text-3xl font-bold text-slate-900 mt-2" id="expenseCount">0</div>
+            </div>
 
-        <li>
-            <a href="members.html">
-                <span class="icon">👥</span>
-                <span class="nav-text">Members</span>
-            </a>
-        </li>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide">This Month</div>
+                <div class="text-2xl lg:text-3xl font-bold text-navy mt-2" id="monthlyExpenses">₱0.00</div>
+            </div>
+        </section>
 
-        <li>
-            <a href="collections.html">
-                <span class="icon">📥</span>
-                <span class="nav-text">Collections</span>
-            </a>
-        </li>
+        <!-- FILTERS -->
+        <section class="filter-card bg-white rounded-xl border border-slate-200 shadow-sm p-4 lg:p-5 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                <div class="sm:col-span-2 lg:col-span-2">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Search</label>
+                    <input type="search"
+                           id="searchExpense"
+                           placeholder="Search voucher, category, payee..."
+                           class="w-full h-10 px-3.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                </div>
 
-        <li>
-            <a href="funds.html">
-                <span class="icon">💰</span>
-                <span class="nav-text">Funds</span>
-            </a>
-        </li>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Category</label>
+                    <select id="filterCategory"
+                            class="w-full h-10 px-3 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        <option value="">All Categories</option>
+                        <option>Utilities</option>
+                        <option>Supplies</option>
+                        <option>Food & Meals</option>
+                        <option>Transportation</option>
+                        <option>Repairs & Maintenance</option>
+                        <option>Equipment</option>
+                        <option>Events & Programs</option>
+                        <option>Honorarium</option>
+                        <option>Communication</option>
+                        <option>Missions</option>
+                        <option>Youth Ministry</option>
+                        <option>Administrative</option>
+                        <option>Other</option>
+                    </select>
+                </div>
 
-        <li class="active">
-            <a href="expenses.html">
-                <span class="icon">📤</span>
-                <span class="nav-text">Expenses</span>
-            </a>
-        </li>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">From</label>
+                    <input type="date"
+                           id="filterFrom"
+                           class="w-full h-10 px-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                </div>
 
-        <li>
-            <a href="vouchers.html">
-                <span class="icon">🎫</span>
-                <span class="nav-text">Vouchers</span>
-            </a>
-        </li>
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">To</label>
+                        <input type="date"
+                               id="filterTo"
+                               class="w-full h-10 px-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                    </div>
+                    <button class="h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-sm font-semibold transition-all mt-auto"
+                            onclick="resetFilters()">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </section>
 
-        <li>
-            <a href="reports.html">
-                <span class="icon">📈</span>
-                <span class="nav-text">Reports</span>
-            </a>
-        </li>
+        <!-- TABLE -->
+        <section class="table-container bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                <h2 class="text-base font-bold text-navy">Expense Records</h2>
+                <span class="text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-600 font-medium" id="recordCount">0 records</span>
+            </div>
 
-        <li>
-            <a href="audit.html">
-                <span class="icon">🛡️</span>
-                <span class="nav-text">Audit Trail</span>
-            </a>
-        </li>
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr class="[&>th]:py-3.5 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th>Date</th>
+                            <th>Voucher #</th>
+                            <th>Category</th>
+                            <th>Payee</th>
+                            <th class="text-right">Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody" class="divide-y divide-slate-100 [&>tr>td]:py-3.5 [&>tr>td]:px-4">
+                        <tr>
+                            <td colspan="7" class="text-center py-8 text-slate-400">Loading expenses...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-        <li>
-            <a href="users.html">
-                <span class="icon">👤</span>
-                <span class="nav-text">Users</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="settings.html">
-                <span class="icon">⚙️</span>
-                <span class="nav-text">Settings</span>
-            </a>
-        </li>
-
-        <li style="margin-top:20px;">
-
-            <a
-                href="#"
-                onclick="handleLogout(event)"
-                style="
-                    background:rgba(179,32,52,.15);
-                    color:#ffe0e0;
-                    border:1px solid rgba(179,32,52,.3);
-                "
-            >
-
-                <span class="icon">🚪</span>
-
-                <span class="nav-text">
-                    Logout
-                </span>
-
-            </a>
-
-        </li>
-
-    </ul>
-
-</aside>
-
-
-<main class="content">
-
-
-<div class="page-header">
-
-    <div>
-
-        <h1>
-            Expense Management
-        </h1>
-
-        <p>
-            Record, monitor, approve, and review church expenses.
-        </p>
-
-    </div>
-
-    <button
-        class="btn btn-primary"
-        onclick="openExpenseModal()"
-    >
-        + Log New Expense
-    </button>
+    </main>
 
 </div>
 
-
-<section class="summary-grid">
-
-    <div class="summary-card">
-
-        <div class="summary-label">
-            Total Expenses
+<!-- CREATE / EDIT MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-center z-[2500] p-4 overflow-y-auto"
+     id="expenseModal"
+     onclick="modalBackdrop(event)">
+    <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden m-auto relative flex flex-col max-h-[90vh] z-10"
+         onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
+            <h3 class="text-base font-bold text-navy" id="expenseModalTitle">Log New Expense</h3>
+            <button class="text-slate-400 hover:text-slate-600 text-2xl font-light leading-none"
+                    onclick="closeExpenseModal()">&times;</button>
         </div>
 
-        <div
-            class="summary-value"
-            id="totalExpenses"
-        >
-            ₱0.00
-        </div>
+        <form id="expenseForm" class="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
+            <div class="p-6 overflow-y-auto space-y-4 flex-1 min-h-0">
+                <input type="hidden" id="expenseId">
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Expense Date <span class="text-red-500">*</span></label>
+                        <input type="date"
+                               id="expDate"
+                               required
+                               class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Category <span class="text-red-500">*</span></label>
+                        <select id="expCategory"
+                                required
+                                class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                            <option value="">Select category</option>
+                            <option>Utilities</option>
+                            <option>Supplies</option>
+                            <option>Food & Meals</option>
+                            <option>Transportation</option>
+                            <option>Repairs & Maintenance</option>
+                            <option>Equipment</option>
+                            <option>Events & Programs</option>
+                            <option>Honorarium</option>
+                            <option>Communication</option>
+                            <option>Missions</option>
+                            <option>Youth Ministry</option>
+                            <option>Administrative</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fund</label>
+                        <input type="text"
+                               id="expFund"
+                               placeholder="e.g. General Fund"
+                               class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Amount <span class="text-red-500">*</span></label>
+                        <input type="number"
+                               id="expAmount"
+                               min="0.01"
+                               step="0.01"
+                               placeholder="0.00"
+                               required
+                               class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Payee</label>
+                        <input type="text"
+                               id="expPayee"
+                               placeholder="Person or supplier paid"
+                               class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Payment Method</label>
+                        <select id="expPaymentMethod"
+                                class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                            <option value="">Select payment method</option>
+                            <option>Cash</option>
+                            <option>Check</option>
+                            <option>Bank Transfer</option>
+                            <option>GCash</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Reference Number</label>
+                        <input type="text"
+                               id="expReference"
+                               placeholder="Check / transaction reference"
+                               class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Receipt URL</label>
+                        <input type="url"
+                               id="expReceiptUrl"
+                               placeholder="https://..."
+                               class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Description / Purpose</label>
+                        <textarea id="expDescription"
+                                  placeholder="Describe the purpose of this expense..."
+                                  rows="2"
+                                  class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10"></textarea>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Notes</label>
+                        <textarea id="expNotes"
+                                  placeholder="Additional notes..."
+                                  rows="2"
+                                  class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-shrink-0 flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+                <button type="button"
+                        class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-all font-sans"
+                        onclick="closeExpenseModal()">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-5 py-2 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all font-sans"
+                        id="saveExpenseBtn">
+                    Save Expense
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
-
-    <div class="summary-card">
-
-        <div class="summary-label">
-            Number of Expenses
+<!-- DETAILS MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-center z-[2500] p-4 overflow-y-auto"
+     id="detailsModal"
+     onclick="detailsBackdrop(event)">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden m-auto relative flex flex-col max-h-[90vh] z-10"
+         onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
+            <h3 class="text-base font-bold text-navy">Expense Details</h3>
+            <button class="text-slate-400 hover:text-slate-600 text-2xl font-light leading-none"
+                    onclick="closeDetailsModal()">&times;</button>
         </div>
 
-        <div
-            class="summary-value"
-            id="expenseCount"
-        >
-            0
+        <div class="p-6 overflow-y-auto flex-1 min-h-0">
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Expense ID</span><strong id="detailId" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Voucher Number</span><strong id="detailVoucher" class="text-navy">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Date</span><strong id="detailDate" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Category</span><strong id="detailCategory" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Fund</span><strong id="detailFund" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Payee</span><strong id="detailPayee" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Payment Method</span><strong id="detailPayment" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Amount</span><strong id="detailAmount" class="text-red-600 text-sm">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Status</span><div id="detailStatus">—</div></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Created By</span><strong id="detailCreatedBy" class="text-slate-800">—</strong></div>
+                <div class="col-span-2 p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Description</span><strong id="detailDescription" class="text-slate-700 font-medium block break-words">—</strong></div>
+                <div class="col-span-2 p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Notes</span><strong id="detailNotes" class="text-slate-700 font-medium block break-words">—</strong></div>
+                <div class="col-span-2 p-2.5 bg-slate-50 rounded-lg"><span class="text-slate-400 block mb-0.5">Receipt</span><div id="detailReceipt" class="text-blue-600 font-semibold">—</div></div>
+            </div>
         </div>
 
+        <div class="flex-shrink-0 flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+            <button class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold"
+                    onclick="closeDetailsModal()">Close</button>
+            <button class="px-4 py-2 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold"
+                    id="detailVoucherButton">View Voucher</button>
+        </div>
     </div>
+</div>
 
+<!-- VOUCHER MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-center z-[2500] p-4 overflow-y-auto"
+     id="voucherModal"
+     onclick="if (event.target === this) closeVoucherModal()">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden m-auto relative p-6 sm:p-8 z-10"
+         onclick="event.stopPropagation()"
+         style="max-height: 90vh; overflow-y: auto;">
+        
+        <div class="voucher-paper" id="voucherPrint">
+            <div class="text-center border-b-2 border-navy pb-4 mb-4">
+                <h1 class="text-lg sm:text-xl font-bold text-navy">CHURCH FINANCE MANAGEMENT SYSTEM</h1>
+                <p class="text-xs text-slate-500 font-medium">Expense Payment Voucher</p>
+            </div>
 
-    <div class="summary-card">
+            <div class="text-center font-bold text-xs uppercase tracking-wider text-slate-600 mb-5">PAYMENT VOUCHER</div>
 
-        <div class="summary-label">
-            This Month
+            <div class="grid grid-cols-2 gap-3 text-xs mb-5">
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Voucher Number</small><strong id="voucherNumber" class="text-navy">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Expense Date</small><strong id="voucherDate" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Payee</small><strong id="voucherPayee" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Category</small><strong id="voucherCategory" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Fund</small><strong id="voucherFund" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Payment Method</small><strong id="voucherPayment" class="text-slate-800">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Amount</small><strong id="voucherAmount" class="text-red-600 text-sm font-bold">—</strong></div>
+                <div class="p-2.5 bg-slate-50 rounded-lg"><small class="text-slate-400 block">Status</small><strong id="voucherStatus" class="text-slate-800">—</strong></div>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-lg mb-6 text-xs">
+                <strong class="text-slate-600 block mb-1">Purpose / Description</strong>
+                <p id="voucherDescription" class="text-slate-700">—</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 text-center text-xs text-slate-500 pt-6 border-t border-dashed border-slate-200">
+                <div>
+                    <div class="border-b border-slate-300 pb-8 mb-1"></div>
+                    Prepared By
+                </div>
+                <div>
+                    <div class="border-b border-slate-300 pb-8 mb-1"></div>
+                    Approved By
+                </div>
+            </div>
         </div>
 
-        <div
-            class="summary-value"
-            id="monthlyExpenses"
-        >
-            ₱0.00
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+            <button class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold"
+                    onclick="closeVoucherModal()">Close</button>
+            <button class="px-4 py-2 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold"
+                    onclick="printVoucher()">Print Voucher</button>
         </div>
-
-    </div>
-
-</section>
-
-
-<section class="filter-card">
-
-    <div class="filter-grid">
-
-        <div class="field search-field">
-
-            <label>
-                Search
-            </label>
-
-            <input
-                type="search"
-                id="searchExpense"
-                placeholder="Search voucher, category, payee..."
-            >
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                Category
-            </label>
-
-            <select id="filterCategory">
-
-                <option value="">
-                    All Categories
-                </option>
-
-                <option>Utilities</option>
-                <option>Supplies</option>
-                <option>Food & Meals</option>
-                <option>Transportation</option>
-                <option>Repairs & Maintenance</option>
-                <option>Equipment</option>
-                <option>Events & Programs</option>
-                <option>Honorarium</option>
-                <option>Communication</option>
-                <option>Missions</option>
-                <option>Youth Ministry</option>
-                <option>Administrative</option>
-                <option>Other</option>
-
-            </select>
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                From
-            </label>
-
-            <input
-                type="date"
-                id="filterFrom"
-            >
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                To
-            </label>
-
-            <input
-                type="date"
-                id="filterTo"
-            >
-
-        </div>
-
-
-        <button
-            class="btn btn-secondary"
-            onclick="resetFilters()"
-        >
-            Reset
-        </button>
-
-    </div>
-
-</section>
-
-
-<section class="table-container">
-
-    <div class="table-heading">
-
-        <h2>
-            Expense Records
-        </h2>
-
-        <span
-            class="record-count"
-            id="recordCount"
-        >
-            0 records
-        </span>
-
-    </div>
-
-
-    <div class="table-wrapper">
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>
-                        Date
-                    </th>
-
-                    <th>
-                        Voucher #
-                    </th>
-
-                    <th>
-                        Category
-                    </th>
-
-                    <th>
-                        Payee
-                    </th>
-
-                    <th>
-                        Amount
-                    </th>
-
-                    <th>
-                        Status
-                    </th>
-
-                    <th>
-                        Actions
-                    </th>
-
-                </tr>
-
-            </thead>
-
-            <tbody id="expenseTableBody">
-
-                <tr>
-
-                    <td
-                        colspan="7"
-                        class="state"
-                    >
-                        Loading expenses...
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
 
     </div>
-
-</section>
-
-</main>
-
 </div>
-
-
-<!-- =====================================================
-CREATE / EDIT MODAL
-===================================================== -->
-
-<div
-    class="modal"
-    id="expenseModal"
-    onclick="modalBackdrop(event)"
->
-
-<div class="modal-content">
-
-<div class="modal-header">
-
-    <h3 id="expenseModalTitle">
-        Log New Expense
-    </h3>
-
-    <button
-        class="close-btn"
-        onclick="closeExpenseModal()"
-    >
-        ×
-    </button>
-
-</div>
-
-
-<form id="expenseForm">
-
-<div class="modal-body">
-
-<input
-    type="hidden"
-    id="expenseId"
->
-
-
-<div class="form-grid">
-
-
-<div class="form-group">
-
-<label>
-    Expense Date *
-</label>
-
-<input
-    type="date"
-    id="expDate"
-    required
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Category *
-</label>
-
-<select
-    id="expCategory"
-    required
->
-
-<option value="">
-    Select category
-</option>
-
-<option>Utilities</option>
-<option>Supplies</option>
-<option>Food & Meals</option>
-<option>Transportation</option>
-<option>Repairs & Maintenance</option>
-<option>Equipment</option>
-<option>Events & Programs</option>
-<option>Honorarium</option>
-<option>Communication</option>
-<option>Missions</option>
-<option>Youth Ministry</option>
-<option>Administrative</option>
-<option>Other</option>
-
-</select>
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Fund
-</label>
-
-<input
-    type="text"
-    id="expFund"
-    placeholder="e.g. General Fund"
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Amount *
-</label>
-
-<input
-    type="number"
-    id="expAmount"
-    min="0.01"
-    step="0.01"
-    placeholder="0.00"
-    required
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Payee
-</label>
-
-<input
-    type="text"
-    id="expPayee"
-    placeholder="Person or supplier paid"
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Payment Method
-</label>
-
-<select id="expPaymentMethod">
-
-<option value="">
-    Select payment method
-</option>
-
-<option>Cash</option>
-<option>Check</option>
-<option>Bank Transfer</option>
-<option>GCash</option>
-<option>Other</option>
-
-</select>
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Reference Number
-</label>
-
-<input
-    type="text"
-    id="expReference"
-    placeholder="Check / transaction reference"
->
-
-</div>
-
-
-<div class="form-group">
-
-<label>
-    Receipt URL
-</label>
-
-<input
-    type="url"
-    id="expReceiptUrl"
-    placeholder="https://..."
->
-
-</div>
-
-
-<div class="form-group full">
-
-<label>
-    Description / Purpose
-</label>
-
-<textarea
-    id="expDescription"
-    placeholder="Describe the purpose of this expense..."
-></textarea>
-
-</div>
-
-
-<div class="form-group full">
-
-<label>
-    Notes
-</label>
-
-<textarea
-    id="expNotes"
-    placeholder="Additional notes..."
-></textarea>
-
-</div>
-
-
-</div>
-
-</div>
-
-
-<div class="modal-footer">
-
-<button
-    type="button"
-    class="btn btn-secondary"
-    onclick="closeExpenseModal()"
->
-    Cancel
-</button>
-
-<button
-    type="submit"
-    class="btn btn-primary"
-    id="saveExpenseBtn"
->
-    Save Expense
-</button>
-
-</div>
-
-</form>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-DETAILS MODAL
-===================================================== -->
-
-<div
-    class="modal"
-    id="detailsModal"
-    onclick="detailsBackdrop(event)"
->
-
-<div class="modal-content">
-
-<div class="modal-header">
-
-<h3>
-    Expense Details
-</h3>
-
-<button
-    class="close-btn"
-    onclick="closeDetailsModal()"
->
-    ×
-</button>
-
-</div>
-
-
-<div class="modal-body">
-
-<div class="detail-grid">
-
-<div class="detail-item">
-
-<span>
-    Expense ID
-</span>
-
-<strong id="detailId">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Voucher Number
-</span>
-
-<strong id="detailVoucher">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Date
-</span>
-
-<strong id="detailDate">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Category
-</span>
-
-<strong id="detailCategory">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Fund
-</span>
-
-<strong id="detailFund">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Payee
-</span>
-
-<strong id="detailPayee">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Payment Method
-</span>
-
-<strong id="detailPayment">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Amount
-</span>
-
-<strong id="detailAmount">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Status
-</span>
-
-<strong id="detailStatus">
-    —
-</strong>
-
-</div>
-
-
-<div class="detail-item">
-
-<span>
-    Created By
-</span>
-
-<strong id="detailCreatedBy">
-    —
-</strong>
-
-</div>
-
-
-<div
-    class="detail-item"
-    style="grid-column:1/-1;"
->
-
-<span>
-    Description
-</span>
-
-<strong id="detailDescription">
-    —
-</strong>
-
-</div>
-
-
-<div
-    class="detail-item"
-    style="grid-column:1/-1;"
->
-
-<span>
-    Notes
-</span>
-
-<strong id="detailNotes">
-    —
-</strong>
-
-</div>
-
-
-<div
-    class="detail-item"
-    style="grid-column:1/-1;"
->
-
-<span>
-    Receipt
-</span>
-
-<strong id="detailReceipt">
-    —
-</strong>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="modal-footer">
-
-<button
-    class="btn btn-secondary"
-    onclick="closeDetailsModal()"
->
-    Close
-</button>
-
-<button
-    class="btn btn-primary"
-    id="detailVoucherButton"
->
-    View Voucher
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- =====================================================
-VOUCHER MODAL
-===================================================== -->
-
-<div
-    class="modal"
-    id="voucherModal"
->
-
-<div class="modal-content">
-
-<div
-    class="voucher-paper"
-    id="voucherPrint"
->
-
-<div class="voucher-header">
-
-<h1>
-    CHURCH FINANCE MANAGEMENT SYSTEM
-</h1>
-
-<p>
-    Expense Voucher
-</p>
-
-</div>
-
-
-<div class="voucher-title">
-    PAYMENT VOUCHER
-</div>
-
-
-<div class="voucher-info">
-
-
-<div class="voucher-field">
-
-<small>
-    Voucher Number
-</small>
-
-<strong id="voucherNumber">
-    —
-</strong>
-
-</div>
-
-
-<div class="voucher-field">
-
-<small>
-    Expense Date
-</small>
-
-<strong id="voucherDate">
-    —
-</strong>
-
-</div>
-
-
-<div class="voucher-field">
-
-<small>
-    Payee
-</small>
-
-<strong id="voucherPayee">
-    —
-</strong>
-
-</div>
-
-
-<div class="voucher-field">
-
-<small>
-    Category
-</small>
-
-<strong id="voucherCategory">
-    —
-</strong>
-
-</div>
-
-
-<div class="voucher-field">
-
-<small>
-    Fund
-</small>
-
-<strong id="voucherFund">
-    —
-</strong>
-
-</div>
-
-
-<div class="voucher-field">
-
-<small>
-    Payment Method
-</small>
-
-<strong id="voucherPayment">
-    —
-</strong>
-
-</div>
-
-
-<div class="voucher-field">
-
-<small>
-    Amount
-</small>
-
-<strong id="voucherAmount">
-    —
-</strong>
-
-</div>
-
-
-<div class="voucher-field">
-
-<small>
-    Status
-</small>
-
-<strong id="voucherStatus">
-    —
-</strong>
-
-</div>
-
-</div>
-
-
-<div class="voucher-description">
-
-<strong>
-    Purpose / Description
-</strong>
-
-<p id="voucherDescription">
-    —
-</p>
-
-</div>
-
-
-<div class="signature-area">
-
-<div class="signature">
-
-Prepared By
-
-</div>
-
-<div class="signature">
-
-Approved By
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="modal-footer">
-
-<button
-    class="btn btn-secondary"
-    onclick="closeVoucherModal()"
->
-    Close
-</button>
-
-<button
-    class="btn btn-primary"
-    onclick="printVoucher()"
->
-    🖨 Print / Save PDF
-</button>
-
-</div>
-
-</div>
-
-</div>
-
 
 <script>
-
 const token =
     sessionStorage.getItem("token");
 
@@ -2186,7 +455,7 @@ if (!token) {
 
 /* =====================================================
 HELPERS
-===================================================== */
+==================================================== */
 
 function escapeHtml(value) {
 
@@ -2367,17 +636,18 @@ function openExpenseModal(expense = null) {
     }
 
     modal.classList.add("show");
+    modal.style.display = "flex";
 
 }
 
 
 function closeExpenseModal() {
 
-    document
-        .getElementById(
-            "expenseModal"
-        )
-        .classList.remove("show");
+    const modal = document.getElementById("expenseModal");
+    if (modal) {
+        modal.classList.remove("show");
+        modal.style.display = "none";
+    }
 
     currentExpense = null;
 
@@ -2493,20 +763,22 @@ function openDetailsModal(expense) {
     ).onclick =
         () => openVoucherModal(expense);
 
-    document.getElementById(
-        "detailsModal"
-    ).classList.add("show");
+    const detailsModal = document.getElementById("detailsModal");
+    if (detailsModal) {
+        detailsModal.classList.add("show");
+        detailsModal.style.display = "flex";
+    }
 
 }
 
 
 function closeDetailsModal() {
 
-    document
-        .getElementById(
-            "detailsModal"
-        )
-        .classList.remove("show");
+    const modal = document.getElementById("detailsModal");
+    if (modal) {
+        modal.classList.remove("show");
+        modal.style.display = "none";
+    }
 
 }
 
@@ -2579,20 +851,22 @@ function openVoucherModal(expense) {
         expense.description ||
         "No description provided.";
 
-    document.getElementById(
-        "voucherModal"
-    ).classList.add("show");
+    const voucherModal = document.getElementById("voucherModal");
+    if (voucherModal) {
+        voucherModal.classList.add("show");
+        voucherModal.style.display = "flex";
+    }
 
 }
 
 
 function closeVoucherModal() {
 
-    document
-        .getElementById(
-            "voucherModal"
-        )
-        .classList.remove("show");
+    const modal = document.getElementById("voucherModal");
+    if (modal) {
+        modal.classList.remove("show");
+        modal.style.display = "none";
+    }
 
 }
 
@@ -2687,7 +961,7 @@ function renderExpenses(expenses) {
 
         body.innerHTML = `
             <tr>
-                <td colspan="7" class="state">
+                <td colspan="7" class="text-center py-8 text-slate-400">
                     No expense records found.
                 </td>
             </tr>
@@ -2709,9 +983,9 @@ function renderExpenses(expenses) {
 
             return `
 
-                <tr>
+                <tr class="hover:bg-slate-50 transition-colors">
 
-                    <td>
+                    <td class="text-slate-500 whitespace-nowrap">
                         ${escapeHtml(
                             formatDate(expense.date)
                         )}
@@ -2723,13 +997,13 @@ function renderExpenses(expenses) {
                         )}
                     </td>
 
-                    <td>
+                    <td class="text-slate-700">
                         ${escapeHtml(
                             expense.category || "—"
                         )}
                     </td>
 
-                    <td>
+                    <td class="font-medium text-slate-800">
                         ${escapeHtml(
                             expense.payee || "—"
                         )}
@@ -3051,7 +1325,7 @@ async function loadExpenses() {
             <tr>
                 <td
                     colspan="7"
-                    class="state error"
+                    class="text-center py-8 text-red-500"
                 >
                     ${escapeHtml(
                         error.message ||
@@ -3593,5 +1867,4 @@ window.addEventListener(
 <script src="../js/form-validation.js"></script>
 <script src="../js/sidebar.js"></script>
 </body>
-
 </html>

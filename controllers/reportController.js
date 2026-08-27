@@ -1628,3 +1628,285 @@ exports.exportExcel = async (
         });
     }
 };
+
+
+// ============================================================
+// DASHBOARD SUMMARY METRICS & ANALYTICS
+// ============================================================
+
+exports.getDashboardSummary = async (req, res) => {
+    try {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // 1-12
+
+        // 1. Membership Statistics
+        const memberStatsPromise = pool.query(`
+            SELECT 
+                COUNT(*)::int AS total_members,
+                COUNT(*) FILTER (WHERE LOWER(status) = 'active')::int AS active_members,
+                COUNT(*) FILTER (WHERE LOWER(status) = 'inactive')::int AS inactive_members,
+                COUNT(*) FILTER (WHERE LOWER(gender) = 'male')::int AS male_members,
+                COUNT(*) FILTER (WHERE LOWER(gender) = 'female')::int AS female_members
+            FROM members;
+        `);
+
+        // 2. Collections Overview (Monthly & All-time & Allocations)
+        const collectionStatsPromise = pool.query(`
+            SELECT 
+                COALESCE(SUM(amount), 0)::numeric AS total_collections_all_time,
+                COALESCE(SUM(amount) FILTER (
+                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                      AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
+                ), 0)::numeric AS total_collections_this_month,
+                COALESCE(SUM(ps_amount), 0)::numeric AS total_ps_all_time,
+                COALESCE(SUM(ps_amount) FILTER (
+                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                      AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
+                ), 0)::numeric AS total_ps_this_month,
+                COALESCE(SUM(apportionment_amount), 0)::numeric AS total_apportionment_all_time,
+                COALESCE(SUM(apportionment_amount) FILTER (
+                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                      AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
+                ), 0)::numeric AS total_apportionment_this_month,
+                COUNT(DISTINCT member_name) FILTER (
+                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                      AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
+                )::int AS active_givers_this_month
+            FROM collections;
+        `, [currentYear, currentMonth]);
+
+        // 3. Expenses Overview (Monthly & All-time)
+        const expenseStatsPromise = pool.query(`
+            SELECT 
+                COALESCE(SUM(amount) FILTER (WHERE LOWER(status) != 'voided'), 0)::numeric AS total_expenses_all_time,
+                COALESCE(SUM(amount) FILTER (
+                    WHERE LOWER(status) != 'voided'
+                      AND EXTRACT(YEAR FROM date) = $1 
+                      AND EXTRACT(MONTH FROM date) = $2
+                ), 0)::numeric AS total_expenses_this_month,
+                COUNT(*) FILTER (
+                    WHERE LOWER(status) != 'voided'
+                      AND EXTRACT(YEAR FROM date) = $1 
+                      AND EXTRACT(MONTH FROM date) = $2
+                )::int AS expense_count_this_month,
+                COUNT(*) FILTER (WHERE LOWER(status) = 'pending')::int AS pending_expenses_count
+            FROM expenses;
+        `, [currentYear, currentMonth]);
+
+        // 4. Monthly Inflow vs Outflow Cashflow (Last 6 Months)
+        const monthlyTrendPromise = pool.query(`
+            WITH months AS (
+                SELECT generate_series(
+                    DATE_TRUNC('month', CURRENT_DATE - INTERVAL '5 months'),
+                    DATE_TRUNC('month', CURRENT_DATE),
+                    INTERVAL '1 month'
+                )::date AS month_start
+            ),
+            monthly_col AS (
+                SELECT 
+                    DATE_TRUNC('month', COALESCE(collection_date, date))::date AS m_date,
+                    SUM(amount) AS col_amount
+                FROM collections
+                WHERE COALESCE(collection_date, date) >= CURRENT_DATE - INTERVAL '6 months'
+                GROUP BY 1
+            ),
+            monthly_exp AS (
+                SELECT 
+                    DATE_TRUNC('month', date)::date AS m_date,
+                    SUM(amount) AS exp_amount
+                FROM expenses
+                WHERE LOWER(status) != 'voided' AND date >= CURRENT_DATE - INTERVAL '6 months'
+                GROUP BY 1
+            )
+            SELECT 
+                TO_CHAR(m.month_start, 'Mon YYYY') AS month_label,
+                TO_CHAR(m.month_start, 'YYYY-MM') AS month_key,
+                COALESCE(c.col_amount, 0)::numeric AS collections,
+                COALESCE(e.exp_amount, 0)::numeric AS expenses,
+                (COALESCE(c.col_amount, 0) - COALESCE(e.exp_amount, 0))::numeric AS net_cashflow
+            FROM months m
+            LEFT JOIN monthly_col c ON c.m_date = m.month_start
+            LEFT JOIN monthly_exp e ON e.m_date = m.month_start
+            ORDER BY m.month_start ASC;
+        `);
+
+        // 5. Fund Categories Breakdown
+        const categoryBreakdownPromise = pool.query(`
+            SELECT 
+                COALESCE(NULLIF(TRIM(c.fund_category), ''), NULLIF(TRIM(c.type), ''), ct.name, 'General Fund') AS category_name,
+                COUNT(*)::int AS transaction_count,
+                SUM(c.amount)::numeric AS total_amount
+            FROM collections c
+            LEFT JOIN collection_types ct ON c.collection_type_id = ct.id
+            GROUP BY 1
+            ORDER BY total_amount DESC
+            LIMIT 6;
+        `);
+
+        // 6. Payment Methods Distribution
+        const paymentMethodsPromise = pool.query(`
+            SELECT 
+                UPPER(COALESCE(NULLIF(TRIM(payment_method), ''), 'CASH')) AS method_name,
+                COUNT(*)::int AS transaction_count,
+                SUM(amount)::numeric AS total_amount
+            FROM collections
+            GROUP BY 1
+            ORDER BY total_amount DESC;
+        `);
+
+        // 7. Recent Transactions (Latest 5 Collections & Latest 5 Expenses)
+        const recentCollectionsPromise = pool.query(`
+            SELECT 
+                id,
+                receipt_no,
+                COALESCE(collection_date, date) AS date,
+                COALESCE(member_name, 'Anonymous') AS giver_name,
+                COALESCE(NULLIF(TRIM(fund_category), ''), type, 'General Fund') AS category,
+                COALESCE(payment_method, 'CASH') AS method,
+                amount::numeric,
+                COALESCE(status, 'Verified') AS status
+            FROM collections
+            ORDER BY COALESCE(collection_date, date) DESC, id DESC
+            LIMIT 5;
+        `);
+
+        const recentExpensesPromise = pool.query(`
+            SELECT 
+                expense_id,
+                voucher_number,
+                date,
+                COALESCE(payee, 'General Payee') AS payee,
+                COALESCE(category, 'Operational') AS category,
+                COALESCE(payment_method, 'Cash') AS method,
+                amount::numeric,
+                COALESCE(status, 'Approved') AS status,
+                description
+            FROM expenses
+            ORDER BY date DESC, expense_id DESC
+            LIMIT 5;
+        `);
+
+        // 8. Recent Members (Latest 5 Added)
+        const recentMembersPromise = pool.query(`
+            SELECT 
+                id,
+                member_id,
+                official_name,
+                phone,
+                role,
+                status,
+                join_date
+            FROM members
+            ORDER BY id DESC
+            LIMIT 5;
+        `);
+
+        // 9. Recent Audit Logs (Latest 5 Events)
+        const recentAuditPromise = pool.query(`
+            SELECT 
+                id,
+                user_name,
+                action_type,
+                table_name,
+                details,
+                created_at
+            FROM audit_logs
+            ORDER BY created_at DESC, id DESC
+            LIMIT 5;
+        `);
+
+        const [
+            memberStatsRes,
+            collectionStatsRes,
+            expenseStatsRes,
+            monthlyTrendRes,
+            categoryBreakdownRes,
+            paymentMethodsRes,
+            recentCollectionsRes,
+            recentExpensesRes,
+            recentMembersRes,
+            recentAuditRes
+        ] = await Promise.all([
+            memberStatsPromise,
+            collectionStatsPromise,
+            expenseStatsPromise,
+            monthlyTrendPromise,
+            categoryBreakdownPromise,
+            paymentMethodsPromise,
+            recentCollectionsPromise,
+            recentExpensesPromise,
+            recentMembersPromise,
+            recentAuditPromise
+        ]);
+
+        const mStats = memberStatsRes.rows[0] || {};
+        const cStats = collectionStatsRes.rows[0] || {};
+        const eStats = expenseStatsRes.rows[0] || {};
+
+        const totalCollectionsAllTime = Number(cStats.total_collections_all_time) || 0;
+        const totalCollectionsThisMonth = Number(cStats.total_collections_this_month) || 0;
+        const totalExpensesAllTime = Number(eStats.total_expenses_all_time) || 0;
+        const totalExpensesThisMonth = Number(eStats.total_expenses_this_month) || 0;
+        const netCashflowAllTime = totalCollectionsAllTime - totalExpensesAllTime;
+        const netCashflowThisMonth = totalCollectionsThisMonth - totalExpensesThisMonth;
+
+        const totalMembers = Number(mStats.total_members) || 0;
+        const activeMembers = Number(mStats.active_members) || 0;
+        const activePercentage = totalMembers > 0 ? Math.round((activeMembers / totalMembers) * 100) : 0;
+
+        res.json({
+            success: true,
+            timestamp: new Date().toISOString(),
+            overview: {
+                totalMembers,
+                activeMembers,
+                inactiveMembers: Number(mStats.inactive_members) || 0,
+                activePercentage,
+                maleMembers: Number(mStats.male_members) || 0,
+                femaleMembers: Number(mStats.female_members) || 0,
+
+                totalCollectionsThisMonth,
+                totalCollectionsAllTime,
+                activeGiversThisMonth: Number(cStats.active_givers_this_month) || 0,
+
+                totalExpensesThisMonth,
+                totalExpensesAllTime,
+                expenseCountThisMonth: Number(eStats.expense_count_this_month) || 0,
+                pendingExpensesCount: Number(eStats.pending_expenses_count) || 0,
+
+                netCashflowThisMonth,
+                netCashflowAllTime,
+
+                totalPersonalSavingsThisMonth: Number(cStats.total_ps_this_month) || 0,
+                totalPersonalSavingsAllTime: Number(cStats.total_ps_all_time) || 0,
+                totalApportionmentThisMonth: Number(cStats.total_apportionment_this_month) || 0,
+                totalApportionmentAllTime: Number(cStats.total_apportionment_all_time) || 0
+            },
+            charts: {
+                monthlyTrend: monthlyTrendRes.rows,
+                categoryBreakdown: categoryBreakdownRes.rows,
+                paymentMethods: paymentMethodsRes.rows,
+                demographics: {
+                    active: activeMembers,
+                    inactive: Number(mStats.inactive_members) || 0,
+                    male: Number(mStats.male_members) || 0,
+                    female: Number(mStats.female_members) || 0
+                }
+            },
+            recentFeeds: {
+                collections: recentCollectionsRes.rows,
+                expenses: recentExpensesRes.rows,
+                members: recentMembersRes.rows,
+                auditLogs: recentAuditRes.rows
+            }
+        });
+
+    } catch (err) {
+        console.error("DASHBOARD SUMMARY ERROR:", err);
+        res.status(500).json({
+            success: false,
+            error: err.message || "Failed to load dashboard summary metrics."
+        });
+    }
+};

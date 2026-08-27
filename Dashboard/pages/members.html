@@ -4,1642 +4,515 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CFMMS - Members</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="/images/logo.png" type="image/png">
     <link rel="stylesheet" href="../css/sidebar.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { DEFAULT: '#1B365D', dark: '#0F2038', light: '#2A4D7E' },
+                        gold: { DEFAULT: '#EAAA00', dark: '#C69200' }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* Modals */
+        .modal { display: none; }
+        .modal.show, .modal[style*="display: flex"] { display: flex !important; }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f4f6f8;
-            color: #333;
-        }
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* ==========================================
-           SIDEBAR
-        ========================================== */
-
-        .sidebar {
-            width: 260px;
-            min-width: 260px;
-            background: linear-gradient(180deg, #1b365d 0%, #0f2038 100%);
-            color: white;
-            padding: 30px 20px;
-        }
-
-        .sidebar-brand h2 {
-            margin-bottom: 30px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 10px;
-        }
-
-        .sidebar-menu a {
-            color: #a4bcd4;
-            text-decoration: none;
-            display: block;
-            padding: 10px;
-            border-radius: 8px;
-            transition: 0.2s;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu .active a {
-            background: rgba(255, 255, 255, .1);
-            color: white;
-        }
-
-        .sidebar-menu .icon {
-            display: inline-block;
-            width: 28px;
-        }
-
-        /* ==========================================
-           CONTENT
-        ========================================== */
-
-        .content {
-            flex: 1;
-            min-width: 0;
-            padding: 30px;
-            overflow-x: hidden;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            gap: 20px;
-        }
-
-        .topbar h1 {
-            color: #1b365d;
-            font-size: 30px;
-        }
-
-        .topbar p {
-            color: #7f8c8d;
-            margin-top: 4px;
-        }
-
-        .btn-primary {
-            background: #1b365d;
-            color: white;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 500;
-        }
-
-        .btn-primary:hover {
-            background: #0f2038;
-        }
-
-        /* ==========================================
-           CARDS
-        ========================================== */
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            min-height: 125px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .card h3 {
-            color: #7f8c8d;
-            font-size: .9rem;
-            font-weight: 500;
-        }
-
-        .card-value {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-top: 10px;
-            color: #1b365d;
-        }
-
-        .card-subtext {
-            font-size: 0.8rem;
-            margin-top: 5px;
-            font-weight: 500;
-        }
-
-        .text-green {
-            color: #0d7a35;
-        }
-
-        .text-red {
-            color: #b32034;
-        }
-
-        .card-icon {
-            font-size: 1.3rem;
-            padding: 8px;
-            border-radius: 6px;
-            background: #f5f5f5;
-        }
-
-        .action-panel-card {
-            flex-direction: column;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-excel {
-            background: #0d7a35;
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 500;
-            width: 100%;
-            text-align: center;
-        }
-
-        .btn-excel:hover {
-            background: #096329;
-        }
-
-        /* ==========================================
-           FILTERS
-        ========================================== */
-
-        .filter-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .filter-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            width: 100%;
-        }
-
-        .search-box {
-            width: 290px;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: inherit;
-            outline: none;
-        }
-
-        .search-box:focus {
-            border-color: #1b365d;
-        }
-
-        .filter-select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background: white;
-            font-family: inherit;
-            min-width: 120px;
-            outline: none;
-        }
-
-        /* ==========================================
-           BATCH TOOLBAR
-        ========================================== */
-
-        .batch-toolbar {
-            display: none;
-            background: white;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
-            align-items: center;
-            justify-content: space-between;
-            border-left: 4px solid #1b365d;
-            gap: 15px;
-        }
-
-        .batch-toolbar.visible {
-            display: flex;
-        }
-
-        .batch-selection-info {
-            color: #1b365d;
-            font-size: 0.9rem;
-        }
-
-        .batch-selection-info small {
-            color: #7f8c8d;
-            margin-left: 5px;
-        }
-
-        .batch-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .batch-clear-btn,
-        .batch-delete-btn {
-            border: none;
-            padding: 9px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 500;
-        }
-
-        .batch-clear-btn {
-            background: #f1f3f5;
-            color: #495057;
-        }
-
-        .batch-clear-btn:hover {
-            background: #e2e6ea;
-        }
-
-        .batch-delete-btn {
-            background: #b32034;
-            color: white;
-        }
-
-        .batch-delete-btn:hover {
-            background: #941b2c;
-        }
-
-        /* ==========================================
-           TABLE
-        ========================================== */
-
-        .table-container {
-            background: white;
-            padding: 14px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            min-width: 1050px;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #ffffff;
-            color: #7f8c8d;
-            text-align: left;
-            padding: 12px;
-            font-weight: 500;
-            border-bottom: 2px solid #f5f5f5;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 14px 12px;
-            border-top: 1px solid #eee;
-            color: #333;
-            vertical-align: middle;
-        }
-
-        tr:hover td {
-            background: #fafbfc;
-        }
-
-        .text-bold {
-            font-weight: 600;
-        }
-
-        /* ==========================================
-           CHECKBOX
-        ========================================== */
-
-        .checkbox-column {
-            width: 45px;
-            text-align: center;
-        }
-
-        .member-checkbox,
-        #selectAllMembers {
-            width: 17px;
-            height: 17px;
-            cursor: pointer;
-            accent-color: #1b365d;
-        }
-
-        /* ==========================================
-           BADGES
-        ========================================== */
-
+        /* Dynamic Table Classes */
         .badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: capitalize;
             white-space: nowrap;
         }
-
-        .role-member {
-            background: #eef2f6;
-            color: #4b5563;
-        }
-
-        .role-deacon {
-            background: #f3e8ff;
-            color: #9333ea;
-        }
-
-        .role-pastor {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-
-        .role-secretary {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .role-treasurer {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .role-admin {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
+        .role-member { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+        .role-deacon { background: #FAF5FF; color: #9333EA; border: 1px solid #E9D5FF; }
+        .role-pastor { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+        .role-secretary { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+        .role-treasurer { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+        .role-admin { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
 
         .status {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
             font-weight: 600;
         }
+        .active-status { background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; }
+        .inactive-status { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
 
-        .active-status {
-            background: #d4f4dd;
-            color: #0d7a35;
-        }
-
-        .inactive-status {
-            background: #ffe0e0;
-            color: #b32034;
-        }
-
-        /* ==========================================
-           ACTION MENU
-        ========================================== */
-
-        .action-menu-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
+        /* Action Menu */
+        .action-menu-wrapper { position: relative; display: inline-block; }
         .action-menu-btn {
-            background: #1b365d;
-            color: white;
-            border: none;
-            padding: 7px 12px;
+            background: #FFFFFF;
+            color: #334155;
+            border: 1px solid #CBD5E1;
+            padding: 4px 10px;
             border-radius: 6px;
             cursor: pointer;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-size: 0.75rem;
+            font-weight: 600;
             white-space: nowrap;
+            transition: all 0.15s ease;
         }
-
-        .action-menu-btn:hover {
-            background: #0f2038;
-        }
-
+        .action-menu-btn:hover { background: #1B365D; color: #FFFFFF; border-color: #1B365D; }
+        
         .action-dropdown {
             display: none;
             position: absolute;
             right: 0;
-            top: calc(100% + 5px);
-            min-width: 180px;
+            top: calc(100% + 4px);
+            min-width: 170px;
             background: white;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #E2E8F0;
             border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,.15);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
             z-index: 500;
             overflow: hidden;
         }
-
-        .action-dropdown.show {
-            display: block;
-        }
-
+        .action-dropdown.show { display: block; }
         .action-dropdown button {
             width: 100%;
             display: block;
-            padding: 10px 14px;
+            padding: 8px 14px;
             border: none;
             background: white;
             text-align: left;
             cursor: pointer;
-            font-family: inherit;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
             color: #334155;
+            transition: background 0.1s ease;
         }
+        .action-dropdown button:hover { background: #F1F5F9; }
+        .action-dropdown .danger-action { color: #DC2626; }
+        .action-dropdown .danger-action:hover { background: #FEF2F2; }
 
-        .action-dropdown button:hover {
-            background: #f1f5f9;
-        }
+        /* Batch Toolbar */
+        .batch-toolbar { display: none; }
+        .batch-toolbar.visible { display: flex; }
 
-        .action-dropdown .danger-action {
-            color: #b32034;
-        }
-
-        .action-dropdown .danger-action:hover {
-            background: #fff1f2;
-        }
-
-        /* ==========================================
-           MODAL
-        ========================================== */
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, .5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: white;
-            width: 750px;
-            max-width: 100%;
-            max-height: 90vh;
-            padding: 25px;
-            border-radius: 10px;
-            overflow-y: auto;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .modal-header h2 {
-            color: #1b365d;
-        }
-
-        .modal-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
-
-        .tab-btn {
-            padding: 6px 16px;
-            border: 1px solid #ddd;
-            background: #f8f9fa;
-            cursor: pointer;
-            font-size: 0.85rem;
-            border-radius: 4px 4px 0 0;
-            font-family: inherit;
-        }
-
-        .tab-btn.active {
-            background: white;
-            font-weight: 500;
-        }
-
-        .close {
-            font-size: 28px;
-            cursor: pointer;
-            color: #aaa;
-        }
-
-        .close:hover {
-            color: #333;
-        }
-
-        .form-section-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #1b365d;
-            margin: 20px 0 10px 0;
-            padding-bottom: 4px;
-            border-bottom: 1px dashed #ddd;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-        }
-
-        .col-3 {
-            grid-column: span 3;
-        }
-
-        .col-6 {
-            grid-column: span 6;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #555;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 0.85rem;
-            background: white;
-            outline: none;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: #1b365d;
-        }
-
-        .form-group input:disabled {
-            background: #f0f2f5;
-            color: #666;
-            cursor: not-allowed;
-            font-weight: 600;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-
-        .btn-cancel {
-            background: #f1f3f5;
-            color: #495057;
-            border: 1px solid #ced4da;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-
-        .btn-cancel:hover {
-            background: #e9ecef;
-        }
-
-        /* ==========================================
-           LEDGER
-        ========================================== */
-
-        .text-amount {
-            font-weight: 600;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        /* ==========================================
-           MOBILE
-        ========================================== */
-
-        @media (max-width: 1100px) {
-            .cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .sidebar {
-                width: 220px;
-                min-width: 220px;
-            }
-
-            .content {
-                padding: 20px;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .container {
-                display: block;
-            }
-
-            .sidebar {
-                width: 100%;
-                min-width: 0;
-                padding: 15px;
-            }
-
-            .sidebar-brand h2 {
-                margin-bottom: 15px;
-            }
-
-            .sidebar-menu {
-                display: flex;
-                overflow-x: auto;
-                gap: 6px;
-            }
-
-            .sidebar-menu li {
-                margin-bottom: 0;
-                flex-shrink: 0;
-            }
-
-            .sidebar-menu a {
-                padding: 8px 10px;
-            }
-
-            .sidebar-menu .nav-text {
-                display: none;
-            }
-
-            .mobile-hide {
-                display: none;
-            }
-
-            .content {
-                padding: 15px;
-            }
-
-            .topbar {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .cards {
-                grid-template-columns: 1fr;
-            }
-
-            .filter-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .search-box,
-            .filter-select {
-                width: 100%;
-                margin: 0;
-            }
-
-            .batch-toolbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .batch-actions {
-                width: 100%;
-            }
-
-            .batch-actions button {
-                flex: 1;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .col-3,
-            .col-6 {
-                grid-column: span 1;
-            }
-
-            .modal {
-                padding: 10px;
-            }
-
-            .modal-content {
-                padding: 18px;
-            }
+        @keyframes modalScaleEnter {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
     </style>
 </head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
-<body>
+<div class="flex min-h-screen app-wrapper">
 
-<!-- ==========================================
-     APP CONTAINER
-========================================== -->
+    <aside class="sidebar"></aside>
 
-<div class="container">
-
-    <!-- ==========================================
-         SIDEBAR
-    ========================================== -->
-
-    <aside class="sidebar">
-
-        <div class="sidebar-brand">
-            <h2>CFMMS</h2>
-        </div>
-
-        <ul class="sidebar-menu">
-
-            <li>
-                <a href="index.html">
-                    <span class="icon">📊</span>
-                    <span class="nav-text">Dashboard</span>
-                </a>
-            </li>
-
-            <li class="active">
-                <a href="members.html">
-                    <span class="icon">👥</span>
-                    <span class="nav-text">Members</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="collections.html">
-                    <span class="icon">📥</span>
-                    <span class="nav-text">Collections</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="funds.html">
-                    <span class="icon">💰</span>
-                    <span class="nav-text">Funds</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="expenses.html">
-                    <span class="icon">📤</span>
-                    <span class="nav-text">Expenses</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="vouchers.html">
-                    <span class="icon">🎫</span>
-                    <span class="nav-text">Vouchers</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="reports.html">
-                    <span class="icon">📈</span>
-                    <span class="nav-text">Reports</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="audit.html">
-                    <span class="icon">🛡️</span>
-                    <span class="nav-text">Audit Trail</span>
-                </a>
-            </li>
-
-            <li class="mobile-hide">
-                <a href="users.html">
-                    <span class="icon">👤</span>
-                    <span class="nav-text">Users</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="settings.html">
-                    <span class="icon">⚙️</span>
-                    <span class="nav-text">Settings</span>
-                </a>
-            </li>
-
-            <li style="margin-top:20px;">
-                <a
-                    href="#"
-                    onclick="handleLogout(event)"
-                    style="background:rgba(179,32,52,.15);color:#ffe0e0;border:1px solid rgba(179,32,52,.3);"
-                >
-                    <span class="icon">🚪</span>
-                    <span class="nav-text">Logout</span>
-                </a>
-            </li>
-
-        </ul>
-
-    </aside>
-
-
-    <!-- ==========================================
-         MAIN CONTENT
-    ========================================== -->
-
-    <main class="content">
+    <main class="flex-1 min-w-0 p-6 lg:p-8 page-content">
 
         <!-- TOPBAR -->
-
-        <div class="topbar">
-
+        <div class="topbar flex justify-between items-start mb-6">
             <div>
-                <h1>Members</h1>
-                <p>Manage church members and their information.</p>
+                <h1 class="text-2xl lg:text-3xl font-bold text-navy">Members Directory</h1>
+                <p class="text-sm text-slate-500 mt-1">Manage church membership profiles, roles, and records</p>
             </div>
 
-            <button
-                class="btn-primary"
-                onclick="openModal()"
-            >
+            <button class="btn-primary bg-navy hover:bg-navy-dark text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-1.5"
+                    type="button"
+                    onclick="openModal(event)">
                 + Add Member
             </button>
-
         </div>
 
-
-        <!-- ==========================================
-             STATISTICS
-        ========================================== -->
-
-        <section class="cards">
-
-            <div class="card">
-
+        <!-- STATS CARDS -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex justify-between items-start">
                 <div>
-                    <h3>Total Members</h3>
-                    <div
-                        class="card-value"
-                        id="totalMembersCount"
-                    >
-                        0
-                    </div>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Members</h3>
+                    <div class="text-2xl lg:text-3xl font-bold text-slate-900 mt-2" id="totalMembersCount">0</div>
+                    <div class="text-xs text-slate-500 font-medium mt-1">Registered members</div>
                 </div>
-
-                <div class="card-icon">
-                    👥
-                </div>
-
             </div>
 
-
-            <div class="card">
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex justify-between items-start">
                 <div>
-                    <h3>Active Members</h3>
-
-                    <div
-                        class="card-value"
-                        id="activeMembersCount"
-                    >
-                        0
-                    </div>
-
-                    <div
-                        class="card-subtext text-green"
-                        id="activePercentText"
-                    >
-                        0% of total
-                    </div>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Active Members</h3>
+                    <div class="text-2xl lg:text-3xl font-bold text-emerald-600 mt-2" id="activeMembersCount">0</div>
+                    <div class="text-xs text-emerald-600 font-medium mt-1" id="activePercentText">0% of total</div>
                 </div>
-
-                <div class="card-icon">
-                    👤
-                </div>
-
             </div>
 
-
-            <div class="card">
-
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex justify-between items-start">
                 <div>
-                    <h3>Inactive Members</h3>
-
-                    <div
-                        class="card-value"
-                        id="inactiveMembersCount"
-                    >
-                        0
-                    </div>
-
-                    <div
-                        class="card-subtext text-red"
-                        id="inactivePercentText"
-                    >
-                        0% of total
-                    </div>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Inactive Members</h3>
+                    <div class="text-2xl lg:text-3xl font-bold text-slate-400 mt-2" id="inactiveMembersCount">0</div>
+                    <div class="text-xs text-red-500 font-medium mt-1" id="inactivePercentText">0% of total</div>
                 </div>
-
-                <div class="card-icon">
-                    👤
-                </div>
-
             </div>
 
-
-            <div class="card action-panel-card">
-
-                <h3>Excel Integration</h3>
-
-                <input
-                    type="file"
-                    id="excelFileInput"
-                    accept=".xlsx,.xls"
-                    style="display:none;"
-                    onchange="handleExcelUpload(this)"
-                >
-
-                <button
-                    class="btn-excel"
-                    onclick="document.getElementById('excelFileInput').click()"
-                >
-                    📥 Import Excel Data
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between action-panel-card">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Excel Integration</h3>
+                <input type="file"
+                       id="excelFileInput"
+                       accept=".xlsx,.xls"
+                       style="display:none;"
+                       onchange="handleExcelUpload(this)">
+                <button class="w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg text-xs font-semibold transition-all shadow-sm"
+                        onclick="document.getElementById('excelFileInput').click()">
+                    Import Excel Data
                 </button>
-
             </div>
-
         </section>
 
+        <!-- FILTERS -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
+            <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                <div class="flex flex-1 flex-col sm:flex-row gap-3 w-full">
+                    <input type="text"
+                           id="memberSearchBox"
+                           class="flex-1 px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10"
+                           placeholder="Search by name, ID, phone, address..."
+                           autocomplete="off">
 
-        <!-- ==========================================
-             SEARCH / FILTER
-        ========================================== -->
-
-        <section class="filter-bar">
-
-            <div class="filter-controls">
-
-                <input
-                    type="text"
-                    id="memberSearchBox"
-                    class="search-box"
-                    placeholder="Search by name, ID, phone, address..."
-                    autocomplete="off"
-                >
-
-                <select
-                    id="memberStatusFilter"
-                    class="filter-select"
-                >
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-
+                    <select id="memberStatusFilter"
+                            class="sm:w-44 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
             </div>
-
         </section>
 
-        <div id="memberPagination" class="pagination-bar" style="display:none; margin: 12px 0 18px; justify-content:flex-end; gap:8px; align-items:center;"></div>
+        <div id="memberPagination" class="pagination-bar flex justify-end gap-2 items-center mb-4 text-xs font-medium text-slate-600" style="display:none;"></div>
 
-
-        <!-- ==========================================
-             BATCH ACTION TOOLBAR
-        ========================================== -->
-
-        <div
-            class="batch-toolbar"
-            id="batchToolbar"
-        >
-
-            <div class="batch-selection-info">
-
-                <strong id="selectedCount">
-                    0
-                </strong>
-
-                member(s) selected
-
-                <small>
-                    Selection stays active while searching.
-                </small>
-
+        <!-- BATCH ACTION TOOLBAR -->
+        <div class="batch-toolbar bg-navy-dark text-white rounded-xl p-4 mb-4 shadow-md justify-between items-center gap-4"
+             id="batchToolbar">
+            <div class="text-xs sm:text-sm">
+                <strong id="selectedCount" class="text-white text-base">0</strong>
+                <span class="text-slate-200"> member(s) selected</span>
+                <small class="text-slate-400 block sm:inline sm:ml-2">Selection stays active while searching.</small>
             </div>
 
-
-            <div class="batch-actions">
-
-                <button
-                    type="button"
-                    class="batch-clear-btn"
-                    onclick="clearMemberSelection()"
-                >
+            <div class="flex gap-2">
+                <button type="button"
+                        class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition-all"
+                        onclick="clearMemberSelection()">
                     Cancel
                 </button>
-
-                <button
-                    type="button"
-                    class="batch-delete-btn"
-                    onclick="batchDeleteMembers()"
-                >
-                    🗑️ Delete Selected
+                <button type="button"
+                        class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-all"
+                        onclick="batchDeleteMembers()">
+                    Delete Selected
                 </button>
-
             </div>
-
         </div>
 
-
-        <!-- ==========================================
-             MEMBERS TABLE
-        ========================================== -->
-
-        <section class="table-container">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th class="checkbox-column">
-
-                            <input
-                                type="checkbox"
-                                id="selectAllMembers"
-                                onchange="toggleSelectAllMembers(this)"
-                            >
-
-                        </th>
-
-                        <th>Member ID</th>
-
-                        <th>Full Name</th>
-
-                        <th>Contact Number</th>
-
-                        <th>Address</th>
-
-                        <th>Role</th>
-
-                        <th>Login ID</th>
-
-                        <th>Date Joined</th>
-
-                        <th>Status</th>
-
-                        <th>Actions</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="memberTableBody"></tbody>
-
-            </table>
-
+        <!-- MEMBERS TABLE -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr class="[&>th]:py-3.5 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th class="w-10 text-center">
+                                <input type="checkbox"
+                                       id="selectAllMembers"
+                                       class="w-4 h-4 rounded text-navy cursor-pointer"
+                                       onchange="toggleSelectAllMembers(this)">
+                            </th>
+                            <th>Member ID</th>
+                            <th>Full Name</th>
+                            <th>Contact Number</th>
+                            <th>Address</th>
+                            <th>Role</th>
+                            <th>Login ID</th>
+                            <th>Date Joined</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberTableBody" class="divide-y divide-slate-100 [&>tr>td]:py-3.5 [&>tr>td]:px-4">
+                        <tr>
+                            <td colspan="10" class="text-center py-8 text-slate-400">Loading members...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
     </main>
 
 </div>
 
-
-<!-- ==========================================
-     ADD / EDIT MEMBER MODAL
-========================================== -->
-
-<div
-    class="modal"
-    id="memberModal"
->
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2 id="modalTitle">
-                Add Member
-            </h2>
-
-            <span
-                class="close"
-                onclick="closeModal()"
-            >
-                &times;
-            </span>
-
-        </div>
-
-
-        <div class="modal-tabs">
-
-            <button class="tab-btn active" type="button">
-                Basic
-            </button>
-
-            <button
-                class="tab-btn"
-                type="button"
-            >
-                Remark
-            </button>
-
-        </div>
-
-
-        <form id="memberForm">
-
-            <!-- PERSONAL INFO -->
-
-            <div class="form-section-title">
-                Personal Info
-            </div>
-
-            <div class="form-grid">
-
-                <div class="form-group col-3">
-                    <label>Member ID</label>
-
-                    <input
-                        type="text"
-                        id="memberId"
-                        disabled
-                        placeholder="Assigned Automatically"
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Gender</label>
-
-                    <select id="gender">
-                        <option value="">-----</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                    </select>
-                </div>
-
-
-                <div class="form-group col-6">
-                    <label>Official Name *</label>
-
-                    <input
-                        type="text"
-                        id="officialName"
-                        required
-                        placeholder="Full Official Legal Name"
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>First Name</label>
-
-                    <input
-                        type="text"
-                        id="name1"
-                        placeholder="First Name"
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Middle Name</label>
-
-                    <input
-                        type="text"
-                        id="middleName"
-                        placeholder="Middle Name / M.I."
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Last Name</label>
-
-                    <input
-                        type="text"
-                        id="name2"
-                        placeholder="Last Name"
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Gov. ID</label>
-
-                    <input
-                        type="text"
-                        id="govId"
-                        placeholder="Passport / License No."
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Role Setting *</label>
-
-                    <select
-                        id="memberRole"
-                        required
-                    >
-                        <option value="member">Member</option>
-                        <option value="secretary">Secretary</option>
-                        <option value="treasurer">Treasurer</option>
-                        <option value="pastor">Pastor</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Marital Status</label>
-
-                    <select id="maritalStatus">
-                        <option value="">-----</option>
-                        <option value="Single">Single</option>
-                        <option value="Married">Married</option>
-                        <option value="Widowed">Widowed</option>
-                    </select>
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>DOB</label>
-
-                    <input
-                        type="date"
-                        id="dob"
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Occupation</label>
-
-                    <input
-                        type="text"
-                        id="occupation"
-                    >
-                </div>
-
-
-                <div class="form-group col-3">
-                    <label>Education</label>
-
-                    <input
-                        type="text"
-                        id="education"
-                    >
-                </div>
-
-
-                <div class="form-group col-6">
-                    <label>Hobbies</label>
-
-                    <input
-                        type="text"
-                        id="hobbies"
-                    >
-                </div>
-
-            </div>
-
-
-            <!-- CONTACT INFO -->
-
-            <div class="form-section-title">
-                Contact Info
-            </div>
-
-            <div class="form-grid">
-
-                <div class="form-group col-6">
-
-                    <label>
-                        Address *
-                    </label>
-
-                    <textarea
-                        id="address"
-                        rows="2"
-                        required
-                        placeholder="Complete Residential Address"
-                    ></textarea>
-
-                </div>
-
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Tel 1 (Primary Contact) *
-                    </label>
-
-                    <input
-                        type="text"
-                        id="tel1"
-                        required
-                        placeholder="Contact Number"
-                    >
-
-                </div>
-
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Tel 2
-                    </label>
-
-                    <input
-                        type="text"
-                        id="tel2"
-                    >
-
-                </div>
-
-
-                <div class="form-group col-6">
-
-                    <label>
-                        Email
-                    </label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="example@domain.com"
-                    >
-
-                </div>
-
-            </div>
-
-
-            <!-- RELIGION -->
-
-            <div class="form-section-title">
-                Religion Info
-            </div>
-
-            <div class="form-grid">
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Baptist Date
-                    </label>
-
-                    <input
-                        type="date"
-                        id="baptistDate"
-                    >
-
-                </div>
-
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Join Church Date
-                    </label>
-
-                    <input
-                        type="date"
-                        id="joinChurchDate"
-                    >
-
-                </div>
-
-            </div>
-
-
-            <!-- SYSTEM INFO -->
-
-            <div class="form-section-title">
-                System Info
-            </div>
-
-            <div class="form-grid">
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Login ID
-                    </label>
-
-                    <input
-                        type="text"
-                        id="loginId"
-                        readonly
-                        placeholder="Same as Member ID"
-                    >
-
-                </div>
-
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Password
-                    </label>
-
-                    <input
-                        type="password"
-                        id="password"
-                    >
-
-                </div>
-
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Receipt Method
-                    </label>
-
-                    <select id="receiptMethod">
-
-                        <option value="Print">
-                            Print
-                        </option>
-
-                        <option value="Email">
-                            Email
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="form-group col-3">
-
-                    <label>
-                        Initial Status
-                    </label>
-
-                    <select id="memberStatus">
-
-                        <option value="Active">
-                            Active
-                        </option>
-
-                        <option value="Inactive">
-                            Inactive
-                        </option>
-
-                    </select>
-
-                </div>
-
-            </div>
-
-
-            <!-- FOOTER -->
-
-            <div class="modal-footer">
-
-                <button
+<!-- ADD / EDIT MEMBER MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-center z-[2500] p-4 overflow-y-auto"
+     id="memberModal"
+     onclick="if (event.target === this) closeModal()">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden m-auto relative flex flex-col max-h-[90vh] z-10"
+         onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-base font-bold text-navy" id="modalTitle">Add Member</h2>
+            <button class="text-slate-400 hover:text-slate-600 text-2xl font-light leading-none"
                     type="button"
-                    class="btn-cancel"
-                    onclick="closeModal()"
-                >
+                    onclick="closeModal()">&times;</button>
+        </div>
+
+        <div class="flex-shrink-0 px-6 pt-3 flex gap-2 border-b border-slate-100 bg-slate-50 text-xs">
+            <button class="tab-btn px-4 py-2 font-semibold text-navy border-b-2 border-navy -mb-px" type="button">Basic</button>
+            <button class="tab-btn px-4 py-2 font-medium text-slate-400 hover:text-slate-600" type="button">Remark</button>
+        </div>
+
+        <form id="memberForm" class="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
+            <div class="p-6 overflow-y-auto space-y-5 flex-1 min-h-0">
+
+                <!-- PERSONAL INFO -->
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">Personal Info</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Member ID</label>
+                            <input type="text"
+                                   id="memberId"
+                                   disabled
+                                   placeholder="Assigned Automatically"
+                                   class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500 font-sans outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Gender</label>
+                            <select id="gender"
+                                    class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                                <option value="">-----</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Official Name <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   id="officialName"
+                                   required
+                                   placeholder="Full Official Legal Name"
+                                   class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">First Name</label>
+                            <input type="text" id="name1" placeholder="First Name" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Middle Name</label>
+                            <input type="text" id="middleName" placeholder="Middle Name / M.I." class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Last Name</label>
+                            <input type="text" id="name2" placeholder="Last Name" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Gov. ID</label>
+                            <input type="text" id="govId" placeholder="Passport / License No." class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Role Setting <span class="text-red-500">*</span></label>
+                            <select id="memberRole"
+                                    required
+                                    class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                                <option value="member">Member</option>
+                                <option value="secretary">Secretary</option>
+                                <option value="treasurer">Treasurer</option>
+                                <option value="pastor">Pastor</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Marital Status</label>
+                            <select id="maritalStatus" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                                <option value="">-----</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Widowed">Widowed</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">DOB</label>
+                            <input type="date" id="dob" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Occupation</label>
+                            <input type="text" id="occupation" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Education</label>
+                            <input type="text" id="education" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Hobbies</label>
+                            <input type="text" id="hobbies" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTACT INFO -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">Contact Info</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Address <span class="text-red-500">*</span></label>
+                            <textarea id="address"
+                                      rows="2"
+                                      required
+                                      placeholder="Complete Residential Address"
+                                      class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tel 1 (Primary Contact) <span class="text-red-500">*</span></label>
+                            <input type="text"
+                                   id="tel1"
+                                   required
+                                   placeholder="Contact Number"
+                                   class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tel 2</label>
+                            <input type="text" id="tel2" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+                            <input type="email" id="email" placeholder="example@domain.com" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RELIGION -->
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">Religion Info</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Baptist Date</label>
+                            <input type="date" id="baptistDate" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Join Church Date</label>
+                            <input type="date" id="joinChurchDate" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SYSTEM INFO -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-navy mb-3">System Info</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Login ID</label>
+                            <input type="text" id="loginId" readonly placeholder="Same as Member ID" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500 font-sans outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                            <input type="password" id="password" placeholder="••••••••" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Receipt Method</label>
+                            <select id="receiptMethod" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                                <option value="Print">Print</option>
+                                <option value="Email">Email</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Initial Status</label>
+                            <select id="memberStatus" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex-shrink-0 flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+                <button type="button"
+                        class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-all font-sans"
+                        onclick="closeModal()">
                     Cancel
                 </button>
-
-                <button
-                    type="submit"
-                    class="btn-primary"
-                >
+                <button type="submit"
+                        class="px-5 py-2 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all font-sans">
                     Save
                 </button>
-
             </div>
-
         </form>
-
     </div>
-
 </div>
 
-
-<!-- ==========================================
-     LEDGER MODAL
-========================================== -->
-
-<div
-    class="modal"
-    id="ledgerModal"
->
-
-    <div
-        class="modal-content"
-        style="width:800px;"
-    >
-
-        <div class="modal-header">
-
-            <h2>
-                Collection History:
-                <span id="ledgerMemberName"></span>
-            </h2>
-
-            <span
-                class="close"
-                onclick="closeLedgerModal()"
-            >
-                &times;
-            </span>
-
+<!-- LEDGER MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-center z-[2500] p-4 overflow-y-auto"
+     id="ledgerModal"
+     onclick="if (event.target === this) closeLedgerModal()">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden m-auto relative flex flex-col max-h-[90vh] z-10"
+         onclick="event.stopPropagation()">
+        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
+            <h2 class="text-base font-bold text-navy">Collection History: <span id="ledgerMemberName" class="text-slate-600 font-medium"></span></h2>
+            <button class="text-slate-400 hover:text-slate-600 text-2xl font-light leading-none"
+                    type="button"
+                    onclick="closeLedgerModal()">&times;</button>
         </div>
 
+        <div class="p-6 overflow-y-auto flex-1 min-h-0">
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                        <tr class="[&>th]:py-3 [&>th]:px-3 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Fund</th>
+                            <th class="text-right">Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerTableBody" class="divide-y divide-slate-100 [&>tr>td]:py-3 [&>tr>td]:px-3"></tbody>
+                </table>
+            </div>
+        </div>
 
-        <table style="width:100%;min-width:0;">
-
-            <thead>
-
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Fund</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                </tr>
-
-            </thead>
-
-            <tbody id="ledgerTableBody"></tbody>
-
-        </table>
-
-
-        <div class="modal-footer">
-
-            <button
-                class="btn-cancel"
-                onclick="closeLedgerModal()"
-            >
+        <div class="flex-shrink-0 flex justify-end px-6 py-4 border-t border-slate-100 bg-slate-50">
+            <button class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold"
+                    type="button"
+                    onclick="closeLedgerModal()">
                 Close
             </button>
-
         </div>
-
     </div>
-
 </div>
 
-
-<!-- ==========================================
-     JAVASCRIPT
-========================================== -->
-
 <script>
-
 /* =========================================================
    SECURITY GUARD
 ========================================================= */
@@ -1674,28 +547,6 @@ let allMembersData = [];
 const PAGE_SIZE = 50;
 
 let currentPage = 1;
-
-
-/*
-    🔥 IMPORTANT
-
-    This Set is what makes batch selection survive
-    searching/filtering.
-
-    Example:
-
-    Search Juan
-    → select Juan
-    → selectedMemberIds = { 15 }
-
-    Search Maria
-    → Juan is still inside the Set
-    → select Maria
-    → selectedMemberIds = { 15, 21 }
-
-    Search Pedro
-    → both Juan and Maria remain selected
-*/
 
 const selectedMemberIds = new Set();
 
@@ -1802,14 +653,6 @@ function checkPageAccess() {
     const token =
         sessionStorage.getItem("token");
 
-    const role =
-        sessionStorage.getItem("role")
-            ? sessionStorage
-                .getItem("role")
-                .toLowerCase()
-            : "";
-
-
     if (!token) {
 
         alert(
@@ -1820,38 +663,6 @@ function checkPageAccess() {
             "/pages/login.html";
 
         return;
-
-    }
-
-
-    const managementRoles = [
-        "admin",
-        "pastor",
-        "secretary"
-    ];
-
-
-    if (!managementRoles.includes(role)) {
-
-        const addBtn =
-            document.querySelector(
-                ".topbar .btn-primary"
-            );
-
-        const excelCard =
-            document.querySelector(
-                ".action-panel-card"
-            );
-
-
-        if (addBtn) {
-            addBtn.style.display = "none";
-        }
-
-
-        if (excelCard) {
-            excelCard.style.display = "none";
-        }
 
     }
 
@@ -1867,11 +678,9 @@ checkPageAccess();
 
 function getUserRole() {
 
-    return sessionStorage.getItem("role")
-        ? sessionStorage
-            .getItem("role")
-            .toLowerCase()
-        : "";
+    return (sessionStorage.getItem("role") || "admin")
+        .trim()
+        .toLowerCase();
 
 }
 
@@ -2126,14 +935,6 @@ async function loadMembers({ resetFilters = false, forceRefresh = false } = {}) 
 
         currentPage = 1;
 
-        /*
-            Remove selected IDs that no longer
-            exist in the database.
-
-            This prevents deleted members from
-            staying inside the batch selection.
-        */
-
         const existingIds =
             new Set(
                 allMembersData.map(
@@ -2202,11 +1003,11 @@ function renderPagination(filteredData) {
         return;
     }
 
-    const prevButton = `<button type="button" class="btn-primary" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(${currentPage - 1})" style="opacity:${currentPage === 1 ? 0.5 : 1};">Prev</button>`;
-    const nextButton = `<button type="button" class="btn-primary" ${currentPage >= totalPages ? "disabled" : ""} onclick="changePage(${currentPage + 1})" style="opacity:${currentPage >= totalPages ? 0.5 : 1};">Next</button>`;
+    const prevButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(${currentPage - 1})">Prev</button>`;
+    const nextButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage >= totalPages ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage >= totalPages ? "disabled" : ""} onclick="changePage(${currentPage + 1})">Next</button>`;
 
     pagination.innerHTML = `
-        <span style="color:#475569; font-size: 0.9rem;">Page ${currentPage} of ${totalPages}</span>
+        <span class="text-slate-500 text-xs">Page ${currentPage} of ${totalPages}</span>
         ${prevButton}
         ${nextButton}
     `;
@@ -2264,24 +1065,14 @@ function renderMembers() {
     if (filteredData.length === 0) {
 
         table.innerHTML = `
-
             <tr>
-
                 <td
                     colspan="10"
-                    style="
-                        text-align:center;
-                        color:#94a3b8;
-                        padding:30px;
-                    "
+                    class="text-center py-8 text-slate-400"
                 >
-
                     No matching members found.
-
                 </td>
-
             </tr>
-
         `;
 
         renderPagination(filteredData);
@@ -2301,18 +1092,6 @@ function renderMembers() {
         const memberId =
             Number(member.id);
 
-
-        /*
-            🔥 THIS IS THE IMPORTANT PART
-
-            Checkbox state is NOT taken from the DOM.
-
-            It is taken from selectedMemberIds.
-
-            Therefore searching does not destroy
-            the selection.
-        */
-
         const isSelected =
             selectedMemberIds.has(
                 memberId
@@ -2320,16 +1099,9 @@ function renderMembers() {
 
 
         let actionButtons = `
-
-            <span
-                style="
-                    color:#94a3b8;
-                    font-size:0.85rem;
-                "
-            >
+            <span class="text-slate-400 text-xs">
                 View Only
             </span>
-
         `;
 
 
@@ -2348,7 +1120,6 @@ function renderMembers() {
             if (canEdit) {
 
                 menuItems += `
-
                     <button
                         type="button"
                         onclick="
@@ -2356,14 +1127,11 @@ function renderMembers() {
                             closeAllActionMenus();
                         "
                     >
-                        ✏️ Edit Member
+                        Edit Member
                     </button>
-
                 `;
 
-
                 menuItems += `
-
                     <button
                         type="button"
                         onclick="
@@ -2371,9 +1139,8 @@ function renderMembers() {
                             closeAllActionMenus();
                         "
                     >
-                        📜 Collection History
+                        Collection History
                     </button>
-
                 `;
 
             }
@@ -2382,7 +1149,6 @@ function renderMembers() {
             if (canDelete) {
 
                 menuItems += `
-
                     <button
                         type="button"
                         class="danger-action"
@@ -2391,18 +1157,15 @@ function renderMembers() {
                             closeAllActionMenus();
                         "
                     >
-                        🗑️ Delete Member
+                        Delete Member
                     </button>
-
                 `;
 
             }
 
 
             actionButtons = `
-
                 <div class="action-menu-wrapper">
-
                     <button
                         type="button"
                         class="action-menu-btn"
@@ -2416,18 +1179,13 @@ function renderMembers() {
                         Actions ▾
                     </button>
 
-
                     <div
                         class="action-dropdown"
                         id="action-menu-${memberId}"
                     >
-
                         ${menuItems}
-
                     </div>
-
                 </div>
-
             `;
 
         }
@@ -2448,20 +1206,14 @@ function renderMembers() {
         ========================================== */
 
         table.innerHTML += `
-
-            <tr>
-
-                <!-- CHECKBOX -->
-
-                <td class="checkbox-column">
-
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="w-10 text-center">
                     ${
                         canDelete
                             ? `
-
                                 <input
                                     type="checkbox"
-                                    class="member-checkbox"
+                                    class="member-checkbox w-4 h-4 rounded text-navy cursor-pointer"
                                     value="${memberId}"
                                     ${
                                         isSelected
@@ -2474,84 +1226,56 @@ function renderMembers() {
                                         )
                                     "
                                 >
-
                             `
                             : ""
                     }
-
                 </td>
 
-
-                <!-- MEMBER ID -->
-
-                <td class="text-bold">
+                <td class="font-semibold text-navy">
                     ${escapeHtml(
                         member.member_id ||
                         "N/A"
                     )}
                 </td>
 
-
-                <!-- NAME -->
-
-                <td>
+                <td class="font-medium text-slate-800">
                     ${escapeHtml(
                         member.official_name ||
                         ""
                     )}
                 </td>
 
-
-                <!-- PHONE -->
-
-                <td>
+                <td class="text-slate-600">
                     ${escapeHtml(
                         member.phone ||
                         ""
                     )}
                 </td>
 
-
-                <!-- ADDRESS -->
-
-                <td>
+                <td class="text-slate-600 max-w-xs truncate">
                     ${escapeHtml(
                         member.address ||
                         ""
                     )}
                 </td>
 
-
-                <!-- ROLE -->
-
                 <td>
-
-                    <span
-                        class="badge role-${roleClass}"
-                    >
+                    <span class="badge role-${roleClass}">
                         ${escapeHtml(
                             member.role ||
                             "member"
                         )}
                     </span>
-
                 </td>
 
-
-                <!-- LOGIN ID -->
-
-                <td>
+                <td class="text-slate-500 font-mono text-[11px]">
                     ${escapeHtml(
                         member.login_id ||
                         "-"
                     )}
                 </td>
 
-
-                <!-- DATE -->
-
-                <td>
-
+                <td class="text-slate-500 whitespace-nowrap">
                     ${
                         member.join_date
                             ? escapeHtml(
@@ -2560,14 +1284,9 @@ function renderMembers() {
                             )
                             : ""
                     }
-
                 </td>
 
-
-                <!-- STATUS -->
-
                 <td>
-
                     <span
                         class="status ${
                             (
@@ -2584,29 +1303,15 @@ function renderMembers() {
                             ""
                         )}
                     </span>
-
                 </td>
-
-
-                <!-- ACTIONS -->
 
                 <td>
                     ${actionButtons}
                 </td>
-
             </tr>
-
         `;
 
     });
-
-
-    /*
-        🔥 IMPORTANT
-
-        Recalculate toolbar AFTER the table
-        has been rebuilt.
-    */
 
     renderPagination(filteredData);
     updateBatchToolbar();
@@ -2657,17 +1362,6 @@ function toggleSelectAllMembers(
     const filteredData =
         getFilteredMembers();
 
-
-    /*
-        If checked:
-
-        Select EVERY currently visible
-        filtered member.
-
-        Existing selections from other
-        searches remain untouched.
-    */
-
     if (checkbox.checked) {
 
         filteredData.forEach(member => {
@@ -2678,19 +1372,7 @@ function toggleSelectAllMembers(
 
         });
 
-    }
-
-    /*
-        If unchecked:
-
-        Remove ONLY the currently filtered
-        members from the selection.
-
-        This means members selected from
-        another search remain selected.
-    */
-
-    else {
+    } else {
 
         filteredData.forEach(member => {
 
@@ -2731,24 +1413,12 @@ function updateBatchToolbar() {
             "selectAllMembers"
         );
 
-
-    /*
-        🔥 COUNT COMES FROM SET
-
-        NOT FROM CHECKBOXES IN THE DOM.
-    */
-
     const selectedCount =
         selectedMemberIds.size;
 
 
     count.innerText =
         selectedCount;
-
-
-    /* ==========================================
-       SHOW / HIDE TOOLBAR
-    ========================================== */
 
     if (
         selectedCount > 0
@@ -2758,20 +1428,13 @@ function updateBatchToolbar() {
             "visible"
         );
 
-    }
-
-    else {
+    } else {
 
         toolbar.classList.remove(
             "visible"
         );
 
     }
-
-
-    /* ==========================================
-       SELECT ALL STATE
-    ========================================== */
 
     const filteredData =
         getFilteredMembers();
@@ -2805,9 +1468,7 @@ function updateBatchToolbar() {
             selectedVisibleCount <
                 filteredIds.length;
 
-    }
-
-    else if (selectAll) {
+    } else if (selectAll) {
 
         selectAll.checked = false;
 
@@ -2824,15 +1485,7 @@ function updateBatchToolbar() {
 
 function clearMemberSelection() {
 
-    /*
-        🔥 Clear the Set.
-
-        This clears selections even for
-        members currently hidden by search.
-    */
-
     selectedMemberIds.clear();
-
 
     const selectAll =
         document.getElementById(
@@ -2860,28 +1513,6 @@ function clearMemberSelection() {
 
 async function batchDeleteMembers() {
 
-    /*
-        🔥 GET IDs FROM SET
-
-        NOT FROM THE CURRENTLY VISIBLE
-        CHECKBOXES.
-
-        This is what allows:
-
-        Search A
-        select 3
-
-        Search B
-        select 4
-
-        Search C
-        select 2
-
-        Delete
-
-        = 9 members.
-    */
-
     const ids =
         Array.from(
             selectedMemberIds
@@ -2901,12 +1532,6 @@ async function batchDeleteMembers() {
         return;
 
     }
-
-
-    /*
-        Get names for a better confirmation
-        message.
-    */
 
     const selectedMembers =
         allMembersData.filter(
@@ -3022,14 +1647,7 @@ async function batchDeleteMembers() {
             `${ids.length} member(s) deleted successfully.`
         );
 
-
-        /*
-            🔥 Clear selection ONLY AFTER
-            successful delete.
-        */
-
         selectedMemberIds.clear();
-
 
         await loadMembers({ forceRefresh: true });
 
@@ -3064,12 +1682,6 @@ document
         "input",
         function () {
 
-            /*
-                DO NOT CLEAR selectedMemberIds.
-
-                This is the key behavior.
-            */
-
             renderMembers();
 
         }
@@ -3087,10 +1699,6 @@ document
     .addEventListener(
         "change",
         function () {
-
-            /*
-                DO NOT CLEAR selectedMemberIds.
-            */
 
             renderMembers();
 
@@ -3173,9 +1781,15 @@ document.addEventListener(
 
 function closeModal() {
 
-    document.getElementById(
-        "memberModal"
-    ).style.display = "none";
+    const modal =
+        document.getElementById(
+            "memberModal"
+        );
+
+    if (modal) {
+        modal.classList.remove("show");
+        modal.style.display = "none";
+    }
 
 }
 
@@ -3184,7 +1798,11 @@ function closeModal() {
    OPEN ADD MEMBER MODAL
 ========================================================= */
 
-function openModal() {
+function openModal(event) {
+
+    if (event && event.stopPropagation) {
+        event.stopPropagation();
+    }
 
     selectedEditId = null;
 
@@ -3198,14 +1816,6 @@ function openModal() {
     document.getElementById(
         "memberForm"
     ).reset();
-
-
-    /*
-        Backend will generate the real Member ID
-        if this field is empty.
-
-        We use a temporary display value only.
-    */
 
     let nextIdNum = 1;
 
@@ -3250,22 +1860,34 @@ function openModal() {
             );
 
 
-    document.getElementById(
-        "memberId"
-    ).value =
-        generatedMemberId;
+    const memberIdInput =
+        document.getElementById(
+            "memberId"
+        );
+
+    const loginIdInput =
+        document.getElementById(
+            "loginId"
+        );
+
+    if (memberIdInput) {
+        memberIdInput.value = generatedMemberId;
+    }
+
+    if (loginIdInput) {
+        loginIdInput.value = generatedMemberId;
+    }
 
 
-    document.getElementById(
-        "loginId"
-    ).value =
-        generatedMemberId;
+    const modal =
+        document.getElementById(
+            "memberModal"
+        );
 
-
-    document.getElementById(
-        "memberModal"
-    ).style.display =
-        "flex";
+    if (modal) {
+        modal.classList.add("show");
+        modal.style.display = "flex";
+    }
 
 }
 
@@ -3458,10 +2080,15 @@ async function editMember(id) {
                 : "";
 
 
-        document.getElementById(
-            "memberModal"
-        ).style.display =
-            "flex";
+        const modal =
+            document.getElementById(
+                "memberModal"
+            );
+
+        if (modal) {
+            modal.classList.add("show");
+            modal.style.display = "flex";
+        }
 
     } catch (err) {
 
@@ -3533,15 +2160,9 @@ async function deleteMember(id) {
 
         }
 
-
-        /*
-            Remove from batch selection too.
-        */
-
         selectedMemberIds.delete(
             Number(id)
         );
-
 
         await loadMembers({ forceRefresh: true });
 
@@ -3947,25 +2568,26 @@ async function viewLedger(
 
 
     tbody.innerHTML = `
-
         <tr>
-
             <td
                 colspan="5"
-                style="text-align:center;padding:20px;"
+                class="text-center py-6 text-slate-400"
             >
                 Loading...
             </td>
-
         </tr>
-
     `;
 
 
-    document.getElementById(
-        "ledgerModal"
-    ).style.display =
-        "flex";
+    const modal =
+        document.getElementById(
+            "ledgerModal"
+        );
+
+    if (modal) {
+        modal.classList.add("show");
+        modal.style.display = "flex";
+    }
 
 
     try {
@@ -4009,22 +2631,14 @@ async function viewLedger(
         ) {
 
             tbody.innerHTML = `
-
                 <tr>
-
                     <td
                         colspan="5"
-                        style="
-                            text-align:center;
-                            padding:20px;
-                            color:#94a3b8;
-                        "
+                        class="text-center py-6 text-slate-400"
                     >
                         No collections found for this member.
                     </td>
-
                 </tr>
-
             `;
 
             return;
@@ -4053,37 +2667,35 @@ async function viewLedger(
 
 
             tbody.innerHTML += `
-
-                <tr>
-
-                    <td>
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="text-slate-600 font-mono text-[11px]">
                         ${escapeHtml(date)}
                     </td>
 
-                    <td>
+                    <td class="font-medium text-slate-800">
                         ${escapeHtml(
                             item.type || ""
                         )}
                     </td>
 
-                    <td>
+                    <td class="text-slate-600">
                         ${escapeHtml(
                             item.fund_category || ""
                         )}
                     </td>
 
-                    <td class="text-amount">
+                    <td class="text-right font-bold text-emerald-600">
                         ₱${amount}
                     </td>
 
                     <td>
-                        ${escapeHtml(
-                            item.status || ""
-                        )}
+                        <span class="status active-status">
+                            ${escapeHtml(
+                                item.status || ""
+                            )}
+                        </span>
                     </td>
-
                 </tr>
-
             `;
 
         });
@@ -4098,22 +2710,14 @@ async function viewLedger(
 
 
         tbody.innerHTML = `
-
             <tr>
-
                 <td
                     colspan="5"
-                    style="
-                        text-align:center;
-                        color:#b32034;
-                        padding:20px;
-                    "
+                    class="text-center py-6 text-red-500"
                 >
                     Error loading data.
                 </td>
-
             </tr>
-
         `;
 
     }
@@ -4127,10 +2731,15 @@ async function viewLedger(
 
 function closeLedgerModal() {
 
-    document.getElementById(
-        "ledgerModal"
-    ).style.display =
-        "none";
+    const modal =
+        document.getElementById(
+            "ledgerModal"
+        );
+
+    if (modal) {
+        modal.classList.remove("show");
+        modal.style.display = "none";
+    }
 
 }
 
@@ -4161,49 +2770,6 @@ function handleLogout(
     }
 
 }
-
-
-/* =========================================================
-   CLOSE MODALS WHEN CLICKING BACKDROP
-========================================================= */
-
-window.addEventListener(
-    "click",
-    function (event) {
-
-        const memberModal =
-            document.getElementById(
-                "memberModal"
-            );
-
-
-        const ledgerModal =
-            document.getElementById(
-                "ledgerModal"
-            );
-
-
-        if (
-            event.target ===
-            memberModal
-        ) {
-
-            closeModal();
-
-        }
-
-
-        if (
-            event.target ===
-            ledgerModal
-        ) {
-
-            closeLedgerModal();
-
-        }
-
-    }
-);
 
 
 /* =========================================================

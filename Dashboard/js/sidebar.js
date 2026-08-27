@@ -5,7 +5,6 @@
 
     const currentPage = window.location.pathname.split("/").pop() || "index.html";
     const userRole = (sessionStorage.getItem("role") || "member").toLowerCase();
-    const userName = sessionStorage.getItem("name") || sessionStorage.getItem("username") || "User";
 
     // Role-based page permission mapping
     const pagePermissions = {
@@ -15,7 +14,8 @@
         "funds.html": ["admin", "treasurer", "finance"],
         "expenses.html": ["admin", "pastor", "treasurer", "finance"],
         "reports.html": ["admin", "pastor", "treasurer", "finance"],
-        "audit.html": ["admin", "pastor", "treasurer", "finance"]
+        "audit.html": ["admin", "pastor", "treasurer", "finance"],
+        "settings.html": ["admin", "pastor", "treasurer", "secretary", "finance"]
     };
 
     // Client-side Page Guard
@@ -31,268 +31,98 @@
     }
 
     const allNavigation = [
-        ["index.html", "Dashboard", ["admin", "pastor", "treasurer", "secretary", "finance"]],
-        ["members.html", "Members", ["admin", "pastor", "treasurer", "secretary", "finance"]],
-        ["collections.html", "Collections", ["admin", "pastor", "treasurer", "secretary", "finance"]],
-        ["funds.html", "Funds", ["admin", "treasurer", "finance"]],
-        ["expenses.html", "Expenses", ["admin", "pastor", "treasurer", "finance"]],
-        ["reports.html", "Reports", ["admin", "pastor", "treasurer", "finance"]],
-        ["audit.html", "Audit Trail", ["admin", "pastor", "treasurer", "finance"]]
+        ["index.html", "Dashboard", "📊", ["admin", "pastor", "treasurer", "secretary", "finance"]],
+        ["members.html", "Members", "👥", ["admin", "pastor", "treasurer", "secretary", "finance"]],
+        ["collections.html", "Collections", "📥", ["admin", "pastor", "treasurer", "secretary", "finance"]],
+        ["funds.html", "Funds", "💰", ["admin", "treasurer", "finance"]],
+        ["expenses.html", "Expenses", "📤", ["admin", "pastor", "treasurer", "finance"]],
+        ["reports.html", "Reports", "📈", ["admin", "pastor", "treasurer", "finance"]],
+        ["audit.html", "Audit Trail", "🛡️", ["admin", "pastor", "treasurer", "finance"]],
+        ["settings.html", "Settings", "⚙️", ["admin", "pastor", "treasurer", "secretary", "finance"]]
     ];
 
-    const allowedNavigation = allNavigation.filter(([page, label, roles]) =>
+    const allowedNavigation = allNavigation.filter(([page, label, icon, roles]) =>
         roles.includes(userRole)
     );
 
-    const formattedRole = userRole.charAt(0).toUpperCase() + userRole.slice(1);
-
     sidebar.innerHTML = `
         <div class="sidebar-brand">
-            <h2>MAUI UMC</h2>
-            <div style="font-size:0.75rem; color:#94a3b8; margin-top:-20px; margin-bottom:20px; font-weight:500; letter-spacing:0.5px;">
-                👤 ${userName} <span style="background:rgba(255,255,255,0.15); padding:2px 6px; border-radius:4px; margin-left:4px; text-transform:capitalize;">${formattedRole}</span>
+            <div class="brand-header-info">
+                <div class="brand-title-wrap">
+                    <span style="font-size: 1.25rem;">⛪</span>
+                    <h2>MAUI UMC</h2>
+                </div>
+                <p class="brand-subtitle">Church Financial System</p>
             </div>
+            <button class="mobile-sidebar-close" id="mobileSidebarClose" type="button" aria-label="Close navigation">✕</button>
         </div>
-        <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="siteNavigation">
-            Menu
-        </button>
         <ul class="sidebar-menu" id="siteNavigation">
-            ${allowedNavigation.map(([page, label]) => `
+            ${allowedNavigation.map(([page, label, icon]) => `
                 <li class="${page === currentPage ? "active" : ""}">
-                    <a href="${page}">${label}</a>
+                    <a href="${page}">
+                        <span class="nav-icon" style="font-size:1.05rem; display:inline-flex; align-items:center; justify-content:center; width:22px;">${icon}</span>
+                        <span class="nav-label">${label}</span>
+                    </a>
                 </li>
             `).join("")}
             <li class="sidebar-logout">
-                <a href="#" id="sidebarLogout">Logout</a>
+                <a href="#" id="sidebarLogout">
+                    <span class="nav-icon" style="font-size:1.05rem; display:inline-flex; align-items:center; justify-content:center; width:22px;">🚪</span>
+                    <span class="nav-label">Logout</span>
+                </a>
             </li>
         </ul>
     `;
 
-    const mobileTrigger = document.createElement("button");
-    mobileTrigger.className = "mobile-sidebar-trigger";
-    mobileTrigger.type = "button";
-    mobileTrigger.textContent = "Menu";
-    mobileTrigger.setAttribute("aria-expanded", "false");
-    mobileTrigger.setAttribute("aria-controls", "siteNavigation");
+    // Ensure only a single mobile trigger and overlay exist
+    let mobileTrigger = document.querySelector(".mobile-sidebar-trigger");
+    if (!mobileTrigger) {
+        mobileTrigger = document.createElement("button");
+        mobileTrigger.className = "mobile-sidebar-trigger";
+        mobileTrigger.type = "button";
+        mobileTrigger.innerHTML = `<span>☰</span> <span>Menu</span>`;
+        mobileTrigger.setAttribute("aria-expanded", "false");
+        mobileTrigger.setAttribute("aria-controls", "siteNavigation");
+        document.body.appendChild(mobileTrigger);
+    }
 
-    const mobileOverlay = document.createElement("div");
-    mobileOverlay.className = "mobile-sidebar-overlay";
-    mobileOverlay.hidden = true;
-    document.body.append(mobileTrigger, mobileOverlay);
+    let mobileOverlay = document.querySelector(".mobile-sidebar-overlay");
+    if (!mobileOverlay) {
+        mobileOverlay = document.createElement("div");
+        mobileOverlay.className = "mobile-sidebar-overlay";
+        mobileOverlay.hidden = true;
+        document.body.appendChild(mobileOverlay);
+    }
 
-    const style = document.createElement("style");
-    style.textContent = `
-        .sidebar {
-            position: relative;
-            flex: 0 0 260px;
-            min-height: 100vh;
-            padding: 30px 20px;
-        }
-        .sidebar-brand h2 { margin-bottom: 30px; }
-        .sidebar-toggle {
-            display: none;
-            width: 100%;
-            margin-bottom: 12px;
-            padding: 10px 12px;
-            border: 1px solid rgba(255, 255, 255, .25);
-            border-radius: 6px;
-            background: transparent;
-            color: white;
-            cursor: pointer;
-            font: inherit;
-            text-align: left;
-        }
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
-        .sidebar-menu li { margin-bottom: 8px; }
-        .sidebar-menu a {
-            transition: transform 0.1s ease, background-color 0.2s ease, color 0.1s ease;
-        }
-
-        .sidebar-menu a:hover {
-            background-color: #1e293b;
-            color: #ffffff;
-            transform: translateX(6px); /* Nudges the link 6 pixels to the right */
-        }
-        .sidebar-menu a:hover,
-        .sidebar-menu .active a {
-            background: rgba(255, 255, 255, .1);
-            color: white;
-        }
-        .sidebar-logout { margin-top: 20px; }
-        .sidebar-logout a {
-            background: rgba(179, 32, 52, .15);
-            border: 1px solid rgba(179, 32, 52, .3);
-            color: #ffe0e0;
-        }
-        .action-btn,
-        .btn-edit,
-        .btn-delete,
-        .btn-dark,
-        .btn-print {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 7px 12px;
-            background: white;
-            color: #1b365d;
-            cursor: pointer;
-            font: inherit;
-            font-size: .8rem;
-            font-weight: 600;
-        }
-        .action-btn:hover,
-        .btn-edit:hover,
-        .btn-delete:hover,
-        .btn-dark:hover,
-        .btn-print:hover {
-            background: #f1f5f9;
-            opacity: 1;
-        }
-        .modal {
-            position: fixed !important;
-            inset: 0 !important;
-            width: 100% !important;
-            height: 100dvh !important;
-            max-height: 100dvh;
-            overflow-y: auto;
-            padding: 80px;
-            box-sizing: border-box;
-            align-items: flex-start !important;
-        }
-        .modal-content {
-            max-height: calc(90dvh - 40px);
-            overflow-y: auto;
-            margin: 0 auto;
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                z-index: 2000;
-                width: min(280px, 86vw);
-                flex-basis: 100%;
-                min-height: 100dvh;
-                height: 100dvh;
-                padding: 16px;
-                overflow-y: auto;
-                transform: translateX(-105%);
-                transition: transform .18s ease-out;
-            }
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            .sidebar-toggle { display: block; }
-            .sidebar-menu { display: block; }
-            .container { display: block; }
-            .content {
-                width: 100%;
-                max-width: 100%;
-                min-width: 0;
-                padding: 16px !important;
-                overflow-x: hidden;
-            }
-            .topbar,
-            .page-header {
-                display: flex !important;
-                flex-direction: column;
-                align-items: stretch !important;
-                gap: 12px;
-                margin-bottom: 20px;
-            }
-            .topbar h1,
-            .page-header h1 {
-                font-size: 1.45rem;
-            }
-            .topbar button,
-            .page-header button,
-            .page-header .btn,
-            .toolbar button {
-                width: 100%;
-            }
-            .cards,
-            .summary-grid,
-            .dashboard-grid,
-            .filter-grid,
-            .form-grid {
-                display: grid !important;
-                grid-template-columns: 1fr !important;
-                gap: 14px;
-            }
-            .card,
-            .summary-card,
-            .table-container,
-            .table-section-container,
-            .filter-card {
-                width: 100%;
-                min-width: 0;
-            }
-            .table-container,
-            .table-section-container {
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch;
-            }
-            table {
-                min-width: 640px;
-            }
-            .modal {
-                padding: 12px !important;
-            }
-            .modal-content {
-                width: 100% !important;
-                max-width: 100% !important;
-                max-height: calc(100dvh - 24px) !important;
-                padding: 16px !important;
-            }
-            .modal-footer,
-            .actions,
-            .action-buttons {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .modal-footer button,
-            .actions button,
-            .action-buttons button {
-                flex: 1 1 auto;
-                min-height: 40px;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-
-    const sanitizeButton = button => {
-        if (button.dataset.textOnlyButton === "true") return;
-
-        const cleanedText = button.textContent
-            .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]/gu, "")
-            .replace(/\s+/g, " ")
-            .trim();
-
-        button.textContent = cleanedText ||
-            button.getAttribute("aria-label") ||
-            button.getAttribute("title") ||
-            "Close";
-        button.dataset.textOnlyButton = "true";
+    const closeMobileSidebar = () => {
+        sidebar.classList.remove("mobile-open");
+        mobileOverlay.hidden = true;
+        mobileTrigger.setAttribute("aria-expanded", "false");
+        document.body.classList.remove("modal-open");
     };
 
-    document.querySelectorAll("button").forEach(sanitizeButton);
+    const openMobileSidebar = () => {
+        sidebar.classList.add("mobile-open");
+        mobileOverlay.hidden = false;
+        mobileTrigger.setAttribute("aria-expanded", "true");
+        document.body.classList.add("modal-open");
+    };
 
-    const buttonObserver = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            mutation.addedNodes.forEach(node => {
-                if (node.nodeType !== Node.ELEMENT_NODE) return;
-                if (node.matches("button")) sanitizeButton(node);
-                node.querySelectorAll("button").forEach(sanitizeButton);
-            });
-        });
+    mobileTrigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sidebar.classList.contains("mobile-open")
+            ? closeMobileSidebar()
+            : openMobileSidebar();
     });
 
-    buttonObserver.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    mobileOverlay.addEventListener("click", closeMobileSidebar);
 
+    const closeBtn = sidebar.querySelector("#mobileSidebarClose");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", closeMobileSidebar);
+    }
+
+    // Modal scroll locking helper
     const updateModalScrollLock = () => {
         const modalIsOpen = Array.from(document.querySelectorAll(".modal"))
             .some(modal => {
@@ -300,7 +130,9 @@
                 return styles.display !== "none" && styles.visibility !== "hidden";
             });
 
-        document.body.classList.toggle("modal-open", modalIsOpen);
+        if (!sidebar.classList.contains("mobile-open")) {
+            document.body.classList.toggle("modal-open", modalIsOpen);
+        }
     };
 
     const modalObserver = new MutationObserver(updateModalScrollLock);
@@ -309,52 +141,32 @@
         attributeFilter: ["class", "style"],
         subtree: true
     });
-    updateModalScrollLock();
 
-    const toggle = sidebar.querySelector(".sidebar-toggle");
-    const menu = sidebar.querySelector(".sidebar-menu");
+    // Handle logout safely
+    const logoutBtn = sidebar.querySelector("#sidebarLogout");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", event => {
+            event.preventDefault();
+            if (typeof handleLogout === "function") {
+                handleLogout(event);
+                return;
+            }
+            if (confirm("Are you sure you want to log out of CFMMS?")) {
+                sessionStorage.clear();
+                localStorage.removeItem("cfmms:dashboard:summary");
+                window.location.replace("login.html");
+            }
+        });
+    }
 
-    const closeMobileSidebar = () => {
-        sidebar.classList.remove("mobile-open");
-        mobileOverlay.hidden = true;
-        mobileTrigger.setAttribute("aria-expanded", "false");
-    };
-
-    const openMobileSidebar = () => {
-        sidebar.classList.add("mobile-open");
-        mobileOverlay.hidden = false;
-        mobileTrigger.setAttribute("aria-expanded", "true");
-    };
-
-    toggle.addEventListener("click", () => {
-        const isOpen = menu.classList.toggle("is-open");
-        toggle.setAttribute("aria-expanded", String(isOpen));
-    });
-
-    mobileTrigger.addEventListener("click", () => {
-        sidebar.classList.contains("mobile-open")
-            ? closeMobileSidebar()
-            : openMobileSidebar();
-    });
-
-    mobileOverlay.addEventListener("click", closeMobileSidebar);
-
-    sidebar.querySelector("#sidebarLogout").addEventListener("click", event => {
-        event.preventDefault();
-        if (typeof handleLogout === "function") {
-            handleLogout(event);
-            return;
-        }
-        sessionStorage.clear();
-        window.location.replace("login.html");
-    });
-
+    // Smooth page transitions on internal nav
     sidebar.querySelectorAll("a[href]").forEach(link => {
         link.addEventListener("click", event => {
             const target = link.getAttribute("href");
 
             if (
                 event.defaultPrevented ||
+                !target ||
                 target === "#" ||
                 link.id === "sidebarLogout" ||
                 event.ctrlKey ||
@@ -371,7 +183,7 @@
 
             window.setTimeout(() => {
                 window.location.href = target;
-            }, 100);
+            }, 80);
         });
     });
 })();
