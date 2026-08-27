@@ -272,30 +272,36 @@ exports.createMember = async (req, res) => {
 
 
         // ==========================================
-        // CREATE LOGIN ACCOUNT
+        // CREATE / SYNC LOGIN ACCOUNT
         // ==========================================
 
-        if (password && password.trim() !== "") {
+        const plainPassword = (password && password.trim() !== "") ? password.trim() : "password123";
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+        const assignedRole = (role && role.trim() !== "") ? role.trim() : "Member";
 
-            const hashedPassword =
-                await bcrypt.hash(password, 10);
+        const existingUser = await pool.query(
+            "SELECT id FROM users WHERE LOWER(username) = LOWER($1)",
+            [finalLoginId]
+        );
 
-
+        if (existingUser.rows.length > 0) {
             await pool.query(
                 `
-                INSERT INTO users
-                (username, password, role, name)
+                UPDATE users
+                SET role = $1, name = $2
+                WHERE LOWER(username) = LOWER($3)
+                `,
+                [assignedRole, finalOfficialName, finalLoginId]
+            );
+        } else {
+            await pool.query(
+                `
+                INSERT INTO users (username, password, role, name)
                 VALUES ($1, $2, $3, $4)
                 `,
-                [
-                    finalLoginId,
-                    hashedPassword,
-                    role || "member",
-                    official_name
-                ]
+                [finalLoginId, hashedPassword, assignedRole, finalOfficialName]
             );
         }
-
 
         res.json({
             message: "Member created successfully",
@@ -479,58 +485,58 @@ exports.updateMember = async (req, res) => {
 
 
         // ==========================================
-        // UPDATE / CREATE LOGIN ACCOUNT
+        // ALWAYS SYNC USER LOGIN ACCOUNT & ROLE
         // ==========================================
 
+        const userCheck = await pool.query(
+            "SELECT id FROM users WHERE LOWER(username) = LOWER($1)",
+            [memberLoginId]
+        );
+
         if (password && password.trim() !== "") {
-
-            const hashedPassword =
-                await bcrypt.hash(password, 10);
-
-
-            const userCheck = await pool.query(
-                "SELECT * FROM users WHERE username = $1",
-                [memberLoginId]
-            );
-
+            const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
             if (userCheck.rows.length > 0) {
-
                 await pool.query(
                     `
                     UPDATE users
-                    SET
-                        password = $1,
-                        role = $2,
-                        name = $3
-                    WHERE username = $4
+                    SET password = $1, role = $2, name = $3
+                    WHERE LOWER(username) = LOWER($4)
                     `,
-                    [
-                        hashedPassword,
-                        formattedRole,
-                        official_name,
-                        memberLoginId
-                    ]
+                    [hashedPassword, formattedRole, finalOfficialName, memberLoginId]
                 );
-
             } else {
-
                 await pool.query(
                     `
-                    INSERT INTO users
-                    (username, password, role, name)
-                    VALUES ($1,$2,$3,$4)
+                    INSERT INTO users (username, password, role, name)
+                    VALUES ($1, $2, $3, $4)
                     `,
-                    [
-                        memberLoginId,
-                        hashedPassword,
-                        formattedRole,
-                        official_name
-                    ]
+                    [memberLoginId, hashedPassword, formattedRole, finalOfficialName]
+                );
+            }
+        } else {
+            // Password omitted: Always update role & official name in users table
+            if (userCheck.rows.length > 0) {
+                await pool.query(
+                    `
+                    UPDATE users
+                    SET role = $1, name = $2
+                    WHERE LOWER(username) = LOWER($3)
+                    `,
+                    [formattedRole, finalOfficialName, memberLoginId]
+                );
+            } else {
+                // If user login account doesn't exist yet, create with default password
+                const defaultPasswordHash = await bcrypt.hash("password123", 10);
+                await pool.query(
+                    `
+                    INSERT INTO users (username, password, role, name)
+                    VALUES ($1, $2, $3, $4)
+                    `,
+                    [memberLoginId, defaultPasswordHash, formattedRole, finalOfficialName]
                 );
             }
         }
-
 
         res.json({
             message: "Updated successfully"

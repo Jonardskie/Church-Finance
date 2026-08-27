@@ -145,42 +145,42 @@
     <div id="sidebarBackdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
 
     <!-- SIDEBAR -->
-    <aside id="memberSidebar" class="no-print fixed inset-y-0 left-0 z-50 w-72 bg-navy text-white flex flex-col justify-between p-5 transition-transform duration-300 -translate-x-full md:translate-x-0 md:static md:z-auto md:min-h-screen shadow-2xl md:shadow-none">
+    <aside id="memberSidebar" class="no-print fixed inset-y-0 left-0 z-50 w-64 lg:w-72 bg-navy text-white flex flex-col justify-between p-5 transition-transform duration-300 -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto shadow-2xl md:shadow-none flex-shrink-0">
 
-        <div>
+        <div class="flex flex-col flex-1">
             <!-- BRAND HEADER -->
-            <div class="flex items-center justify-between pb-5 border-b border-white/10 mb-6">
+            <div class="flex items-center justify-between pb-5 border-b border-white/10 mb-5">
                 <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center p-2 border border-white/15 shadow-inner">
+                    <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center p-2 border border-white/15 shadow-inner flex-shrink-0">
                         <img src="/images/logo.png" alt="Logo" class="w-full h-full object-contain" onerror="this.parentElement.innerHTML='⛪'">
                     </div>
-                    <div>
-                        <h2 class="text-base font-bold text-white tracking-wide">MAUI UMC</h2>
-                        <span class="text-[11px] text-gold font-semibold tracking-wider uppercase">Member Portal</span>
+                    <div class="min-w-0">
+                        <h2 class="text-sm font-bold text-white tracking-wide truncate">MAUI UMC</h2>
+                        <span class="text-[10px] text-gold font-semibold tracking-wider uppercase block truncate">Member Portal</span>
                     </div>
                 </div>
                 <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
             </div>
 
             <!-- MEMBER PERSONAL PROFILE CARD -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 shadow-inner relative overflow-hidden">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-5 shadow-inner relative overflow-hidden">
                 <div class="absolute -top-8 -right-8 w-20 h-20 bg-gold/15 rounded-full blur-xl pointer-events-none"></div>
                 
-                <div class="flex items-center gap-3.5 mb-3">
-                    <div class="w-12 h-12 rounded-xl bg-gold/20 border border-gold/40 flex items-center justify-center text-gold font-bold text-lg shadow">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-11 h-11 rounded-xl bg-gold/20 border border-gold/40 flex items-center justify-center text-gold font-bold text-base shadow flex-shrink-0">
                         <span id="memberAvatarInitial">M</span>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h3 class="text-sm font-bold text-white truncate" id="sidebarMemberName">Loading...</h3>
-                        <div class="text-xs text-slate-300 font-mono flex items-center gap-1 mt-0.5">
+                        <h3 class="text-xs sm:text-sm font-bold text-white truncate" id="sidebarMemberName">Loading...</h3>
+                        <div class="text-[11px] text-slate-300 font-mono flex items-center gap-1 mt-0.5">
                             <span class="text-slate-400 text-[10px]">ID:</span>
                             <span id="sidebarMemberId" class="text-gold font-semibold tracking-wider truncate">—</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px]">
-                    <span class="text-slate-400">Account Status</span>
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] sm:text-[11px]">
+                    <span class="text-slate-400">Status</span>
                     <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-medium border border-emerald-500/30">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         Active Steward
@@ -188,34 +188,59 @@
                 </div>
             </div>
 
-            <!-- NAVIGATION LINKS -->
-            <nav class="space-y-1.5">
-                <a href="#overview" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white/15 text-white shadow-sm transition-all">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <!-- NAVIGATION LINKS (Unified & Cohesive) -->
+            <nav class="space-y-2 flex-1">
+                <!-- 1. Overview -->
+                <a href="#overview" class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-all shadow-sm">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-gold flex-shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
-                    <span>My Stewardship Overview</span>
+                    <span>Overview</span>
                 </a>
 
-                <button onclick="openStatementModal()" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all text-left">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <!-- 2. Online Giving / Donate -->
+                <button onclick="openDonateModal()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 transition-all text-left group shadow-sm">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                     </svg>
-                    <span>Giving Statement</span>
+                    <div class="min-w-0 flex-1">
+                        <span class="font-bold block text-white truncate">Online Giving</span>
+                        <span class="text-[10px] text-emerald-400/90 font-normal block truncate">Scan GCash & Bank QR</span>
+                    </div>
                 </button>
 
-                <a href="#history" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <!-- 3. Official Giving Statement -->
+                <button onclick="openStatementModal()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-slate-200 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all text-left group shadow-sm">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-gold flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <div class="min-w-0 flex-1">
+                        <span class="font-bold block text-white truncate">Giving Statement</span>
+                        <span class="text-[10px] text-slate-400 font-normal block truncate">Official Certificate</span>
+                    </div>
+                </button>
+
+                <!-- 4. History Ledger -->
+                <a href="#history" class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all shadow-sm">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="text-slate-400 flex-shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span>Contribution History</span>
+                </a>
+
+                <!-- 5. Optional Admin Dashboard Link (for Management roles) -->
+                <a id="mgmtDashboardLink" href="index.html" class="hidden flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold bg-gold text-slate-950 shadow-md hover:bg-amber-400 transition-all mt-2">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="flex-shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    <span>Admin Dashboard ➔</span>
                 </a>
             </nav>
         </div>
 
         <!-- SIDEBAR FOOTER & LOGOUT -->
-        <div class="pt-5 border-t border-white/10 space-y-3">
-            <button onclick="handleMemberLogout()" class="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/30 transition-all shadow-sm">
+        <div class="pt-4 border-t border-white/10 space-y-2 mt-auto flex-shrink-0">
+            <button onclick="handleMemberLogout()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/30 transition-all shadow-sm active:scale-[0.98]">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
@@ -231,7 +256,28 @@
     <!-- MAIN CONTENT AREA -->
     <main class="no-print flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
 
-        <!-- MODERN WELCOME HERO BANNER -->
+        <!-- DESKTOP TOP HEADER STRIP -->
+        <div class="hidden md:flex items-center justify-between pb-4 mb-6 border-b border-slate-200/80">
+            <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                <span class="text-navy font-bold">CFMMS Portal</span>
+                <span>/</span>
+                <span>Member Stewardship</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="bg-white border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span id="topbarMemberName" class="font-semibold text-slate-800">Member</span>
+                    <span class="text-slate-400 font-mono text-[11px]" id="topbarMemberId">—</span>
+                </div>
+                <button onclick="handleMemberLogout()" class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 hover:border-red-200 text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- MODERN WELCOME HERO BANNER (Clean & Uncluttered) -->
         <section id="overview" class="no-print bg-gradient-to-r from-navy via-navy-light to-navy-dark rounded-2xl sm:rounded-3xl p-6 sm:p-8 mb-6 sm:mb-8 text-white shadow-xl relative overflow-hidden">
             <div class="absolute -top-20 -right-20 w-64 h-64 bg-gold/15 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute bottom-0 right-10 w-40 h-40 bg-blue-400/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -244,18 +290,9 @@
                     <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">
                         Welcome, <span id="bannerMemberName" class="text-white">Church Member</span>
                     </h2>
-                    <p class="text-xs sm:text-sm text-slate-200 mt-2 max-w-xl leading-relaxed font-normal">
+                    <p class="text-xs sm:text-sm text-slate-200 mt-2 max-w-2xl leading-relaxed font-normal">
                         "Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver." <span class="italic text-gold font-medium">— 2 Cor 9:7</span>
                     </p>
-                </div>
-
-                <div class="flex-shrink-0">
-                    <button onclick="openStatementModal()" class="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-gold hover:bg-amber-400 text-slate-950 font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all duration-150 flex items-center justify-center gap-2.5 active:scale-[0.98]">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        <span>Official Giving Statement</span>
-                    </button>
                 </div>
             </div>
         </section>
@@ -445,6 +482,14 @@
         <div class="modal-content bg-white w-full max-w-4xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden m-auto relative z-10 p-6 sm:p-10 max-h-[92vh] flex flex-col"
              onclick="event.stopPropagation()">
 
+            <!-- TOP RIGHT CLOSE BUTTON (Hidden in Print) -->
+            <button type="button"
+                    onclick="closeStatementModal()"
+                    class="no-print absolute top-4 right-4 sm:top-6 sm:right-6 text-slate-400 hover:text-slate-700 text-2xl font-light leading-none p-2 rounded-xl hover:bg-slate-100 transition-colors z-20"
+                    aria-label="Close Statement">
+                &times;
+            </button>
+
             <!-- PRINTABLE STATEMENT CANVAS -->
             <div class="print-statement-box overflow-y-auto flex-1 pr-1" id="statementPrintCanvas">
                 
@@ -550,6 +595,147 @@
     </div>
 
     <!-- =========================================================================
+         ONLINE GIVING / DONATION MODAL (GCash & Bank QR)
+         ========================================================================= -->
+    <div class="modal fixed inset-0 bg-slate-900/65 backdrop-blur-sm justify-center items-center z-[2600] p-3 sm:p-6 overflow-y-auto no-print"
+         id="donateModal"
+         onclick="if (event.target === this) closeDonateModal()">
+        
+        <div class="modal-content bg-white w-full max-w-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden m-auto relative z-10 p-6 sm:p-8 flex flex-col"
+             onclick="event.stopPropagation()">
+
+            <!-- HEADER -->
+            <div class="flex items-start justify-between pb-4 border-b border-slate-100 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner border border-emerald-100 flex-shrink-0">
+                        💖
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-navy">Online Giving & Stewardship</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Support God's work via GCash, QR Ph, or Bank Transfer</p>
+                    </div>
+                </div>
+                <button type="button"
+                        onclick="closeDonateModal()"
+                        class="text-slate-400 hover:text-slate-700 text-2xl font-light leading-none p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                    &times;
+                </button>
+            </div>
+
+            <!-- PAYMENT CHANNEL TABS -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl mb-6">
+                <button type="button"
+                        id="tabBtnGcash"
+                        onclick="switchDonateTab('gcash')"
+                        class="py-2 px-3 rounded-lg text-xs font-bold transition-all bg-white text-navy shadow-sm flex items-center justify-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <span>GCash E-Wallet</span>
+                </button>
+                <button type="button"
+                        id="tabBtnBank"
+                        onclick="switchDonateTab('bank')"
+                        class="py-2 px-3 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-navy flex items-center justify-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span>Bank Transfer (QR Ph)</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: GCASH QR VIEW -->
+            <div id="donateTabGcash" class="space-y-5">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-5 shadow-md relative overflow-hidden flex flex-col sm:flex-row items-center gap-5">
+                    <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <!-- GCASH QR CODE -->
+                    <div class="bg-white p-2.5 rounded-xl shadow-lg flex-shrink-0 text-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=GCASH_MUMC_09178342911"
+                             alt="GCash QR Code"
+                             class="w-36 h-36 sm:w-40 sm:h-40 object-contain mx-auto rounded-lg"
+                             onerror="this.src='/images/logo.png'">
+                        <span class="text-[10px] font-bold text-blue-600 block mt-1 uppercase tracking-wider">Scan to Pay</span>
+                    </div>
+
+                    <!-- GCASH ACCOUNT DETAILS -->
+                    <div class="min-w-0 flex-1 text-center sm:text-left space-y-2">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-blue-100 text-[10px] font-semibold uppercase tracking-wider">Official GCash Account</span>
+                        <h4 class="text-sm sm:text-base font-extrabold tracking-wide uppercase">Maui United Methodist Church</h4>
+                        <div class="bg-black/20 rounded-xl p-3 border border-white/10">
+                            <div class="text-[10px] text-blue-200 uppercase font-semibold">Account Mobile Number</div>
+                            <div class="text-base sm:text-lg font-mono font-bold tracking-wider text-white" id="gcashNumberText">0917-834-2911</div>
+                        </div>
+                        <button type="button"
+                                onclick="copyDonateDetail('09178342911', 'copyGcashBtn')"
+                                id="copyGcashBtn"
+                                class="w-full py-2 px-3 rounded-lg bg-white hover:bg-blue-50 text-blue-800 text-xs font-bold shadow transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                            <span>Copy GCash Number</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: BANK TRANSFER / QR PH VIEW -->
+            <div id="donateTabBank" class="hidden space-y-5">
+                <div class="bg-gradient-to-br from-emerald-700 to-teal-900 text-white rounded-2xl p-5 shadow-md relative overflow-hidden flex flex-col sm:flex-row items-center gap-5">
+                    <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <!-- BANK QR PH CODE -->
+                    <div class="bg-white p-2.5 rounded-xl shadow-lg flex-shrink-0 text-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=QRPH_LANDBANK_MUMC_1842100288"
+                             alt="Bank QR Ph Code"
+                             class="w-36 h-36 sm:w-40 sm:h-40 object-contain mx-auto rounded-lg"
+                             onerror="this.src='/images/logo.png'">
+                        <span class="text-[10px] font-bold text-emerald-700 block mt-1 uppercase tracking-wider">QR Ph Standard</span>
+                    </div>
+
+                    <!-- BANK ACCOUNT DETAILS -->
+                    <div class="min-w-0 flex-1 text-center sm:text-left space-y-2">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-emerald-100 text-[10px] font-semibold uppercase tracking-wider">Bank Deposit / Transfer</span>
+                        <div class="text-xs font-bold text-emerald-200">Land Bank of the Philippines</div>
+                        <h4 class="text-sm font-extrabold tracking-wide uppercase">Maui United Methodist Church Inc.</h4>
+                        <div class="bg-black/20 rounded-xl p-3 border border-white/10">
+                            <div class="text-[10px] text-emerald-200 uppercase font-semibold">Account Number</div>
+                            <div class="text-base sm:text-lg font-mono font-bold tracking-wider text-white" id="bankNumberText">1842-1002-88</div>
+                        </div>
+                        <button type="button"
+                                onclick="copyDonateDetail('1842100288', 'copyBankBtn')"
+                                id="copyBankBtn"
+                                class="w-full py-2 px-3 rounded-lg bg-white hover:bg-emerald-50 text-emerald-900 text-xs font-bold shadow transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                            <span>Copy Bank Account</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEWARDSHIP NOTICE & MEMBER ID REMINDER -->
+            <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-4 mt-5">
+                <div class="flex items-start gap-3">
+                    <span class="text-amber-600 text-lg flex-shrink-0">📌</span>
+                    <div class="text-xs text-amber-900 space-y-1">
+                        <strong class="font-bold block">Important Note for Accurate Ledger Crediting:</strong>
+                        <p class="leading-relaxed">
+                            When sending through your banking app or GCash, please include your <strong>Member ID: <span class="font-mono font-bold text-amber-950 bg-amber-200/60 px-1.5 py-0.5 rounded" id="donateMemberIdPlaceholder">—</span></strong> in the message/notes field.
+                        </p>
+                        <p class="text-[11px] text-amber-700">
+                            Deposits are verified by the Church Treasurer and will reflect in your online history ledger within 24–48 hours.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL ACTIONS -->
+            <div class="flex justify-end pt-5 border-t border-slate-100 mt-5">
+                <button type="button"
+                        onclick="closeDonateModal()"
+                        class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold shadow transition-all">
+                    Done
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- =========================================================================
          MEMBER PORTAL JAVASCRIPT LOGIC
          ========================================================================= -->
     <script>
@@ -622,12 +808,23 @@
     // 2. LOAD SUMMARY & BREAKDOWNS
     async function loadPortalData() {
         try {
-            // Set Sidebar & Banner details
+            // Set Sidebar, Topbar & Banner details
             document.getElementById("sidebarMemberName").textContent = storedName;
             document.getElementById("sidebarMemberId").textContent = username;
+            if (document.getElementById("topbarMemberName")) document.getElementById("topbarMemberName").textContent = storedName;
+            if (document.getElementById("topbarMemberId")) document.getElementById("topbarMemberId").textContent = username;
             document.getElementById("memberAvatarInitial").textContent = storedName.charAt(0).toUpperCase() || "M";
             document.getElementById("bannerMemberName").textContent = storedName;
             document.getElementById("kpiYearLabel").textContent = `(${new Date().getFullYear()})`;
+
+            // Check if user has management permissions (Treasurer, Pastor, Admin, Secretary)
+            const roleLower = String(userRole).toLowerCase();
+            const mgmtRoles = ["admin", "pastor", "treasurer", "secretary", "finance"];
+            const mgmtBtn = document.getElementById("mgmtDashboardLink");
+            if (mgmtBtn && mgmtRoles.includes(roleLower)) {
+                mgmtBtn.classList.remove("hidden");
+                mgmtBtn.classList.add("flex");
+            }
 
             // Parallel fetch for summary and contributions
             const [summaryRes, ledgerRes] = await Promise.all([
@@ -854,6 +1051,78 @@
         if (modal) {
             modal.classList.remove("show");
             modal.style.display = "none";
+        }
+    }
+
+    // 10. ONLINE GIVING / DONATE MODAL
+    function openDonateModal() {
+        const modal = document.getElementById("donateModal");
+        const placeholder = document.getElementById("donateMemberIdPlaceholder");
+        if (placeholder) {
+            placeholder.textContent = username || "YOUR-MEMBER-ID";
+        }
+        if (modal) {
+            modal.classList.add("show");
+            modal.style.display = "flex";
+        }
+    }
+
+    function closeDonateModal() {
+        const modal = document.getElementById("donateModal");
+        if (modal) {
+            modal.classList.remove("show");
+            modal.style.display = "none";
+        }
+    }
+
+    function switchDonateTab(tab) {
+        const gcashTab = document.getElementById("donateTabGcash");
+        const bankTab = document.getElementById("donateTabBank");
+        const gcashBtn = document.getElementById("tabBtnGcash");
+        const bankBtn = document.getElementById("tabBtnBank");
+
+        if (tab === "gcash") {
+            if (gcashTab) gcashTab.classList.remove("hidden");
+            if (bankTab) bankTab.classList.add("hidden");
+            if (gcashBtn) {
+                gcashBtn.className = "py-2 px-3 rounded-lg text-xs font-bold transition-all bg-white text-navy shadow-sm flex items-center justify-center gap-2";
+            }
+            if (bankBtn) {
+                bankBtn.className = "py-2 px-3 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-navy flex items-center justify-center gap-2";
+            }
+        } else {
+            if (gcashTab) gcashTab.classList.add("hidden");
+            if (bankTab) bankTab.classList.remove("hidden");
+            if (bankBtn) {
+                bankBtn.className = "py-2 px-3 rounded-lg text-xs font-bold transition-all bg-white text-navy shadow-sm flex items-center justify-center gap-2";
+            }
+            if (gcashBtn) {
+                gcashBtn.className = "py-2 px-3 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-navy flex items-center justify-center gap-2";
+            }
+        }
+    }
+
+    function copyDonateDetail(text, btnId) {
+        if (!navigator.clipboard) {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+        } else {
+            navigator.clipboard.writeText(text);
+        }
+
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<span>✅ Copied to Clipboard!</span>`;
+            btn.classList.add("bg-emerald-100", "text-emerald-800");
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove("bg-emerald-100", "text-emerald-800");
+            }, 2000);
         }
     }
 
