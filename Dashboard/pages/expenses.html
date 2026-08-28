@@ -195,6 +195,8 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination Controls -->
+            <div id="expensePagination" class="flex justify-between items-center px-4 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl gap-2"></div>
         </section>
 
     </main>
@@ -436,7 +438,8 @@ const token =
     sessionStorage.getItem("token");
 
 let allExpenses = [];
-
+let currentPage = 1;
+const PAGE_SIZE = 10;
 let currentExpense = null;
 
 
@@ -940,25 +943,17 @@ function calculateSummary(expenses) {
 
 }
 
-
 /* =====================================================
 RENDER
 ===================================================== */
 
 function renderExpenses(expenses) {
+    const body = document.getElementById("expenseTableBody");
 
-    const body =
-        document.getElementById(
-            "expenseTableBody"
-        );
-
-    document.getElementById(
-        "recordCount"
-    ).textContent =
+    document.getElementById("recordCount").textContent =
         `${expenses.length} record${expenses.length === 1 ? "" : "s"}`;
 
     if (!expenses.length) {
-
         body.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center py-8 text-slate-400">
@@ -966,14 +961,20 @@ function renderExpenses(expenses) {
                 </td>
             </tr>
         `;
-
+        const pagination = document.getElementById("expensePagination");
+        if (pagination) {
+            pagination.style.display = "none";
+            pagination.innerHTML = "";
+        }
         return;
-
     }
 
-    body.innerHTML =
-        expenses.map(expense => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const paginatedExpenses = expenses.slice(start, end);
 
+    body.innerHTML =
+        paginatedExpenses.map(expense => {
             const originalIndex =
                 allExpenses.findIndex(
                     e =>
@@ -982,118 +983,113 @@ function renderExpenses(expenses) {
                 );
 
             return `
-
                 <tr class="hover:bg-slate-50 transition-colors">
-
                     <td class="text-slate-500 whitespace-nowrap">
-                        ${escapeHtml(
-                            formatDate(expense.date)
-                        )}
+                        ${escapeHtml(formatDate(expense.date))}
                     </td>
-
                     <td class="voucher">
-                        ${escapeHtml(
-                            expense.voucher_number
-                        )}
+                        ${escapeHtml(expense.voucher_number)}
                     </td>
-
                     <td class="text-slate-700">
-                        ${escapeHtml(
-                            expense.category || "—"
-                        )}
+                        ${escapeHtml(expense.category || "—")}
                     </td>
-
                     <td class="font-medium text-slate-800">
-                        ${escapeHtml(
-                            expense.payee || "—"
-                        )}
+                        ${escapeHtml(expense.payee || "—")}
                     </td>
-
                     <td class="amount">
-                        ${escapeHtml(
-                            formatAmount(expense.amount)
-                        )}
+                        ${escapeHtml(formatAmount(expense.amount))}
                     </td>
-
                     <td>
-                        ${statusBadge(
-                            expense.status
-                        )}
+                        ${statusBadge(expense.status)}
                     </td>
-
                     <td>
-
                         <div class="actions">
-
                             <button
                                 class="action-btn"
-                                onclick="openDetailsModal(
-                                    allExpenses[${originalIndex}]
-                                )"
+                                onclick="openDetailsModal(allExpenses[${originalIndex}])"
                             >
                                 View
                             </button>
-
                             ${
-                                String(expense.status).toLowerCase() ===
-                                "pending"
+                                String(expense.status).toLowerCase() === "pending"
                                     ? `
                                         <button
                                             class="action-btn"
-                                            onclick="editExpense(
-                                                allExpenses[${originalIndex}]
-                                            )"
+                                            onclick="editExpense(allExpenses[${originalIndex}])"
                                         >
                                             Edit
                                         </button>
-
                                         <button
                                             class="action-btn"
-                                            onclick="approveExpense(
-                                                ${expense.expense_id}
-                                            )"
+                                            onclick="approveExpense(${expense.expense_id})"
                                         >
                                             Approve
                                         </button>
                                       `
                                     : ""
                             }
-
                             ${
-                                String(expense.status).toLowerCase() !==
-                                "voided"
+                                String(expense.status).toLowerCase() !== "voided"
                                     ? `
                                         <button
                                             class="action-btn"
-                                            onclick="voidExpense(
-                                                ${expense.expense_id}
-                                            )"
+                                            onclick="voidExpense(${expense.expense_id})"
                                         >
                                             Void
                                         </button>
                                       `
                                     : ""
                             }
-
                             <button
                                 class="action-btn"
-                                onclick="openVoucherModal(
-                                    allExpenses[${originalIndex}]
-                                )"
+                                onclick="openVoucherModal(allExpenses[${originalIndex}])"
                             >
                                 Voucher
                             </button>
-
                         </div>
-
                     </td>
-
                 </tr>
-
             `;
-
         }).join("");
 
+    window.currentFilteredExpenses = expenses;
+    renderPagination(expenses);
+}
+
+function changePage(nextPage) {
+    const expenses = window.currentFilteredExpenses || [];
+    const totalPages = Math.max(1, Math.ceil(expenses.length / PAGE_SIZE));
+
+    if (nextPage < 1) nextPage = 1;
+    if (nextPage > totalPages) nextPage = totalPages;
+
+    currentPage = nextPage;
+    renderExpenses(expenses);
+}
+
+function renderPagination(expenses) {
+    const pagination = document.getElementById("expensePagination");
+    if (!pagination) return;
+
+    const totalPages = Math.max(1, Math.ceil(expenses.length / PAGE_SIZE));
+
+    if (expenses.length <= PAGE_SIZE) {
+        pagination.style.display = "none";
+        pagination.innerHTML = "";
+        return;
+    }
+
+    const prevButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(${currentPage - 1})">Prev</button>`;
+    const nextButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage >= totalPages ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage >= totalPages ? "disabled" : ""} onclick="changePage(${currentPage + 1})">Next</button>`;
+
+    pagination.innerHTML = `
+        <span class="text-slate-500 text-xs">Page ${currentPage} of ${totalPages} (Total ${expenses.length} records)</span>
+        <div class="flex gap-2">
+            ${prevButton}
+            ${nextButton}
+        </div>
+    `;
+    pagination.style.display = "flex";
 }
 
 
@@ -1174,6 +1170,7 @@ function applyFilters() {
 
         });
 
+    currentPage = 1;
     renderExpenses(filtered);
 
 }
@@ -1197,6 +1194,7 @@ function resetFilters() {
         "filterTo"
     ).value = "";
 
+    currentPage = 1;
     renderExpenses(allExpenses);
 
 }

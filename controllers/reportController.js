@@ -49,7 +49,7 @@ function isValidDate(value) {
 // BUILD WHERE
 // ============================================================
 
-function buildWhere(from, to, status) {
+function buildWhere(from, to, status, memberId) {
 
     const values = [
         from,
@@ -84,6 +84,18 @@ function buildWhere(from, to, status) {
         `;
     }
 
+    if (
+        memberId &&
+        memberId !== "all"
+    ) {
+
+        values.push(memberId);
+
+        where += `
+            AND c.member_id = $${values.length}
+        `;
+    }
+
 
     return {
         where,
@@ -97,6 +109,8 @@ function buildWhere(from, to, status) {
 // ============================================================
 
 function validateRequest(req, res) {
+
+    console.log("🔍 [validateRequest] req.query:", req.query);
 
     const { from, to } =
         getDateRange(req);
@@ -130,11 +144,15 @@ function validateRequest(req, res) {
     const status =
         req.query.status || "all";
 
+    const memberId =
+        req.query.memberId || "all";
+
 
     return {
         from,
         to,
-        status
+        status,
+        memberId
     };
 }
 
@@ -161,7 +179,8 @@ exports.collectionSummary = async (req, res) => {
         const {
             from,
             to,
-            status
+            status,
+            memberId
         } = filters;
 
 
@@ -171,7 +190,8 @@ exports.collectionSummary = async (req, res) => {
         } = buildWhere(
             from,
             to,
-            status
+            status,
+            memberId
         );
 
 
@@ -377,7 +397,8 @@ exports.collectionDetail = async (req, res) => {
         const {
             from,
             to,
-            status
+            status,
+            memberId
         } = filters;
 
 
@@ -387,7 +408,8 @@ exports.collectionDetail = async (req, res) => {
         } = buildWhere(
             from,
             to,
-            status
+            status,
+            memberId
         );
 
 
@@ -620,7 +642,8 @@ exports.collectionMethodSummary = async (
         const {
             from,
             to,
-            status
+            status,
+            memberId
         } = filters;
 
 
@@ -630,7 +653,8 @@ exports.collectionMethodSummary = async (
         } = buildWhere(
             from,
             to,
-            status
+            status,
+            memberId
         );
 
 
@@ -754,7 +778,8 @@ exports.exportExcel = async (
         const {
             from,
             to,
-            status
+            status,
+            memberId
         } = filters;
 
 
@@ -764,7 +789,8 @@ exports.exportExcel = async (
         } = buildWhere(
             from,
             to,
-            status
+            status,
+            memberId
         );
 
 

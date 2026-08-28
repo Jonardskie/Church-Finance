@@ -7,6 +7,37 @@ const pool = require("../config/db");
 // HELPERS
 // ============================================================
 
+function clean(value) {
+    if (value === undefined || value === null) return null;
+    const text = String(value).trim();
+    return text === "" ? null : text;
+}
+
+function getCurrentUser(req) {
+    return {
+        username:
+            clean(req.user?.username) ||
+            clean(req.user?.name) ||
+            clean(req.user?.email) ||
+            "Admin",
+        role:
+            clean(req.user?.role) ||
+            ""
+    };
+}
+
+function auditDetails(action, collection, extra = "") {
+    return [
+        action,
+        `Receipt: ${collection.receipt_no || "N/A"}`,
+        `Donor: ${collection.member_name || "ANONYMOUS"}`,
+        `Amount: ${collection.amount || 0}`,
+        extra
+    ]
+        .filter(Boolean)
+        .join(" | ");
+}
+
 function normalizeCalculationType(type) {
     const value = String(type || "NONE").toUpperCase();
 
@@ -289,6 +320,23 @@ exports.createCollection = async (req, res) => {
             ]
         );
 
+        const { username } = getCurrentUser(req);
+
+        await client.query(
+            `
+            INSERT INTO audit_logs
+                (user_name, action_type, table_name, details)
+            VALUES
+                ($1, $2, $3, $4)
+            `,
+            [
+                username,
+                "CREATE_COLLECTION",
+                "collections",
+                auditDetails("Recorded collection", finalResult.rows[0])
+            ]
+        );
+
         await client.query("COMMIT");
 
         res.status(201).json({
@@ -337,6 +385,23 @@ exports.verifyCollection = async (req, res) => {
             });
         }
 
+        const { username } = getCurrentUser(req);
+
+        await pool.query(
+            `
+            INSERT INTO audit_logs
+                (user_name, action_type, table_name, details)
+            VALUES
+                ($1, $2, $3, $4)
+            `,
+            [
+                username,
+                "VERIFY_COLLECTION",
+                "collections",
+                auditDetails("Verified collection", result.rows[0])
+            ]
+        );
+
         res.json({
             message: "Collection verified successfully.",
             data: result.rows[0]
@@ -375,6 +440,23 @@ exports.deleteCollection = async (req, res) => {
                 error: "Collection not found."
             });
         }
+
+        const { username } = getCurrentUser(req);
+
+        await pool.query(
+            `
+            INSERT INTO audit_logs
+                (user_name, action_type, table_name, details)
+            VALUES
+                ($1, $2, $3, $4)
+            `,
+            [
+                username,
+                "DELETE_COLLECTION",
+                "collections",
+                auditDetails("Deleted collection", result.rows[0])
+            ]
+        );
 
         res.json({
             message: "Collection deleted successfully."
@@ -546,6 +628,22 @@ exports.updateCalculationConfig = async (req, res) => {
                 Number(apportionment_rate) || 0,
 
                 active !== false
+            ]
+        );
+
+        const { username } = getCurrentUser(req);
+        await pool.query(
+            `
+            INSERT INTO audit_logs
+                (user_name, action_type, table_name, details)
+            VALUES
+                ($1, $2, $3, $4)
+            `,
+            [
+                username,
+                "UPDATE_CALCULATION_CONFIG",
+                "collection_calculations",
+                `Saved calculation rule for ${result.rows[0].collection_type_name} | PS: ${result.rows[0].ps_type} (${result.rows[0].ps_rate}) | Apportionment: ${result.rows[0].apportionment_type} (${result.rows[0].apportionment_rate})`
             ]
         );
 

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/sidebar.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -97,18 +98,31 @@
                 </select>
             </div>
 
+            <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Member</label>
+                <select id="memberFilter"
+                        class="h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 min-w-[180px]">
+                    <option value="all">All Members</option>
+                </select>
+            </div>
+
             <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:ml-auto">
-                <button class="h-10 px-4 bg-navy hover:bg-navy-dark text-white rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
+                <button class="h-10 px-3.5 bg-navy hover:bg-navy-dark text-white rounded-lg text-xs font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
                         onclick="loadReports()">
                     Generate Report
                 </button>
 
-                <button class="h-10 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
+                <button class="h-10 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
                         onclick="exportExcel()">
                     Export Excel
                 </button>
 
-                <button class="h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
+                <button class="h-10 px-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
+                        onclick="exportPPTX()">
+                    Export PPTX
+                </button>
+
+                <button class="h-10 px-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition-all shadow-sm flex items-center justify-center font-sans"
                         onclick="window.print()">
                     Print
                 </button>

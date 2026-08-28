@@ -167,6 +167,8 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination Controls -->
+            <div id="auditPagination" class="flex justify-between items-center px-4 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl gap-2"></div>
         </section>
 
     </main>
@@ -250,6 +252,8 @@
     // ========================================================
 
     let allAuditLogs = [];
+    let currentPage = 1;
+    const PAGE_SIZE = 10;
 
 
     async function fetchAuditLogs() {
@@ -525,20 +529,12 @@
     // RENDER
     // ========================================================
 function renderAuditLogs(logs) {
+    const body = document.getElementById("auditTableBody");
+    const count = document.getElementById("recordCount");
 
-    const body =
-        document.getElementById("auditTableBody");
-
-    const count =
-        document.getElementById("recordCount");
-
-
-    count.textContent =
-        `${logs.length} record${logs.length === 1 ? "" : "s"}`;
-
+    count.textContent = `${logs.length} record${logs.length === 1 ? "" : "s"}`;
 
     if (!logs.length) {
-
         body.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-8 text-slate-400">
@@ -546,67 +542,91 @@ function renderAuditLogs(logs) {
                 </td>
             </tr>
         `;
-
+        const pagination = document.getElementById("auditPagination");
+        if (pagination) {
+            pagination.style.display = "none";
+            pagination.innerHTML = "";
+        }
         return;
     }
 
+    // Client-side pagination slice
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const paginatedLogs = logs.slice(start, end);
 
-    body.innerHTML = logs.map((log, index) => `
-
+    body.innerHTML = paginatedLogs.map((log, index) => {
+        const absoluteIndex = start + index;
+        return `
         <tr class="hover:bg-slate-50 transition-colors">
-
             <td class="text-slate-500 whitespace-nowrap">
-                ${escapeHtml(
-                    formatDateTime(log.created_at)
-                )}
+                ${escapeHtml(formatDateTime(log.created_at))}
             </td>
-
             <td class="font-medium text-slate-800">
-                ${escapeHtml(
-                    log.user_name || "System"
-                )}
+                ${escapeHtml(log.user_name || "System")}
             </td>
-
             <td>
                 <span class="action-pill">
-                    ${escapeHtml(
-                        log.action_type || "—"
-                    )}
+                    ${escapeHtml(log.action_type || "—")}
                 </span>
             </td>
-
             <td class="text-slate-600">
-                ${escapeHtml(
-                    log.table_name || "—"
-                )}
+                ${escapeHtml(log.table_name || "—")}
             </td>
-
             <td class="text-slate-600 max-w-xs truncate">
-                ${escapeHtml(
-                    log.details || "—"
-                )}
+                ${escapeHtml(log.details || "—")}
             </td>
-
             <td>
-
                 <button
                     class="view-btn"
                     type="button"
-                    onclick="openDetailsModal(${index})"
+                    onclick="openDetailsModal(${absoluteIndex})"
                 >
                     View
                 </button>
-
             </td>
-
         </tr>
+    `;}).join("");
 
-    `).join("");
-
-
-    // Store the currently displayed records
+    // Store the currently displayed FULL filtered records
     window.currentAuditLogs = logs;
+    renderPagination(logs);
+}
 
+function changePage(nextPage) {
+    const logs = window.currentAuditLogs || [];
+    const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
+
+    if (nextPage < 1) nextPage = 1;
+    if (nextPage > totalPages) nextPage = totalPages;
+
+    currentPage = nextPage;
+    renderAuditLogs(logs);
+}
+
+function renderPagination(logs) {
+    const pagination = document.getElementById("auditPagination");
+    if (!pagination) return;
+
+    const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
+
+    if (logs.length <= PAGE_SIZE) {
+        pagination.style.display = "none";
+        pagination.innerHTML = "";
+        return;
+    }
+
+    const prevButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(${currentPage - 1})">Prev</button>`;
+    const nextButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage >= totalPages ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage >= totalPages ? "disabled" : ""} onclick="changePage(${currentPage + 1})">Next</button>`;
+
+    pagination.innerHTML = `
+        <span class="text-slate-500 text-xs">Page ${currentPage} of ${totalPages} (Total ${logs.length} entries)</span>
+        <div class="flex gap-2">
+            ${prevButton}
+            ${nextButton}
+        </div>
+    `;
+    pagination.style.display = "flex";
 }
 function openDetailsModal(index) {
 
@@ -766,6 +786,7 @@ function openDetailsModal(index) {
             );
 
 
+        currentPage = 1;
         renderAuditLogs(
             filtered
         );
@@ -799,6 +820,7 @@ function openDetailsModal(index) {
         ).value = "";
 
 
+        currentPage = 1;
         renderAuditLogs(
             allAuditLogs
         );

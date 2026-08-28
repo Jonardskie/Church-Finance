@@ -169,6 +169,8 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination Controls -->
+            <div id="collectionPagination" class="flex justify-between items-center px-4 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl gap-2"></div>
         </section>
     </main>
 </div>
@@ -292,6 +294,8 @@ function handleLogout(event) {
    ========================================================= */
 
 let collectionsData = [];
+let currentPage = 1;
+const PAGE_SIZE = 10;
 let memberOptions = [];
 let collectionTypeOptions = [];
 
@@ -739,11 +743,9 @@ function renderCollectionsTable() {
                     item.status || ""
                 ).toLowerCase();
 
-
             const matchesStatus =
                 selectedStatus === "all status" ||
                 itemStatus === selectedStatus;
-
 
             return (
                 matchesSearch &&
@@ -751,12 +753,10 @@ function renderCollectionsTable() {
             );
         });
 
-
+    window.currentFilteredCollections = filteredData;
     tableBody.innerHTML = "";
 
-
     if (filteredData.length === 0) {
-
         tableBody.innerHTML = `
             <tr>
                 <td
@@ -771,15 +771,20 @@ function renderCollectionsTable() {
                 </td>
             </tr>
         `;
-
-
+        const pagination = document.getElementById("collectionPagination");
+        if (pagination) {
+            pagination.style.display = "none";
+            pagination.innerHTML = "";
+        }
         updateCollectionMetrics();
-
         return;
     }
 
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const paginatedData = filteredData.slice(start, end);
 
-    filteredData.forEach(item => {
+    paginatedData.forEach(item => {
 
         const cleanDate =
             item.date
@@ -880,8 +885,44 @@ function renderCollectionsTable() {
         `;
     });
 
-
+    renderPagination(filteredData);
     updateCollectionMetrics();
+}
+
+function changePage(nextPage) {
+    const data = window.currentFilteredCollections || [];
+    const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+
+    if (nextPage < 1) nextPage = 1;
+    if (nextPage > totalPages) nextPage = totalPages;
+
+    currentPage = nextPage;
+    renderCollectionsTable();
+}
+
+function renderPagination(filteredData) {
+    const pagination = document.getElementById("collectionPagination");
+    if (!pagination) return;
+
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+
+    if (filteredData.length <= PAGE_SIZE) {
+        pagination.style.display = "none";
+        pagination.innerHTML = "";
+        return;
+    }
+
+    const prevButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(${currentPage - 1})">Prev</button>`;
+    const nextButton = `<button type="button" class="px-3 py-1 bg-navy hover:bg-navy-dark text-white rounded text-xs font-semibold ${currentPage >= totalPages ? "opacity-50 cursor-not-allowed" : ""}" ${currentPage >= totalPages ? "disabled" : ""} onclick="changePage(${currentPage + 1})">Next</button>`;
+
+    pagination.innerHTML = `
+        <span class="text-slate-500 text-xs">Page ${currentPage} of ${totalPages} (Total ${filteredData.length} records)</span>
+        <div class="flex gap-2">
+            ${prevButton}
+            ${nextButton}
+        </div>
+    `;
+    pagination.style.display = "flex";
 }
 
 
@@ -897,7 +938,10 @@ if (searchInput) {
 
     searchInput.addEventListener(
         "input",
-        renderCollectionsTable
+        () => {
+            currentPage = 1;
+            renderCollectionsTable();
+        }
     );
 }
 
@@ -914,7 +958,10 @@ if (statusFilter) {
 
     statusFilter.addEventListener(
         "change",
-        renderCollectionsTable
+        () => {
+            currentPage = 1;
+            renderCollectionsTable();
+        }
     );
 }
 

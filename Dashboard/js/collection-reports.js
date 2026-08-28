@@ -14,6 +14,9 @@ if (!token) {
     window.location.href = "login.html";
 }
 
+let currentDetailData = null;
+let currentSummaryData = null;
+
 
 // ============================================================
 // API HELPERS
@@ -100,7 +103,8 @@ function getDates() {
     return {
         from: document.getElementById("fromDate")?.value || "",
         to: document.getElementById("toDate")?.value || "",
-        status: document.getElementById("statusFilter")?.value || "all"
+        status: document.getElementById("statusFilter")?.value || "all",
+        memberId: document.getElementById("memberFilter")?.value || "all"
     };
 }
 
@@ -149,13 +153,15 @@ function buildQuery() {
     const {
         from,
         to,
-        status
+        status,
+        memberId
     } = getDates();
 
     return (
         `from=${encodeURIComponent(from)}` +
         `&to=${encodeURIComponent(to)}` +
-        `&status=${encodeURIComponent(status)}`
+        `&status=${encodeURIComponent(status)}` +
+        `&memberId=${encodeURIComponent(memberId)}`
     );
 }
 
@@ -313,6 +319,10 @@ async function loadReports() {
 
         const methods =
             await methodResponse.json();
+
+        // Cache globally for exporting tools
+        currentSummaryData = summary;
+        currentDetailData = detail;
 
 
         console.log(
@@ -1543,6 +1553,230 @@ async function exportExcel() {
 
 
 // ============================================================
+// LOAD MEMBERS FOR FILTER
+// ============================================================
+
+async function loadMembersFilter() {
+    const memberSelect = document.getElementById("memberFilter");
+    if (!memberSelect) return;
+
+    try {
+        const response = await fetch("/api/members", {
+            method: "GET",
+            headers: apiHeaders()
+        });
+
+        if (response.status === 401) {
+            sessionStorage.removeItem("token");
+            window.location.href = "login.html";
+            return;
+        }
+
+        if (response.ok) {
+            const members = await response.json();
+            
+            // Clear existing options except "All Members"
+            memberSelect.innerHTML = '<option value="all">All Members</option>';
+            
+            // Sort members alphabetically by official_name
+            members.sort((a, b) => (a.official_name || "").localeCompare(b.official_name || ""));
+            
+            members.forEach(member => {
+                const opt = document.createElement("option");
+                opt.value = member.member_id;
+                opt.textContent = `${member.official_name} (${member.member_id})`;
+                memberSelect.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.error("Failed to load members for filter dropdown:", err);
+    }
+}
+
+
+// ============================================================
+// PPTX EXPORT
+// ============================================================
+
+async function exportPPTX() {
+    if (!currentDetailData || !currentSummaryData) {
+        alert("Please generate the report first before exporting.");
+        return;
+    }
+
+    // 1. Initialize Presentation
+    const pptx = new PptxGenJS();
+    
+    // Set presentation properties
+    pptx.title = "MUMC Financial Report";
+    pptx.layout = "LAYOUT_16x9"; // Widescreen format
+
+    // Define colors
+    const navyPrimary = "1B365D";
+    const navyDark = "0F2038";
+    const textWhite = "FFFFFF";
+    const goldColor = "EAAA00";
+    const textMuted = "666666";
+
+    // ========================================================
+    // FIRST PAGE (TITLE SLIDE)
+    // ========================================================
+    const titleSlide = pptx.addSlide();
+    
+    // Solid background color
+    titleSlide.background = { color: navyPrimary };
+
+    // Add Church Title (Positioned on the top of the slide)
+    titleSlide.addText("MAUI UNITED METHODIST CHURCH", {
+        x: 0.8, y: 0.8, w: 11.7, h: 0.6,
+        fontSize: 28, bold: true, color: goldColor,
+        fontFace: "Arial"
+    });
+
+    // Add Main Heading
+    titleSlide.addText("Financial & Collections Report", {
+        x: 0.8, y: 1.5, w: 11.7, h: 1.2,
+        fontSize: 44, bold: true, color: textWhite,
+        fontFace: "Arial"
+    });
+
+    // Date Range Subtitle
+    const { from, to } = getDates();
+    titleSlide.addText(`Period: ${dateString(from)} to ${dateString(to)}`, {
+        x: 0.8, y: 2.9, w: 11.7, h: 0.6,
+        fontSize: 16, color: "A4BCD4",
+        fontFace: "Arial"
+    });
+
+    // Decorative shape (gold banner line placed below the period text)
+    titleSlide.addShape(pptx.ShapeType.rect, {
+        x: 0.5, y: 3.6, w: 12.3, h: 0.08, fill: { color: goldColor }
+    });
+
+    // Footer note
+    titleSlide.addText("Maui UMC Finance Committee • Confidential", {
+        x: 0.8, y: 6.2, w: 11.7, h: 0.4,
+        fontSize: 12, italic: true, color: "888888",
+        fontFace: "Arial"
+    });
+
+    // ========================================================
+    // NEXT PAGES: ONE SLIDE PER COLLECTION TYPE
+    // ========================================================
+    const detailRows = Array.isArray(currentDetailData)
+        ? currentDetailData
+        : Array.isArray(currentDetailData?.rows)
+            ? currentDetailData.rows
+            : [];
+
+    const summaryRows = Array.isArray(currentSummaryData)
+        ? currentSummaryData
+        : Array.isArray(currentSummaryData?.rows)
+            ? currentSummaryData.rows
+            : [];
+
+    if (summaryRows.length === 0) {
+        alert("No collection types to export.");
+        return;
+    }
+
+    // Loop through each collection type that has contributions
+    summaryRows.forEach(summaryItem => {
+        const itemTypeName = summaryItem.item || summaryItem.collection_type || "UNSPECIFIED";
+        const itemTotalAmount = Number(summaryItem.amount) || 0;
+
+        if (itemTotalAmount <= 0) return; // Skip items with no amount
+
+        // Filter detail records matching this collection type
+        const matches = detailRows.filter(row => {
+            const rowType = row.type || row.item || "UNSPECIFIED";
+            return rowType.trim().toLowerCase() === itemTypeName.trim().toLowerCase();
+        });
+
+        // Paged slide generation to fit table cleanly inside slide limits without overlapping
+        const rowsPerSlide = 10;
+        const totalSlides = Math.ceil(matches.length / rowsPerSlide) || 1;
+
+        for (let i = 0; i < totalSlides; i++) {
+            const start = i * rowsPerSlide;
+            const end = start + rowsPerSlide;
+            const pageRows = matches.slice(start, end);
+
+            // Add a slide for this page segment
+            const slide = pptx.addSlide();
+
+            // Slide header (navy top banner)
+            slide.addShape(pptx.ShapeType.rect, {
+                x: 0.0, y: 0.0, w: 13.3, h: 1.2, fill: { color: navyDark }
+            });
+
+            // Collection Type Name (appends page info if paginated)
+            let pageTitle = itemTypeName.toUpperCase();
+            if (totalSlides > 1) {
+                pageTitle += ` (${i + 1}/${totalSlides})`;
+            }
+
+            slide.addText(pageTitle, {
+                x: 0.5, y: 0.3, w: 5.0, h: 0.6,
+                fontSize: 20, bold: true, color: textWhite,
+                fontFace: "Arial", valign: "middle"
+            });
+
+            // Total Amount value (positioned close to the collection type name on the left)
+            slide.addText(`Total: ${money(itemTotalAmount)}`, {
+                x: 5.7, y: 0.3, w: 5.0, h: 0.6,
+                fontSize: 20, bold: true, color: goldColor,
+                align: "left", fontFace: "Arial", valign: "middle"
+            });
+
+            // Subtitle line / divider
+            slide.addShape(pptx.ShapeType.rect, {
+                x: 0.5, y: 1.4, w: 12.3, h: 0.02, fill: { color: "CCCCCC" }
+            });
+
+            // Table headers and data rows for breakdown (Only Member and Amount to fit cleanly)
+            const tableBody = [
+                [
+                    { text: "Member", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 11, fontFace: "Arial" } },
+                    { text: "Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 11, align: "right", fontFace: "Arial" } }
+                ]
+            ];
+
+            // Fill page rows
+            pageRows.forEach(row => {
+                tableBody.push([
+                    { text: String(row.donor || row.member_name || "ANONYMOUS"), options: { fontSize: 11, bold: true, fontFace: "Arial" } },
+                    { text: money(row.amount), options: { fontSize: 11, bold: true, align: "right", fontFace: "Arial" } }
+                ]);
+            });
+
+            if (tableBody.length === 1) {
+                // No details found
+                slide.addText("No donor breakdown records found for this collection type.", {
+                    x: 0.5, y: 2.0, w: 12.3, h: 1.0,
+                    fontSize: 14, italic: true, color: textMuted,
+                    fontFace: "Arial"
+                });
+            } else {
+                // Add breakdown table matching headers alignment exactly
+                slide.addTable(tableBody, {
+                    x: 0.5,
+                    y: 1.8,
+                    colW: [4.5, 2.0],
+                    border: { pt: 0.5, color: "E2E8F0" },
+                    rowH: 0.35,
+                    valign: "middle"
+                });
+            }
+        }
+    });
+
+    // Save presentation
+    pptx.writeFile({ fileName: `MUMC_Financial_Report_${from}_to_${to}.pptx` });
+}
+
+
+// ============================================================
 // START PAGE
 // ============================================================
 
@@ -1551,6 +1785,8 @@ document.addEventListener(
     async () => {
 
         setDefaultDates();
+
+        await loadMembersFilter();
 
         await loadReports();
 

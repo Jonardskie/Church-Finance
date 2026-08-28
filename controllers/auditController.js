@@ -11,7 +11,9 @@ const AUTHORIZED_ROLES = [
     "Treasurer",
     "treasurer",
     "Finance",
-    "finance"
+    "finance",
+    "Pastor",
+    "pastor"
 ];
 
 
