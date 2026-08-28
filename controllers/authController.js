@@ -79,3 +79,62 @@ exports.login = async (req, res) => {
         });
     }
 };
+
+// ==========================================
+// CHANGE OWN PASSWORD
+// ==========================================
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const username = req.user.username;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing current password or new password fields."
+            });
+        }
+
+        const result = await pool.query(
+            "SELECT * FROM users WHERE LOWER(username) = LOWER($1)",
+            [username.trim()]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+        const user = result.rows[0];
+
+        const valid = await bcrypt.compare(currentPassword, user.password);
+        if (!valid) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect current password."
+            });
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword.trim(), 10);
+
+        await pool.query(
+            "UPDATE users SET password = $1 WHERE id = $2",
+            [hashedNewPassword, user.id]
+        );
+
+        return res.json({
+            success: true,
+            message: "Password changed successfully."
+        });
+
+    } catch (err) {
+        console.error("❌ CHANGE PASSWORD ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server internal error",
+            error: err.message
+        });
+    }
+};

@@ -494,6 +494,12 @@ exports.updateMember = async (req, res) => {
         );
 
         if (password && password.trim() !== "") {
+            const requesterRole = req.user && req.user.role ? String(req.user.role).toLowerCase() : "";
+            if (requesterRole !== "admin") {
+                return res.status(403).json({
+                    message: "Only system Administrators are authorized to set or modify member passwords."
+                });
+            }
             const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
             if (userCheck.rows.length > 0) {
@@ -1113,5 +1119,59 @@ exports.importMembers = async (req, res) => {
         res.status(500).json({
             error: err.message
         });
+    }
+};
+
+// ==========================================
+// RESET MEMBER PASSWORD
+// ==========================================
+exports.resetMemberPassword = async (req, res) => {
+    const memberId = req.params.id;
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        const memberRes = await client.query(
+            `SELECT login_id, member_id, official_name, role FROM members WHERE id = $1`,
+            [memberId]
+        );
+
+        if (memberRes.rows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({
+                message: "Member not found"
+            });
+        }
+
+        const loginId = memberRes.rows[0].login_id || memberRes.rows[0].member_id;
+        const officialName = memberRes.rows[0].official_name;
+
+        const hashedPassword = await bcrypt.hash("123456", 10);
+
+        const userUpdateRes = await client.query(
+            `UPDATE users SET password = $1 WHERE username = $2`,
+            [hashedPassword, loginId]
+        );
+
+        if (userUpdateRes.rowCount === 0) {
+            const role = memberRes.rows[0].role || 'member';
+            await client.query(
+                `INSERT INTO users (username, password, role, name) VALUES ($1, $2, $3, $4)`,
+                [loginId, hashedPassword, role, officialName]
+            );
+        }
+
+        await client.query("COMMIT");
+        res.json({
+            message: `Password for ${officialName} has been reset to "123456" successfully.`
+        });
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error("❌ RESET PASSWORD ERROR:", err.message);
+        res.status(500).json({
+            error: err.message
+        });
+    } finally {
+        client.release();
     }
 };

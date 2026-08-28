@@ -435,7 +435,7 @@
                             <input type="text" id="loginId" readonly placeholder="Same as Member ID" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500 font-sans outline-none">
                         </div>
 
-                        <div>
+                        <div id="passwordFieldContainer">
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
                             <input type="password" id="password" placeholder="••••••••" class="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy">
                         </div>
@@ -1143,6 +1143,18 @@ function renderMembers() {
                         "
                     >
                         Collection History
+                    </button>
+                `;
+
+                menuItems += `
+                    <button
+                        type="button"
+                        onclick="
+                            resetPassword(${memberId});
+                            closeAllActionMenus();
+                        "
+                    >
+                        Reset Password
                     </button>
                 `;
 
@@ -2187,6 +2199,40 @@ async function deleteMember(id) {
 
 
 /* =========================================================
+   RESET MEMBER PASSWORD
+========================================================= */
+
+async function resetPassword(id) {
+    if (!confirm("Are you sure you want to reset this member's password to the default '123456'?")) {
+        return;
+    }
+
+    const token = getToken();
+
+    try {
+        const res = await fetch(`/api/members/${id}/reset-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.message || data.error || "Password reset failed.");
+        }
+
+        alert(data.message || "Password reset successful.");
+    } catch (err) {
+        console.error("Reset Password Error:", err);
+        alert(err.message);
+    }
+}
+
+
+/* =========================================================
    SAVE MEMBER
 ========================================================= */
 
@@ -2778,6 +2824,15 @@ function handleLogout(
 /* =========================================================
    INITIAL PAGE LOAD
 ========================================================= */
+
+// Hide password input container for non-admin users
+const userRole = sessionStorage.getItem("role") || "";
+if (userRole.toLowerCase() !== "admin") {
+    const passwordFieldContainer = document.getElementById("passwordFieldContainer");
+    if (passwordFieldContainer) {
+        passwordFieldContainer.style.display = "none";
+    }
+}
 
 loadMembers({ resetFilters: true, forceRefresh: true });
 

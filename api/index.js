@@ -3,9 +3,37 @@ const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const path = require("path");
+const { rateLimit } = require("express-rate-limit");
 
 // Create Express app
 const app = express();
+app.set("trust proxy", 1);
+
+// Rate Limiters
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: {
+        error: "Too many requests from this IP, please try again after 15 minutes"
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.originalUrl && req.originalUrl.startsWith("/api/auth")
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 15, // Limit each IP to 15 login attempts per windowMs
+    message: {
+        error: "Too many login attempts from this IP, please try again after 15 minutes"
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Apply limiters to API paths
+app.use("/api/auth", authLimiter);
+app.use("/api", apiLimiter);
 
 // Middleware
 app.use(cors());

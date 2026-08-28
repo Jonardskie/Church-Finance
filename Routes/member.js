@@ -78,4 +78,14 @@ router.delete(
     controller.deleteMember
 );
 
+// =========================
+// RESET MEMBER PASSWORD
+// =========================
+router.post(
+    "/:id/reset-password",
+    authMiddleware,
+    roleMiddleware("Admin"),
+    controller.resetMemberPassword
+);
+
 module.exports = router;
