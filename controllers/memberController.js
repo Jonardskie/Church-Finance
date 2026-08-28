@@ -849,7 +849,8 @@ exports.importMembers = async (req, res) => {
             });
         }
 
-        let processedCount = 0;
+        let createdCount = 0;
+        let updatedCount = 0;
 
         for (const row of rawRows) {
             const isCompletelyEmptyRow =
@@ -947,89 +948,164 @@ exports.importMembers = async (req, res) => {
                     getCellValue(row, ["baptist date", "baptist_date", "baptism date", "date baptized", "baptized date"]) ?? ""
                 );
 
-            const member_id = await generateMemberId(pool);
-            const defaultPassword = await bcrypt.hash("123456", 10);
-
-            await pool.query(
-                `
-                INSERT INTO members (
-                    member_id,
-                    official_name,
-                    phone,
-                    address,
-                    role,
-                    status,
-                    join_date,
-                    login_id,
-                    gender,
-                    name_1,
-                    middle_name,
-                    gov_id,
-                    name_2,
-                    marital_status,
-                    dob,
-                    occupation,
-                    education,
-                    hobbies,
-                    tel_2,
-                    email,
-                    baptist_date
-                )
-                VALUES (
-                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
-                    $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21
-                )
-                `,
-                [
-                    member_id,
-                    official_name,
-                    phone,
-                    address,
-                    role,
-                    status,
-                    join_date,
-                    member_id,
-                    gender,
-                    name_1 || null,
-                    middle_name || null,
-                    gov_id || null,
-                    name_2 || null,
-                    marital_status,
-                    dob,
-                    occupation || null,
-                    education || null,
-                    hobbies || null,
-                    tel_2 || null,
-                    email || null,
-                    baptist_date
-                ]
+            // Check if member already exists by official_name (case-insensitive)
+            const existingMemberRes = await pool.query(
+                `SELECT member_id, login_id FROM members WHERE LOWER(TRIM(official_name)) = LOWER(TRIM($1)) LIMIT 1`,
+                [official_name]
             );
 
-            await pool.query(
-                `
-                INSERT INTO users
-                (username, password, role, name)
-                VALUES ($1,$2,$3,$4)
-                `,
-                [
-                    member_id,
-                    defaultPassword,
-                    role,
-                    official_name
-                ]
-            );
+            if (existingMemberRes.rows.length > 0) {
+                const existingMember = existingMemberRes.rows[0];
+                const existingId = existingMember.member_id;
 
-            processedCount++;
+                await pool.query(
+                    `
+                    UPDATE members SET
+                        phone = COALESCE(NULLIF($1, ''), phone),
+                        address = COALESCE(NULLIF($2, ''), address),
+                        role = COALESCE(NULLIF($3, ''), role),
+                        status = COALESCE(NULLIF($4, ''), status),
+                        join_date = COALESCE($5, join_date),
+                        gender = COALESCE($6, gender),
+                        name_1 = COALESCE(NULLIF($7, ''), name_1),
+                        middle_name = COALESCE(NULLIF($8, ''), middle_name),
+                        gov_id = COALESCE(NULLIF($9, ''), gov_id),
+                        name_2 = COALESCE(NULLIF($10, ''), name_2),
+                        marital_status = COALESCE($11, marital_status),
+                        dob = COALESCE($12, dob),
+                        occupation = COALESCE(NULLIF($13, ''), occupation),
+                        education = COALESCE(NULLIF($14, ''), education),
+                        hobbies = COALESCE(NULLIF($15, ''), hobbies),
+                        tel_2 = COALESCE(NULLIF($16, ''), tel_2),
+                        email = COALESCE(NULLIF($17, ''), email),
+                        baptist_date = COALESCE($18, baptist_date)
+                    WHERE member_id = $19
+                    `,
+                    [
+                        phone,
+                        address,
+                        role,
+                        status,
+                        join_date,
+                        gender,
+                        name_1 || null,
+                        middle_name || null,
+                        gov_id || null,
+                        name_2 || null,
+                        marital_status,
+                        dob,
+                        occupation || null,
+                        education || null,
+                        hobbies || null,
+                        tel_2 || null,
+                        email || null,
+                        baptist_date,
+                        existingId
+                    ]
+                );
+
+                // Also update the role/name in the users table
+                await pool.query(
+                    `
+                    UPDATE users SET
+                        role = COALESCE(NULLIF($1, ''), role),
+                        name = COALESCE(NULLIF($2, ''), name)
+                    WHERE username = $3
+                    `,
+                    [
+                        role,
+                        official_name,
+                        existingId
+                    ]
+                );
+
+                updatedCount++;
+            } else {
+                const member_id = await generateMemberId(pool);
+                const defaultPassword = await bcrypt.hash("123456", 10);
+
+                await pool.query(
+                    `
+                    INSERT INTO members (
+                        member_id,
+                        official_name,
+                        phone,
+                        address,
+                        role,
+                        status,
+                        join_date,
+                        login_id,
+                        gender,
+                        name_1,
+                        middle_name,
+                        gov_id,
+                        name_2,
+                        marital_status,
+                        dob,
+                        occupation,
+                        education,
+                        hobbies,
+                        tel_2,
+                        email,
+                        baptist_date
+                    )
+                    VALUES (
+                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+                        $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21
+                    )
+                    `,
+                    [
+                        member_id,
+                        official_name,
+                        phone,
+                        address,
+                        role,
+                        status,
+                        join_date,
+                        member_id,
+                        gender,
+                        name_1 || null,
+                        middle_name || null,
+                        gov_id || null,
+                        name_2 || null,
+                        marital_status,
+                        dob,
+                        occupation || null,
+                        education || null,
+                        hobbies || null,
+                        tel_2 || null,
+                        email || null,
+                        baptist_date
+                    ]
+                );
+
+                await pool.query(
+                    `
+                    INSERT INTO users
+                    (username, password, role, name)
+                    VALUES ($1,$2,$3,$4)
+                    `,
+                    [
+                        member_id,
+                        defaultPassword,
+                        role,
+                        official_name
+                    ]
+                );
+
+                createdCount++;
+            }
         }
 
-        if (processedCount === 0) {
+        const totalProcessed = createdCount + updatedCount;
+        if (totalProcessed === 0) {
             return res.status(400).json({
                 message: "No valid member rows were found in the Excel file."
             });
         }
 
         res.json({
-            message: `Imported ${processedCount} members successfully.`
+            message: `Import processed successfully. Created ${createdCount} new members, updated ${updatedCount} existing members.`
         });
 
     } catch (err) {
