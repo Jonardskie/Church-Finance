@@ -441,11 +441,24 @@ function updateDashboardUI(data) {
     document.getElementById("kpiReservesBreakdown").innerText = `PS: ${formatCurrency(overview.totalPersonalSavingsAllTime)} · App: ${formatCurrency(overview.totalApportionmentAllTime)}`;
 
     // 2. Render Charts
-    renderCharts(charts);
+    try {
+        renderCharts(charts);
+    } catch (e) {
+        console.error("Error rendering dashboard charts:", e);
+    }
 
     // 3. Render Recent Table & Audit
-    renderRecentTable();
-    renderAuditStream(recentFeeds?.auditLogs || []);
+    try {
+        renderRecentTable();
+    } catch (e) {
+        console.error("Error rendering dashboard recent table:", e);
+    }
+
+    try {
+        renderAuditStream(recentFeeds?.auditLogs || []);
+    } catch (e) {
+        console.error("Error rendering dashboard audit stream:", e);
+    }
 }
 
 function renderCharts(charts) {
