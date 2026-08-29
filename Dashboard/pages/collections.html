@@ -224,12 +224,19 @@
                            placeholder="e.g. 250"
                            class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
                 </div>
+                <!-- New container for multiple collection items -->
+                <div id="collectionItemsContainer" class="grid gap-2 mt-4"></div>
+                <button id="addCollectionRowBtn" type="button"
+                        class="mt-2 px-3 py-1 bg-navy text-white rounded hover:bg-navy-dark">
+                    + Add Row
+                </button>
+
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Verification Status</label>
                     <select id="verificationStatus"
                             class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
                         <option value="pending">Pending</option>
-                        <option value="verified">Verified</option>
+                        <option value="verified" selected>Verified</option>
                     </select>
                 </div>
             </div>
@@ -248,11 +255,32 @@
     </div>
 </div>
 
+<!-- HIDDEN ROW TEMPLATE -->
+<template id="collectionRowTemplate">
+    <div class="flex gap-2 items-center collection-row bg-slate-50 p-2 rounded border border-slate-100">
+        <input type="text" placeholder="Type" class="flex-1 px-2 py-1.5 text-xs border rounded">
+        <input type="number" placeholder="Amount" class="w-20 px-2 py-1.5 text-xs border rounded">
+        <button type="button" class="text-red-500 hover:text-red-700 p-1" onclick="this.parentElement.remove()">✕</button>
+    </div>
+</template>
+
 <script>
 /* =========================================================
    CFMMS — COLLECTIONS PAGE
    Complete Frontend Script
+   
+   Helpers:
+   - renderRow: Appends template to DOM
    ========================================================= */
+
+function addCollectionRow() {
+    const container = document.getElementById('collectionItemsContainer');
+    const template = document.getElementById('collectionRowTemplate');
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+}
+
+document.getElementById('addCollectionRowBtn').addEventListener('click', addCollectionRow);
 
 /* =========================================================
    1. AUTHENTICATION
@@ -468,10 +496,17 @@ function renderSuggestions(searchId, suggestionsId, options) {
 
 
 function selectSuggestion(suggestion, searchId, hiddenId, suggestionsId) {
-
+    if (!suggestion) return;
     document.getElementById(searchId).value = suggestion.dataset.name;
     document.getElementById(hiddenId).value = suggestion.dataset.value;
     document.getElementById(suggestionsId).style.display = "none";
+    
+    // Auto-advance focus to the next field
+    if (searchId === "memberSearch") {
+        document.getElementById("collectionTypeSearch")?.focus();
+    } else if (searchId === "collectionTypeSearch") {
+        document.getElementById("collectionAmount")?.focus();
+    }
 }
 
 
@@ -482,7 +517,17 @@ function handleSuggestionKeyboard(event, searchId, suggestionsId, hiddenId) {
         suggestions.querySelectorAll("li[data-value]")
     );
 
-    if (!visibleSuggestions.length) return;
+    if (!visibleSuggestions.length) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            if (searchId === "memberSearch") {
+                document.getElementById("collectionTypeSearch")?.focus();
+            } else if (searchId === "collectionTypeSearch") {
+                document.getElementById("collectionAmount")?.focus();
+            }
+        }
+        return;
+    }
 
     const activeIndex = visibleSuggestions.findIndex(
         suggestion => suggestion.classList.contains("active")
@@ -505,6 +550,14 @@ function handleSuggestionKeyboard(event, searchId, suggestionsId, hiddenId) {
 
     if (event.key === "Enter") {
         event.preventDefault();
+        if (suggestions.style.display === "none") {
+            if (searchId === "memberSearch") {
+                document.getElementById("collectionTypeSearch")?.focus();
+            } else if (searchId === "collectionTypeSearch") {
+                document.getElementById("collectionAmount")?.focus();
+            }
+            return;
+        }
         const activeSuggestion = visibleSuggestions[activeIndex < 0 ? 0 : activeIndex];
         selectSuggestion(activeSuggestion, searchId, hiddenId, suggestionsId);
         return;
@@ -575,6 +628,49 @@ document.getElementById("collectionTypeSuggestions")?.addEventListener("click", 
         "collectionType",
         "collectionTypeSuggestions"
     );
+});
+
+
+document.getElementById("collectionDate")?.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("memberSearch")?.focus();
+    }
+});
+
+document.getElementById("collectionAmount")?.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("verificationStatus")?.focus();
+    }
+});
+
+// Global Escape key to cancel/close the modal
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        const modal = document.getElementById("collectionModal");
+        if (modal && (modal.style.display === "flex" || modal.classList.contains("show"))) {
+            const memberSuggestions = document.getElementById("memberSuggestions");
+            const collectionTypeSuggestions = document.getElementById("collectionTypeSuggestions");
+            const anySuggestionsVisible = (memberSuggestions && memberSuggestions.style.display === "block") || 
+                                         (collectionTypeSuggestions && collectionTypeSuggestions.style.display === "block");
+            
+            if (!anySuggestionsVisible) {
+                closeModal();
+            }
+        }
+    }
+});
+
+// Ctrl+Enter anywhere in the form to instantly Save/Submit
+document.getElementById("collectionForm")?.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        const submitBtn = this.querySelector("button[type='submit']");
+        if (submitBtn) {
+            submitBtn.click();
+        }
+    }
 });
 
 
@@ -982,6 +1078,22 @@ if (collectionForm) {
 
             event.preventDefault();
 
+            // Prevent double submission
+            const submitBtn = collectionForm.querySelector("button[type='submit']");
+            let reEnableSubmitButton = () => {};
+            if (submitBtn) {
+                if (submitBtn.disabled) return;
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = "Saving...";
+                submitBtn.classList.add("opacity-50", "cursor-not-allowed");
+                
+                reEnableSubmitButton = () => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
+                };
+            }
 
             const memberDropdown =
                 document.getElementById(
@@ -996,21 +1108,19 @@ if (collectionForm) {
 
 
             if (!memberDropdown.value) {
-
                 alert(
                     "Please select a member."
                 );
-
+                reEnableSubmitButton();
                 return;
             }
 
 
             if (!typeDropdown.value) {
-
                 alert(
                     "Please select a collection type."
                 );
-
+                reEnableSubmitButton();
                 return;
             }
 
@@ -1024,47 +1134,24 @@ if (collectionForm) {
 
 
             if (!amount || amount <= 0) {
-
                 alert(
                     "Please enter a valid amount."
                 );
-
+                reEnableSubmitButton();
                 return;
             }
 
-
+            const rows = document.querySelectorAll('#collectionItemsContainer .collection-row');
+            const items = Array.from(rows).map(r => ({
+                type: r.querySelector('input[type=text]').value.trim(),
+                amount: Number(r.querySelector('input[type=number]').value)
+            }));
             const payload = {
-
-                date:
-                    document.getElementById(
-                        "collectionDate"
-                    ).value,
-
-
-                member_id:
-                    memberDropdown.value,
-
-
-                member_name:
-                    document.getElementById(
-                        "memberSearch"
-                    ).value
-                        .split("(")[0]
-                        .trim(),
-
-
-                type:
-                    typeDropdown.value,
-
-
-                amount:
-                    amount,
-
-
-                status:
-                    document.getElementById(
-                        "verificationStatus"
-                    ).value
+                date: document.getElementById('collectionDate').value,
+                member_id: memberDropdown.value,
+                member_name: document.getElementById('memberSearch').value.split('(')[0].trim(),
+                items,
+                status: document.getElementById('verificationStatus').value
             };
 
 
@@ -1115,6 +1202,7 @@ if (collectionForm) {
 
                 await loadCollectionsFromDB();
 
+                reEnableSubmitButton();
 
             } catch (error) {
 
@@ -1127,6 +1215,7 @@ if (collectionForm) {
                 alert(
                     error.message
                 );
+                reEnableSubmitButton();
             }
         }
     );
