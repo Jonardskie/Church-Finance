@@ -29,8 +29,20 @@ async function generateMemberId(pool) {
             );
         }
 
+        let prefix = "MUMC";
+        try {
+            const prefixRes = await pool.query(
+                "SELECT member_id_prefix FROM church_settings WHERE id = 1 LIMIT 1"
+            );
+            if (prefixRes.rows.length > 0 && prefixRes.rows[0].member_id_prefix) {
+                prefix = prefixRes.rows[0].member_id_prefix.trim().toUpperCase();
+            }
+        } catch (prefixErr) {
+            // Fallback to default
+        }
+
         const paddedCounter = String(nextCounter).padStart(4, "0");
-        return `MUMC-${currentYear}-${paddedCounter}`;
+        return `${prefix}-${currentYear}-${paddedCounter}`;
 
     } catch (err) {
         console.error("ID Generator Error:", err.message);

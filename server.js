@@ -53,6 +53,8 @@ try {
     auditRoutes =
         require("./Routes/audit");
 
+    settingsRoutes =
+        require("./Routes/settings");
 
     console.log("✅ All routes loaded successfully");
 
@@ -219,6 +221,15 @@ if (auditRoutes) {
     app.use(
         "/api/audit",
         auditRoutes
+    );
+
+}
+
+if (settingsRoutes) {
+
+    app.use(
+        "/api/settings",
+        settingsRoutes
     );
 
 }

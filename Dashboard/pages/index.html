@@ -338,8 +338,9 @@ document.getElementById("userBadgeProfile").innerText = `${storedUsername} (${st
 document.getElementById("greetingHeading").innerText = `Welcome, ${storedUsername}`;
 
 // Date subtitle
+const currentChurchName = sessionStorage.getItem("church_name") || "Maui United Methodist Church";
 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-document.getElementById("subGreeting").innerText = `Maui United Methodist Church · ${new Date().toLocaleDateString('en-US', options)}`;
+document.getElementById("subGreeting").innerText = `${currentChurchName} · ${new Date().toLocaleDateString('en-US', options)}`;
 
 
 // ============================================================

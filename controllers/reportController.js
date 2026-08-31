@@ -1132,8 +1132,18 @@ exports.exportExcel = async (
         // CREATE WORKBOOK & COMMON METADATA VIA EXCELJS
         // ====================================================
 
+        let churchName = "MAUI UNITED METHODIST CHURCH";
+        try {
+            const cRes = await pool.query("SELECT church_name FROM church_settings WHERE id = 1 LIMIT 1");
+            if (cRes.rows.length > 0 && cRes.rows[0].church_name) {
+                churchName = cRes.rows[0].church_name.trim().toUpperCase();
+            }
+        } catch (cErr) {
+            // Fallback to default
+        }
+
         const workbook = new ExcelJS.Workbook();
-        workbook.creator = "Maui United Methodist Church CFMMS";
+        workbook.creator = `${churchName} CFMMS`;
         workbook.created = new Date();
 
         // Common Styles & Theme (Deep Royal Navy / Slate Theme)
@@ -1198,7 +1208,7 @@ exports.exportExcel = async (
 
         // Header Title Block
         wsSummary.mergeCells("A1:G1");
-        wsSummary.getCell("A1").value = "MAUI UNITED METHODIST CHURCH";
+        wsSummary.getCell("A1").value = churchName;
         wsSummary.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF1E3A8A" } };
         wsSummary.getCell("A1").alignment = { vertical: "middle", horizontal: "center" };
         wsSummary.getRow(1).height = 26;
@@ -1387,7 +1397,7 @@ exports.exportExcel = async (
         });
 
         wsDetail.mergeCells("A1:H1");
-        wsDetail.getCell("A1").value = "MAUI UNITED METHODIST CHURCH";
+        wsDetail.getCell("A1").value = churchName;
         wsDetail.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF1E3A8A" } };
         wsDetail.getCell("A1").alignment = { vertical: "middle", horizontal: "center" };
         wsDetail.getRow(1).height = 26;
@@ -1601,7 +1611,7 @@ exports.exportExcel = async (
         });
 
         wsMethod.mergeCells("A1:D1");
-        wsMethod.getCell("A1").value = "MAUI UNITED METHODIST CHURCH";
+        wsMethod.getCell("A1").value = churchName;
         wsMethod.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF1E3A8A" } };
         wsMethod.getCell("A1").alignment = { vertical: "middle", horizontal: "center" };
         wsMethod.getRow(1).height = 26;

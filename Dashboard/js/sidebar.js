@@ -67,6 +67,9 @@
         roles.includes(userRole)
     );
 
+    const churchAcronym = sessionStorage.getItem("church_acronym") || "MAUI UMC";
+    const churchName = sessionStorage.getItem("church_name") || "Maui United Methodist";
+
     // Modern Tailwind Sidebar Template
     sidebar.innerHTML = `
         <div class="flex flex-col flex-1 min-w-0">
@@ -77,7 +80,7 @@
                         <img src="/images/logo.png" alt="Logo" class="w-full h-full object-contain" onerror="this.parentElement.innerHTML='⛪'">
                     </div>
                     <div class="min-w-0">
-                        <h2 class="text-sm font-bold text-white tracking-wide truncate">MAUI UMC</h2>
+                        <h2 id="sidebarChurchAcronym" class="text-sm font-bold text-white tracking-wide truncate">${churchAcronym}</h2>
                         <span class="text-[10px] text-amber-300 font-semibold tracking-wider uppercase block truncate">Financial System</span>
                     </div>
                 </div>
@@ -144,11 +147,28 @@
                 </svg>
                 <span>Log Out</span>
             </button>
-            <p class="text-[10px] text-slate-400 text-center font-normal">
-                Maui United Methodist &copy; 2025
+            <p id="sidebarChurchCopyright" class="text-[10px] text-slate-400 text-center font-normal">
+                ${churchName} &copy; ${new Date().getFullYear()}
             </p>
         </div>
     `;
+
+    // Fetch live church branding if not yet cached in session
+    if (!sessionStorage.getItem("church_acronym")) {
+        fetch("/api/settings/church")
+            .then(res => res.json())
+            .then(res => {
+                if (res && res.success && res.data) {
+                    sessionStorage.setItem("church_acronym", res.data.church_acronym || "CHURCH");
+                    sessionStorage.setItem("church_name", res.data.church_name || "Church Finance");
+                    const elAcr = document.getElementById("sidebarChurchAcronym");
+                    if (elAcr && res.data.church_acronym) elAcr.textContent = res.data.church_acronym;
+                    const elCpy = document.getElementById("sidebarChurchCopyright");
+                    if (elCpy && res.data.church_name) elCpy.innerHTML = `${res.data.church_name} &copy; ${new Date().getFullYear()}`;
+                }
+            })
+            .catch(() => {});
+    }
 
     // Ensure only a single mobile trigger and overlay exist
     let mobileTrigger = document.querySelector(".mobile-sidebar-trigger");
