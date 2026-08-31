@@ -68,16 +68,17 @@ async function tenantMiddleware(req, res, next) {
         }
 
         // Retrieve tenant pool
-        const tenant = await getTenant(cleanSlug);
+        let tenant = await getTenant(cleanSlug);
 
+        // Graceful Fallback: If requested church is not found, fallback to primary default church ('maui')
+        // to prevent 404 broken pages on unmapped preview URLs or typos.
         if (!tenant) {
-            return res.status(404).json({
-                success: false,
-                error: `Church organization '${cleanSlug}' not found in master registry.`
-            });
+            console.warn(`⚠️ Church '${cleanSlug}' not found in registry. Gracefully falling back to 'maui'.`);
+            tenant = await getTenant("maui");
+            cleanSlug = "maui";
         }
 
-        if (tenant.isSuspended) {
+        if (tenant && tenant.isSuspended) {
             return res.status(403).json({
                 success: false,
                 error: `The subscription for '${tenant.name}' is currently suspended. Please contact support.`
