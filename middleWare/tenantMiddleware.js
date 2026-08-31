@@ -8,14 +8,19 @@ async function tenantMiddleware(req, res, next) {
     try {
         let slug = null;
 
-        // 1. Check Subdomain (e.g. grace.churchledger.com -> 'grace')
-        const host = req.headers.host || "";
-        const hostWithoutPort = host.split(":")[0];
-        const parts = hostWithoutPort.split(".");
-        
-        // If domain has subdomain (e.g. grace.example.com) and is not an IP or www/api
-        if (parts.length > 2 && !/^\d+$/.test(parts[0]) && !["www", "app", "api", "localhost"].includes(parts[0])) {
-            slug = parts[0];
+        // 1. Check Authorization JWT Token payload FIRST (if user is authenticated)
+        if (req.headers.authorization) {
+            try {
+                const token = req.headers.authorization.split(" ")[1];
+                if (token) {
+                    const decoded = jwt.decode(token);
+                    if (decoded && decoded.church_slug) {
+                        slug = decoded.church_slug;
+                    }
+                }
+            } catch (jwtErr) {
+                // Ignore decode error here
+            }
         }
 
         // 2. Check Custom Request Header (X-Church-Slug)
@@ -33,18 +38,22 @@ async function tenantMiddleware(req, res, next) {
             slug = req.body.church_slug;
         }
 
-        // 5. Check Authorization JWT Token payload
-        if (!slug && req.headers.authorization) {
-            try {
-                const token = req.headers.authorization.split(" ")[1];
-                if (token) {
-                    const decoded = jwt.decode(token);
-                    if (decoded && decoded.church_slug) {
-                        slug = decoded.church_slug;
-                    }
+        // 5. Check Subdomain (only for custom domains, ignore vercel.app / onrender.com / localhost)
+        if (!slug) {
+            const host = req.headers.host || "";
+            const hostWithoutPort = host.split(":")[0];
+            const isPlatformDomain = hostWithoutPort.endsWith(".vercel.app") ||
+                                     hostWithoutPort.endsWith(".now.sh") ||
+                                     hostWithoutPort.endsWith(".onrender.com") ||
+                                     hostWithoutPort.endsWith(".railway.app") ||
+                                     hostWithoutPort.endsWith(".pages.dev") ||
+                                     hostWithoutPort === "localhost";
+
+            if (!isPlatformDomain) {
+                const parts = hostWithoutPort.split(".");
+                if (parts.length > 2 && !/^\d+$/.test(parts[0]) && !["www", "app", "api"].includes(parts[0])) {
+                    slug = parts[0];
                 }
-            } catch (jwtErr) {
-                // Ignore decode error here, authMiddleware will validate authenticity
             }
         }
 
@@ -53,7 +62,10 @@ async function tenantMiddleware(req, res, next) {
             slug = "maui";
         }
 
-        const cleanSlug = String(slug).trim().toLowerCase();
+        let cleanSlug = String(slug).trim().toLowerCase();
+        if (cleanSlug === "maui-church-finance" || cleanSlug === "maui-church") {
+            cleanSlug = "maui";
+        }
 
         // Retrieve tenant pool
         const tenant = await getTenant(cleanSlug);
