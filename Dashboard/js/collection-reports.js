@@ -864,125 +864,170 @@ function renderDetail(report) {
     }
 
 
+    // Group records by Collection Type
+    const grouped = {};
     rows.forEach(row => {
+        const typeKey = (row.type || row.collection_type || row.item || "UNSPECIFIED").trim().toUpperCase();
+        if (!grouped[typeKey]) {
+            grouped[typeKey] = [];
+        }
+        grouped[typeKey].push(row);
+    });
 
-        const tr =
-            document.createElement("tr");
+    let grandAmount = 0;
+    let grandPS = 0;
+    let grandApp = 0;
 
+    Object.keys(grouped).sort().forEach(typeKey => {
+        const groupRows = grouped[typeKey];
+        const groupAmount = groupRows.reduce((sum, r) => sum + number(r.amount), 0);
+        const groupPS = groupRows.reduce((sum, r) => sum + number(r.ps_amount ?? r.ps), 0);
+        const groupApp = groupRows.reduce((sum, r) => sum + number(r.apportionment_amount ?? r.apportionment), 0);
 
-        tr.innerHTML = `
+        grandAmount += groupAmount;
+        grandPS += groupPS;
+        grandApp += groupApp;
 
-            <td>
-                <strong>
+        // Category Header Row
+        const groupHeader = document.createElement("tr");
+        groupHeader.className = "bg-slate-100/90 border-t-2 border-slate-300 font-semibold";
+        groupHeader.innerHTML = `
+            <td colspan="9" class="py-2.5 px-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-navy inline-block"></span>
+                    <span class="text-navy font-bold tracking-wide text-xs">COLLECTION TYPE: ${escapeHtml(typeKey)}</span>
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-200/90 text-slate-700 font-medium">${groupRows.length} ${groupRows.length === 1 ? 'record' : 'records'}</span>
+                </div>
+            </td>
+            <td class="amount text-navy font-bold py-2.5 px-4">${money(groupAmount)}</td>
+            <td class="amount text-slate-600 font-semibold py-2.5 px-4">${groupPS === 0 ? '—' : money(groupPS)}</td>
+            <td class="amount text-slate-600 font-semibold py-2.5 px-4">${groupApp === 0 ? '—' : money(groupApp)}</td>
+        `;
+        body.appendChild(groupHeader);
+
+        // Individual Transaction Rows
+        groupRows.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-50 transition-colors";
+            tr.innerHTML = `
+                <td>
+                    <strong>
+                        ${escapeHtml(
+                            row.receipt_no ||
+                            row.receipt_number ||
+                            "—"
+                        )}
+                    </strong>
+                </td>
+                <td>
+                    ${dateString(
+                        row.date ||
+                        row.collection_date
+                    )}
+                </td>
+                <td>
                     ${escapeHtml(
-                        row.receipt_no ||
-                        row.receipt_number ||
+                        row.donor ||
+                        row.member_name ||
                         "—"
                     )}
-                </strong>
-            </td>
-
-            <td>
-                ${dateString(
-                    row.date ||
-                    row.collection_date
-                )}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    row.donor ||
-                    row.member_name ||
-                    "—"
-                )}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    row.method ||
-                    row.payment_method ||
-                    "—"
-                )}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    row.reference_no ||
-                    row.reference_number ||
-                    ""
-                )}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    row.status ||
-                    "—"
-                )}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    row.type ||
-                    row.collection_type ||
-                    "—"
-                )}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    row.item ||
-                    row.collection_item ||
-                    "—"
-                )}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    row.target ||
-                    "—"
-                )}
-            </td>
-
-            <td class="amount">
-                ${money(
-                    row.amount
-                )}
-            </td>
-
-            <td class="amount">
-                ${
-                    number(
-                        row.ps_amount ??
-                        row.ps
-                    ) === 0
-                        ? "—"
-                        : money(
+                </td>
+                <td>
+                    ${escapeHtml(
+                        row.method ||
+                        row.payment_method ||
+                        "—"
+                    )}
+                </td>
+                <td>
+                    ${escapeHtml(
+                        row.reference_no ||
+                        row.reference_number ||
+                        ""
+                    )}
+                </td>
+                <td>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${String(row.status).toLowerCase() === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}">
+                        ${escapeHtml(row.status || "—")}
+                    </span>
+                </td>
+                <td>
+                    ${escapeHtml(
+                        row.type ||
+                        row.collection_type ||
+                        "—"
+                    )}
+                </td>
+                <td>
+                    ${escapeHtml(
+                        row.item ||
+                        row.collection_item ||
+                        "—"
+                    )}
+                </td>
+                <td>
+                    ${escapeHtml(
+                        row.target ||
+                        "—"
+                    )}
+                </td>
+                <td class="amount font-medium">
+                    ${money(
+                        row.amount
+                    )}
+                </td>
+                <td class="amount text-slate-500">
+                    ${
+                        number(
                             row.ps_amount ??
                             row.ps
-                        )
-                }
-            </td>
-
-            <td class="amount">
-                ${
-                    number(
-                        row.apportionment_amount ??
-                        row.apportionment
-                    ) === 0
-                        ? "—"
-                        : money(
+                        ) === 0
+                            ? "—"
+                            : money(
+                                row.ps_amount ??
+                                row.ps
+                            )
+                    }
+                </td>
+                <td class="amount text-slate-500">
+                    ${
+                        number(
                             row.apportionment_amount ??
                             row.apportionment
-                        )
-                }
-            </td>
+                        ) === 0
+                            ? "—"
+                            : money(
+                                row.apportionment_amount ??
+                                row.apportionment
+                            )
+                    }
+                </td>
+            `;
+            body.appendChild(tr);
+        });
 
+        // Category Subtotal Row
+        const subtotalRow = document.createElement("tr");
+        subtotalRow.className = "bg-slate-50 font-semibold text-slate-700 border-b border-slate-200";
+        subtotalRow.innerHTML = `
+            <td colspan="9" class="text-right py-2 px-4 text-xs text-slate-500 uppercase tracking-wider">Subtotal (${escapeHtml(typeKey)}):</td>
+            <td class="amount font-bold text-slate-800 py-2 px-4">${money(groupAmount)}</td>
+            <td class="amount font-semibold text-slate-600 py-2 px-4">${groupPS === 0 ? '—' : money(groupPS)}</td>
+            <td class="amount font-semibold text-slate-600 py-2 px-4">${groupApp === 0 ? '—' : money(groupApp)}</td>
         `;
-
-
-        body.appendChild(tr);
-
+        body.appendChild(subtotalRow);
     });
+
+    // Grand Total Row
+    const grandRow = document.createElement("tr");
+    grandRow.className = "bg-blue-50/90 font-bold text-navy border-t-2 border-navy border-b-2";
+    grandRow.innerHTML = `
+        <td colspan="9" class="text-right py-3 px-4 uppercase tracking-wider font-bold">Grand Total All Receipts:</td>
+        <td class="amount text-emerald-700 font-bold py-3 px-4">${money(grandAmount)}</td>
+        <td class="amount text-navy font-bold py-3 px-4">${grandPS === 0 ? '—' : money(grandPS)}</td>
+        <td class="amount text-purple-700 font-bold py-3 px-4">${grandApp === 0 ? '—' : money(grandApp)}</td>
+    `;
+    body.appendChild(grandRow);
 }
 
 

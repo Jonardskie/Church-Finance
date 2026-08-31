@@ -572,6 +572,11 @@ exports.collectionDetail = async (req, res) => {
                 ORDER BY
 
                     COALESCE(
+                        NULLIF(TRIM(c.type), ''),
+                        'UNSPECIFIED'
+                    ) ASC,
+
+                    COALESCE(
                         c.collection_date,
                         c.date
                     ) DESC,
@@ -1044,6 +1049,11 @@ exports.exportExcel = async (
                 ORDER BY
 
                     COALESCE(
+                        NULLIF(TRIM(c.type), ''),
+                        'UNSPECIFIED'
+                    ) ASC,
+
+                    COALESCE(
                         c.collection_date,
                         c.date
                     ) DESC,
@@ -1424,40 +1434,117 @@ exports.exportExcel = async (
             cell.border = borderThin;
         });
 
+        // Group rows by Collection Type
+        const groupedDetail = {};
+        detailResult.rows.forEach(row => {
+            const typeKey = (row["Type"] || "UNSPECIFIED").trim().toUpperCase();
+            if (!groupedDetail[typeKey]) {
+                groupedDetail[typeKey] = [];
+            }
+            groupedDetail[typeKey].push(row);
+        });
+
+        const categoryHeaderFill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFE2E8F0" } // Slate-200 accent
+        };
+
+        const subtotalFill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF8FAFC" } // Soft Slate accent
+        };
+
         let dCurrRow = 7;
-        detailResult.rows.forEach((row, idx) => {
-            const r = wsDetail.getRow(dCurrRow);
-            const rawDate = row["Date"];
-            const dDate = rawDate ? (rawDate instanceof Date ? rawDate.toISOString().split("T")[0] : String(rawDate).split("T")[0]) : "—";
-            const amt = Number(row["Amount"]) || 0;
-            const ps = row["PS"] === null ? 0 : Number(row["PS"]);
-            const app = row["Apportionment"] === null ? 0 : Number(row["Apportionment"]);
-            const methodDisplay = row["Cheque/Ref #"] ? `${row["Method"]} (${row["Cheque/Ref #"]})` : row["Method"] || "CASH";
+        let globalIdx = 0;
 
-            r.values = [
-                row["Receipt #"] || "—",
-                dDate,
-                row["Donor"] || "ANONYMOUS",
-                row["Type"] || "General Fund",
-                methodDisplay,
-                amt,
-                ps,
-                app
-            ];
-            r.height = 23;
+        Object.keys(groupedDetail).sort().forEach(typeKey => {
+            const groupRows = groupedDetail[typeKey];
+            const groupTotalAmount = groupRows.reduce((acc, r) => acc + (Number(r["Amount"]) || 0), 0);
+            const groupTotalPS = groupRows.reduce((acc, r) => acc + (Number(r["PS"]) || 0), 0);
+            const groupTotalApp = groupRows.reduce((acc, r) => acc + (Number(r["Apportionment"]) || 0), 0);
 
-            r.eachCell((cell, colNum) => {
-                cell.font = { name: "Calibri", size: 11, color: { argb: "FF1E293B" } };
+            // 1. Group Header Row
+            const headerRow = wsDetail.getRow(dCurrRow);
+            wsDetail.mergeCells(`A${dCurrRow}:E${dCurrRow}`);
+            headerRow.getCell(1).value = `COLLECTION TYPE: ${typeKey} (${groupRows.length} ${groupRows.length === 1 ? 'record' : 'records'})`;
+            headerRow.getCell(1).font = { name: "Calibri", size: 11, bold: true, color: { argb: "FF1B365D" } };
+            headerRow.getCell(1).alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+            headerRow.getCell(6).value = groupTotalAmount;
+            headerRow.getCell(7).value = groupTotalPS;
+            headerRow.getCell(8).value = groupTotalApp;
+            headerRow.height = 25;
+
+            headerRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+                cell.fill = categoryHeaderFill;
+                cell.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FF1B365D" } };
                 cell.border = borderThin;
-                if (idx % 2 === 1) cell.fill = zebraFill;
-
-                if (colNum === 1 || colNum === 2 || colNum === 5) {
-                    cell.alignment = { vertical: "middle", horizontal: "center" };
-                } else if (colNum === 6 || colNum === 7 || colNum === 8) {
+                if (colNum >= 6) {
                     cell.alignment = { vertical: "middle", horizontal: "right" };
                     cell.numFmt = '"₱"#,##0.00;[Red]("₱"#,##0.00);"-"';
-                } else {
-                    cell.alignment = { vertical: "middle", horizontal: "left" };
+                }
+            });
+            dCurrRow++;
+
+            // 2. Individual Item Rows
+            groupRows.forEach(row => {
+                const r = wsDetail.getRow(dCurrRow);
+                const rawDate = row["Date"];
+                const dDate = rawDate ? (rawDate instanceof Date ? rawDate.toISOString().split("T")[0] : String(rawDate).split("T")[0]) : "—";
+                const amt = Number(row["Amount"]) || 0;
+                const ps = row["PS"] === null ? 0 : Number(row["PS"]);
+                const app = row["Apportionment"] === null ? 0 : Number(row["Apportionment"]);
+                const methodDisplay = row["Cheque/Ref #"] ? `${row["Method"]} (${row["Cheque/Ref #"]})` : row["Method"] || "CASH";
+
+                r.values = [
+                    row["Receipt #"] || "—",
+                    dDate,
+                    row["Donor"] || "ANONYMOUS",
+                    row["Target"] || row["Type"] || "General Fund",
+                    methodDisplay,
+                    amt,
+                    ps,
+                    app
+                ];
+                r.height = 22;
+
+                r.eachCell((cell, colNum) => {
+                    cell.font = { name: "Calibri", size: 10.5, color: { argb: "FF1E293B" } };
+                    cell.border = borderThin;
+                    if (globalIdx % 2 === 1) cell.fill = zebraFill;
+
+                    if (colNum === 1 || colNum === 2 || colNum === 5) {
+                        cell.alignment = { vertical: "middle", horizontal: "center" };
+                    } else if (colNum === 6 || colNum === 7 || colNum === 8) {
+                        cell.alignment = { vertical: "middle", horizontal: "right" };
+                        cell.numFmt = '"₱"#,##0.00;[Red]("₱"#,##0.00);"-"';
+                    } else {
+                        cell.alignment = { vertical: "middle", horizontal: "left" };
+                    }
+                });
+                dCurrRow++;
+                globalIdx++;
+            });
+
+            // 3. Category Subtotal Row
+            const subRow = wsDetail.getRow(dCurrRow);
+            wsDetail.mergeCells(`A${dCurrRow}:E${dCurrRow}`);
+            subRow.getCell(1).value = `Subtotal — ${typeKey}`;
+            subRow.getCell(1).font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FF334155" } };
+            subRow.getCell(1).alignment = { vertical: "middle", horizontal: "right" };
+            subRow.getCell(6).value = groupTotalAmount;
+            subRow.getCell(7).value = groupTotalPS;
+            subRow.getCell(8).value = groupTotalApp;
+            subRow.height = 23;
+
+            subRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+                cell.fill = subtotalFill;
+                cell.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FF334155" } };
+                cell.border = borderThin;
+                if (colNum >= 6) {
+                    cell.alignment = { vertical: "middle", horizontal: "right" };
+                    cell.numFmt = '"₱"#,##0.00;[Red]("₱"#,##0.00);"-"';
                 }
             });
             dCurrRow++;
@@ -1468,17 +1555,20 @@ exports.exportExcel = async (
         const totalDetailApp = detailResult.rows.reduce((acc, r) => acc + (Number(r["Apportionment"]) || 0), 0);
 
         const dTotalRow = wsDetail.getRow(dCurrRow);
-        dTotalRow.values = ["TOTAL ITEMIZED RECEIPTS", "", "", "", "", totalDetailAmount, totalDetailPS, totalDetailApp];
-        dTotalRow.height = 25;
-        dTotalRow.eachCell((cell, colNum) => {
+        wsDetail.mergeCells(`A${dCurrRow}:E${dCurrRow}`);
+        dTotalRow.getCell(1).value = "GRAND TOTAL ALL RECEIPTS";
+        dTotalRow.getCell(1).alignment = { vertical: "middle", horizontal: "right" };
+        dTotalRow.getCell(6).value = totalDetailAmount;
+        dTotalRow.getCell(7).value = totalDetailPS;
+        dTotalRow.getCell(8).value = totalDetailApp;
+        dTotalRow.height = 26;
+        dTotalRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
             cell.font = { name: "Calibri", size: 11.5, bold: true, color: { argb: "FF1E3A8A" } };
             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDBEAFE" } };
             cell.border = borderDoubleBottom;
-            if (colNum === 6 || colNum === 7 || colNum === 8) {
+            if (colNum >= 6) {
                 cell.alignment = { vertical: "middle", horizontal: "right" };
                 cell.numFmt = '"₱"#,##0.00;[Red]("₱"#,##0.00);"-"';
-            } else {
-                cell.alignment = { vertical: "middle", horizontal: "left" };
             }
         });
 
