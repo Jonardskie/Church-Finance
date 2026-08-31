@@ -1680,25 +1680,30 @@ exports.getDashboardSummary = async (req, res) => {
         // 2. Collections Overview (Monthly & All-time & Allocations)
         const collectionStatsPromise = pool.query(`
             SELECT 
-                COALESCE(SUM(amount), 0)::numeric AS total_collections_all_time,
+                COALESCE(SUM(amount) FILTER (WHERE LOWER(COALESCE(status, 'verified')) = 'verified'), 0)::numeric AS total_collections_all_time,
                 COALESCE(SUM(amount) FILTER (
-                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                    WHERE LOWER(COALESCE(status, 'verified')) = 'verified'
+                      AND EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
                       AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
                 ), 0)::numeric AS total_collections_this_month,
-                COALESCE(SUM(ps_amount), 0)::numeric AS total_ps_all_time,
+                COALESCE(SUM(ps_amount) FILTER (WHERE LOWER(COALESCE(status, 'verified')) = 'verified'), 0)::numeric AS total_ps_all_time,
                 COALESCE(SUM(ps_amount) FILTER (
-                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                    WHERE LOWER(COALESCE(status, 'verified')) = 'verified'
+                      AND EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
                       AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
                 ), 0)::numeric AS total_ps_this_month,
-                COALESCE(SUM(apportionment_amount), 0)::numeric AS total_apportionment_all_time,
+                COALESCE(SUM(apportionment_amount) FILTER (WHERE LOWER(COALESCE(status, 'verified')) = 'verified'), 0)::numeric AS total_apportionment_all_time,
                 COALESCE(SUM(apportionment_amount) FILTER (
-                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                    WHERE LOWER(COALESCE(status, 'verified')) = 'verified'
+                      AND EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
                       AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
                 ), 0)::numeric AS total_apportionment_this_month,
                 COUNT(DISTINCT member_name) FILTER (
-                    WHERE EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
+                    WHERE LOWER(COALESCE(status, 'verified')) = 'verified'
+                      AND EXTRACT(YEAR FROM COALESCE(collection_date, date)) = $1 
                       AND EXTRACT(MONTH FROM COALESCE(collection_date, date)) = $2
-                )::int AS active_givers_this_month
+                )::int AS active_givers_this_month,
+                COUNT(*) FILTER (WHERE LOWER(COALESCE(status, 'verified')) = 'pending')::int AS pending_collections_count
             FROM collections;
         `, [currentYear, currentMonth]);
 
@@ -1734,7 +1739,8 @@ exports.getDashboardSummary = async (req, res) => {
                     DATE_TRUNC('month', COALESCE(collection_date, date))::date AS m_date,
                     SUM(amount) AS col_amount
                 FROM collections
-                WHERE COALESCE(collection_date, date) >= CURRENT_DATE - INTERVAL '6 months'
+                WHERE LOWER(COALESCE(status, 'verified')) = 'verified' 
+                  AND COALESCE(collection_date, date) >= CURRENT_DATE - INTERVAL '6 months'
                 GROUP BY 1
             ),
             monthly_exp AS (
@@ -1765,6 +1771,7 @@ exports.getDashboardSummary = async (req, res) => {
                 SUM(c.amount)::numeric AS total_amount
             FROM collections c
             LEFT JOIN collection_types ct ON c.collection_type_id = ct.id
+            WHERE LOWER(COALESCE(c.status, 'verified')) = 'verified'
             GROUP BY 1
             ORDER BY total_amount DESC
             LIMIT 6;
@@ -1777,6 +1784,7 @@ exports.getDashboardSummary = async (req, res) => {
                 COUNT(*)::int AS transaction_count,
                 SUM(amount)::numeric AS total_amount
             FROM collections
+            WHERE LOWER(COALESCE(status, 'verified')) = 'verified'
             GROUP BY 1
             ORDER BY total_amount DESC;
         `);
@@ -1895,6 +1903,7 @@ exports.getDashboardSummary = async (req, res) => {
                 totalCollectionsThisMonth,
                 totalCollectionsAllTime,
                 activeGiversThisMonth: Number(cStats.active_givers_this_month) || 0,
+                pendingCollectionsCount: Number(cStats.pending_collections_count) || 0,
 
                 totalExpensesThisMonth,
                 totalExpensesAllTime,

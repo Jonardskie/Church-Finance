@@ -132,37 +132,125 @@ exports.createCollection = async (req, res) => {
 
     try {
 
+// Support both single-item and multi-item payloads
         const {
             date,
             member_id,
             member_name,
-            type,
             fund,
-            amount,
             status,
             payment_method,
             reference_no,
-            target
+            target,
+            // New fields for multi-item support
+            items,
+            // Fallback legacy fields
+            type,
+            amount
         } = req.body;
 
         if (!date) {
-            return res.status(400).json({
-                error: "Collection date is required."
-            });
+            return res.status(400).json({ error: "Collection date is required." });
         }
 
+        // Helper to insert a single collection entry (reused for each item)
+        const insertEntry = async (entry) => {
+            const { type: entryType, amount: entryAmount } = entry;
+            if (!entryType) {
+                throw new Error("Collection type is required for each item.");
+            }
+            const numericAmt = Number(entryAmount);
+            if (!Number.isFinite(numericAmt) || numericAmt <= 0) {
+                throw new Error("A valid collection amount is required for each item.");
+            }
+            // Get accounting config for this type
+            const cfgResult = await client.query(
+                `SELECT * FROM collection_calculations WHERE LOWER(collection_type_name) = LOWER($1) AND active = TRUE LIMIT 1`,
+                [entryType]
+            );
+            let cfg = cfgResult.rows[0];
+            if (!cfg) {
+                cfg = { ps_type: "NONE", ps_rate: 0, apportionment_type: "NONE", apportionment_rate: 0 };
+            }
+            const psType = normalizeCalculationType(cfg.ps_type);
+            const psRate = Number(cfg.ps_rate) || 0;
+            const apportionmentType = normalizeCalculationType(cfg.apportionment_type);
+            const apportionmentRate = Number(cfg.apportionment_rate) || 0;
+            const psAmount = calculateAccounting(numericAmt, psType, psRate);
+            const apportionmentAmount = calculateAccounting(numericAmt, apportionmentType, apportionmentRate);
+
+            const insertResult = await client.query(
+                `INSERT INTO collections (
+                    date, collection_date, member_id, member_name, type, fund_category, amount, status,
+                    payment_method, reference_no, target,
+                    ps_type, ps_rate, ps_amount,
+                    apportionment_type, apportionment_rate, apportionment_amount
+                ) VALUES (
+                    $1, $1, $2, $3, $4, $5, $6, $7,
+                    $8, $9, $10,
+                    $11, $12, $13,
+                    $14, $15, $16
+                ) RETURNING *`,
+                [
+                    date,
+                    member_id || null,
+                    member_name || "ANONYMOUS",
+                    entryType,
+                    fund || "General Fund",
+                    numericAmt,
+                    status || "pending",
+                    payment_method || "CASH",
+                    reference_no || null,
+                    target || fund || entryType,
+                    psType,
+                    psRate,
+                    psAmount,
+                    apportionmentType,
+                    apportionmentRate,
+                    apportionmentAmount
+                ]
+            );
+            const collection = insertResult.rows[0];
+            // Generate receipt number
+            const receiptNo = formatReceiptNumber(collection.id, date);
+            await client.query(`UPDATE collections SET receipt_no = $1 WHERE id = $2 RETURNING *`, [receiptNo, collection.id]);
+
+            // Audit log
+            const { username } = getCurrentUser(req);
+            await client.query(
+                `INSERT INTO audit_logs (user_name, action_type, table_name, details) VALUES ($1, $2, $3, $4)`,
+                [username, "CREATE_COLLECTION", "collections", auditDetails("Recorded collection", collection)]
+            );
+            return collection.id;
+        };
+
+        if (Array.isArray(items) && items.length) {
+            // Start a transaction for batch insertion
+            await client.query("BEGIN");
+            // Detect duplicate types in the request
+            const typeSet = new Set();
+            for (const it of items) {
+                if (typeSet.has(it.type)) {
+                    return res.status(400).json({ error: "Duplicate collection type in request payload." });
+                }
+                typeSet.add(it.type);
+            }
+            const createdIds = [];
+            for (const it of items) {
+                const id = await insertEntry(it);
+                createdIds.push(id);
+            }
+            await client.query("COMMIT");
+            return res.status(201).json({ ids: createdIds });
+        }
+
+        // Fallback to original single-item handling
         if (!type) {
-            return res.status(400).json({
-                error: "Collection type is required."
-            });
+            return res.status(400).json({ error: "Collection type is required." });
         }
-
         const numericAmount = Number(amount);
-
         if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
-            return res.status(400).json({
-                error: "A valid collection amount is required."
-            });
+            return res.status(400).json({ error: "A valid collection amount is required." });
         }
 
         await client.query("BEGIN");
@@ -414,6 +502,72 @@ exports.verifyCollection = async (req, res) => {
         res.status(500).json({
             error: err.message
         });
+    }
+};
+
+// -----------------------------------------------------------
+// UPDATE COLLECTION (EDIT)
+exports.updateCollection = async (req, res) => {
+    const { id } = req.params;
+    const { date, member_id, member_name, type, amount, status, payment_method, reference_no, target } = req.body;
+
+    // Basic validation
+    if (!date) return res.status(400).json({ error: "Collection date is required." });
+    if (!type) return res.status(400).json({ error: "Collection type is required." });
+    const numericAmt = Number(amount);
+    if (!Number.isFinite(numericAmt) || numericAmt <= 0) return res.status(400).json({ error: "A valid collection amount is required." });
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        // Fetch previous state for audit
+        const oldResult = await client.query(`SELECT * FROM collections WHERE id = $1`, [id]);
+        const oldRow = oldResult.rows[0];
+        // Prevent duplicate type for same member/date (excluding current record)
+        const dup = await client.query(
+            `SELECT 1 FROM collections WHERE member_id=$1 AND collection_date=$2 AND type=$3 AND id <> $4`,
+            [member_id, date, type, id]
+        );
+        if (dup.rowCount) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: "Duplicate collection type for this member/date." });
+        }
+        const updateResult = await client.query(
+            `UPDATE collections SET
+                collection_date=$1,
+                member_id=$2,
+                member_name=$3,
+                type=$4,
+                fund_category=$5,
+                amount=$6,
+                status=$7,
+                payment_method=$8,
+                reference_no=$9,
+                target=$10
+             WHERE id=$11 RETURNING *`,
+            [date, member_id, member_name || "ANONYMOUS", type, target || "General Fund", numericAmt, status, payment_method || "CASH", reference_no, target, id]
+        );
+        const updated = updateResult.rows[0];
+        // Audit log for update with before/after details
+        const { username } = getCurrentUser(req);
+        const auditDesc = `Updated collection ID ${id}: ` +
+            `date ${oldRow.collection_date || "N/A"} → ${updated.collection_date}, ` +
+            `member ${oldRow.member_id || "N/A"} → ${updated.member_id}, ` +
+            `type ${oldRow.type || "N/A"} → ${updated.type}, ` +
+            `amount ${oldRow.amount || 0} → ${updated.amount}, ` +
+            `status ${oldRow.status || "N/A"} → ${updated.status}`;
+        await client.query(
+            `INSERT INTO audit_logs (user_name, action_type, table_name, details) VALUES ($1, $2, $3, $4)`,
+            [username, "UPDATE_COLLECTION", "collections", auditDesc]
+        );
+        await client.query('COMMIT');
+        res.json({ message: "Collection updated.", collection: updated });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error("UPDATE COLLECTION ERROR:", err);
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
     }
 };
 

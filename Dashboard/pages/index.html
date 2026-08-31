@@ -767,9 +767,9 @@ async function refreshDashboard(forceRefresh = false) {
     }
 }
 
-// Initial Load
+// Initial Load - always fetch fresh metrics on page open
 document.addEventListener("DOMContentLoaded", () => {
-    refreshDashboard(false);
+    refreshDashboard(true);
 });
 </script>
 

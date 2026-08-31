@@ -35,6 +35,8 @@
         .action-btn-verify:hover { background: #059669; color: white; border-color: #059669; }
         .action-btn-delete { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
         .action-btn-delete:hover { background: #DC2626; color: white; border-color: #DC2626; }
+        .action-btn-edit { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+        .action-btn-edit:hover { background: #1D4ED8; color: white; border-color: #1D4ED8; }
 
         /* Autocomplete Suggestions */
         .suggestions-dropdown {
@@ -175,78 +177,115 @@
     </main>
 </div>
 
-<!-- RECORD COLLECTION MODAL -->
-<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-center z-[2500] p-4 overflow-y-auto"
+<!-- RECORD / EDIT COLLECTION MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-start z-[2500] p-4 overflow-y-auto"
      id="collectionModal"
      onclick="if (event.target === this) closeModal()"
      style="display: none;">
-    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden m-auto relative flex flex-col max-h-[90vh] z-10"
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden my-8 mx-auto relative flex flex-col z-10"
          onclick="event.stopPropagation()">
-        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
-            <h2 class="text-base font-bold text-navy">Record New Collection</h2>
+
+        <!-- Modal Header -->
+        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100">
+            <h2 class="text-base font-bold text-navy" id="modalTitle">Record New Collection</h2>
             <span class="text-slate-400 hover:text-slate-600 cursor-pointer text-2xl font-light leading-none" onclick="closeModal()">&times;</span>
         </div>
-        <form id="collectionForm" autocomplete="off" class="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
-            <div class="p-6 overflow-y-auto space-y-4 flex-1 min-h-0">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Date</label>
-                    <input type="date"
-                           id="collectionDate"
-                           required
-                           class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+
+        <form id="collectionForm" autocomplete="off" class="flex flex-col min-h-0">
+            <input type="hidden" id="editCollectionId">
+
+            <!-- ── Header Fields ─────────────────────────── -->
+            <div class="px-6 py-4 space-y-3 border-b border-slate-100">
+
+                <!-- Date + Status -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Date <span class="text-red-500">*</span></label>
+                        <input type="date" id="collectionDate" required
+                               class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Status</label>
+                        <select id="verificationStatus"
+                                class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                            <option value="verified">Verified</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
                 </div>
+
+                <!-- Member search -->
                 <div class="relative">
-                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Select Member <span class="text-red-500">*</span></label>
-                    <input type="search"
-                           id="memberSearch"
-                           required
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Member <span class="text-red-500">*</span></label>
+                    <input type="search" id="memberSearch" required
                            placeholder="Type to find a member..."
-                           class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
+                           class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
                     <input type="hidden" id="collectionMemberId">
                     <ul class="suggestions-dropdown" id="memberSuggestions"></ul>
                 </div>
-                <div class="relative">
-                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Collection Type</label>
-                    <input type="search"
-                           id="collectionTypeSearch"
-                           required
-                           placeholder="Type to find a collection type..."
-                           class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
-                    <input type="hidden" id="collectionType">
-                    <ul class="suggestions-dropdown" id="collectionTypeSuggestions"></ul>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Amount (₱)</label>
-                    <input type="number"
-                           id="collectionAmount"
-                           required
-                           min="1"
-                           placeholder="e.g. 250"
-                           class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10">
-                </div>
-                <!-- New container for multiple collection items -->
-                <div id="collectionItemsContainer" class="grid gap-2 mt-4"></div>
-                <button id="addCollectionRowBtn" type="button"
-                        class="mt-2 px-3 py-1 bg-navy text-white rounded hover:bg-navy-dark">
-                    + Add Row
-                </button>
 
+                <!-- Payment Method -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Verification Status</label>
-                    <select id="verificationStatus"
-                            class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
-                        <option value="pending">Pending</option>
-                        <option value="verified" selected>Verified</option>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Payment Method</label>
+                    <select id="paymentMethod"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                        <option value="CASH">Cash</option>
+                        <option value="CHECK">Check</option>
+                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                        <option value="GCASH">GCash</option>
+                        <option value="OTHER">Other</option>
                     </select>
                 </div>
             </div>
-            <div class="flex-shrink-0 flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
-                <button type="button"
-                        class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold transition-all font-sans"
-                        onclick="closeModal()">
+
+            <!-- ── Items Table ────────────────────────────── -->
+            <div class="flex flex-col min-h-0">
+
+                <!-- Table toolbar -->
+                <div class="flex justify-between items-center px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Collection Items</span>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="addItemRow()"
+                                class="px-3 py-1.5 bg-navy text-white rounded-md text-xs font-semibold hover:bg-navy-dark transition-colors">
+                            + Add Item
+                        </button>
+                        <button type="button" onclick="delLastItemRow()"
+                                class="px-3 py-1.5 bg-slate-200 text-slate-600 rounded-md text-xs font-semibold hover:bg-slate-300 transition-colors">
+                            &minus; Del Item
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Column headers -->
+                <div class="grid items-center px-5 py-2 bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wide"
+                     style="grid-template-columns: 1.8fr 1fr 1fr 110px 28px; gap: 6px;">
+                    <span>Type</span>
+                    <span>Fund / Target</span>
+                    <span>Remark</span>
+                    <span class="text-right">Amount (₱)</span>
+                    <span></span>
+                </div>
+
+                <!-- Rows container -->
+                <div id="collectionItemsContainer"
+                     class="overflow-y-auto px-5 py-2 space-y-1.5 min-h-[80px] max-h-52">
+                    <!-- rows injected by addItemRow() -->
+                </div>
+
+                <!-- Total bar -->
+                <div class="flex items-center justify-end gap-3 px-5 py-3 border-t border-slate-200 bg-slate-50">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</span>
+                    <span id="itemsTotal" class="text-base font-bold text-emerald-600">₱0.00</span>
+                </div>
+            </div>
+
+            <!-- ── Footer Buttons ─────────────────────────── -->
+            <div class="flex-shrink-0 flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-white">
+                <button type="button" onclick="closeModal()"
+                        class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold transition-all font-sans">
                     Cancel
                 </button>
-                <button type="submit"
+                <button type="submit" id="saveCollectionBtn"
                         class="px-5 py-2 bg-navy hover:bg-navy-dark text-white rounded-lg text-sm font-semibold transition-all font-sans">
                     Save Record
                 </button>
@@ -254,15 +293,6 @@
         </form>
     </div>
 </div>
-
-<!-- HIDDEN ROW TEMPLATE -->
-<template id="collectionRowTemplate">
-    <div class="flex gap-2 items-center collection-row bg-slate-50 p-2 rounded border border-slate-100">
-        <input type="text" placeholder="Type" class="flex-1 px-2 py-1.5 text-xs border rounded">
-        <input type="number" placeholder="Amount" class="w-20 px-2 py-1.5 text-xs border rounded">
-        <button type="button" class="text-red-500 hover:text-red-700 p-1" onclick="this.parentElement.remove()">✕</button>
-    </div>
-</template>
 
 <script>
 /* =========================================================
@@ -273,14 +303,151 @@
    - renderRow: Appends template to DOM
    ========================================================= */
 
-function addCollectionRow() {
+/* --- MULTI-ITEM ROW MANAGEMENT --- */
+
+function addItemRow(prefill) {
+    prefill = prefill || {};
     const container = document.getElementById('collectionItemsContainer');
-    const template = document.getElementById('collectionRowTemplate');
-    const clone = template.content.cloneNode(true);
-    container.appendChild(clone);
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = 'collection-item-row grid items-center';
+    row.style.cssText = 'grid-template-columns: 1.8fr 1fr 1fr 110px 28px; gap: 6px;';
+
+    // -- Type select --
+    const typeSelect = document.createElement('select');
+    typeSelect.className = 'collection-type-select w-full px-2 py-1.5 border border-slate-200 rounded text-sm bg-white outline-none focus:border-navy font-sans';
+    typeSelect.innerHTML = '<option value="">-- Select Type --</option>';
+    collectionTypeOptions.forEach(function(opt) {
+        const o = document.createElement('option');
+        o.value = opt.name;
+        o.textContent = opt.name;
+        if (prefill.type && prefill.type.toLowerCase() === opt.name.toLowerCase()) o.selected = true;
+        typeSelect.appendChild(o);
+    });
+    typeSelect.addEventListener('change', updateTotal);
+
+    // -- Fund / Target input --
+    const fundInput = document.createElement('input');
+    fundInput.type = 'text';
+    fundInput.placeholder = 'General Fund';
+    fundInput.value = prefill.fund || '';
+    fundInput.className = 'collection-fund w-full px-2 py-1.5 border border-slate-200 rounded text-sm bg-white outline-none focus:border-navy font-sans';
+
+    // -- Remark input --
+    const remarkInput = document.createElement('input');
+    remarkInput.type = 'text';
+    remarkInput.placeholder = 'Optional';
+    remarkInput.value = prefill.remark || '';
+    remarkInput.className = 'collection-remark w-full px-2 py-1.5 border border-slate-200 rounded text-sm bg-white outline-none focus:border-navy font-sans';
+
+    // -- Amount input --
+    const amountInput = document.createElement('input');
+    amountInput.type = 'number';
+    amountInput.min = '0.01';
+    amountInput.step = '0.01';
+    amountInput.placeholder = '0.00';
+    if (prefill.amount) amountInput.value = Number(prefill.amount).toFixed(2);
+    amountInput.className = 'collection-amount w-full px-2 py-1.5 border border-slate-200 rounded text-sm bg-white outline-none focus:border-navy font-sans text-right';
+    amountInput.addEventListener('input', updateTotal);
+
+    // -- Remove button --
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'flex items-center justify-center w-6 h-6 text-slate-400 hover:text-red-500 rounded transition-colors text-xl leading-none flex-shrink-0';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.title = 'Remove row';
+    removeBtn.onclick = function() { row.remove(); updateTotal(); };
+
+    // -- Keyboard navigation for each field --
+    function addRowKeyNav(el) {
+        el.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                navigateItemRowForward(this);
+
+            } else if (e.key === 'ArrowRight') {
+                // navigate right only when cursor is at end (or element has no text cursor)
+                const atEnd = this.tagName === 'SELECT' ||
+                              this.selectionStart == null ||
+                              this.selectionStart === this.value.length;
+                if (atEnd) { e.preventDefault(); navigateItemRowForward(this); }
+
+            } else if (e.key === 'ArrowLeft') {
+                // navigate left only when cursor is at start (or element has no text cursor)
+                const atStart = this.tagName === 'SELECT' ||
+                                this.selectionStart == null ||
+                                this.selectionStart === 0;
+                if (atStart) { e.preventDefault(); navigateItemRowBackward(this); }
+
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                navigateItemGrid(this, 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                navigateItemGrid(this, -1);
+            }
+        });
+    }
+    addRowKeyNav(typeSelect);
+    addRowKeyNav(fundInput);
+    addRowKeyNav(remarkInput);
+    addRowKeyNav(amountInput);
+
+    row.appendChild(typeSelect);
+    row.appendChild(fundInput);
+    row.appendChild(remarkInput);
+    row.appendChild(amountInput);
+    row.appendChild(removeBtn);
+
+    container.appendChild(row);
+    updateTotal();
+    typeSelect.focus();
 }
 
-document.getElementById('addCollectionRowBtn').addEventListener('click', addCollectionRow);
+function delLastItemRow() {
+    const container = document.getElementById('collectionItemsContainer');
+    if (!container) return;
+    const rows = container.querySelectorAll('.collection-item-row');
+    if (rows.length > 1) {
+        rows[rows.length - 1].remove();
+        updateTotal();
+    } else {
+        alert('At least one item row is required.');
+    }
+}
+
+function updateTotal() {
+    const rows = document.querySelectorAll('.collection-item-row');
+    let total = 0;
+    rows.forEach(function(row) {
+        const amt = parseFloat(row.querySelector('.collection-amount') && row.querySelector('.collection-amount').value) || 0;
+        total += amt;
+    });
+    const totalEl = document.getElementById('itemsTotal');
+    if (totalEl) {
+        totalEl.textContent = '₱' + total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+}
+
+function buildItemsArray() {
+    const rows = document.querySelectorAll('.collection-item-row');
+    const items = [];
+    rows.forEach(function(row) {
+        const typeEl = row.querySelector('.collection-type-select');
+        const fundEl = row.querySelector('.collection-fund');
+        const remarkEl = row.querySelector('.collection-remark');
+        const amtEl = row.querySelector('.collection-amount');
+        const type = typeEl ? typeEl.value.trim() : '';
+        const fund = (fundEl && fundEl.value.trim()) ? fundEl.value.trim() : 'General Fund';
+        const remark = remarkEl ? remarkEl.value.trim() : '';
+        const amount = amtEl ? parseFloat(amtEl.value) || 0 : 0;
+        if (type && amount > 0) {
+            items.push({ type: type, fund: fund, remark: remark, amount: amount });
+        }
+    });
+    return items;
+}
 
 /* =========================================================
    1. AUTHENTICATION
@@ -500,12 +667,11 @@ function selectSuggestion(suggestion, searchId, hiddenId, suggestionsId) {
     document.getElementById(searchId).value = suggestion.dataset.name;
     document.getElementById(hiddenId).value = suggestion.dataset.value;
     document.getElementById(suggestionsId).style.display = "none";
-    
+
     // Auto-advance focus to the next field
     if (searchId === "memberSearch") {
-        document.getElementById("collectionTypeSearch")?.focus();
-    } else if (searchId === "collectionTypeSearch") {
-        document.getElementById("collectionAmount")?.focus();
+        const next = document.getElementById("paymentMethod");
+        if (next) next.focus();
     }
 }
 
@@ -521,9 +687,8 @@ function handleSuggestionKeyboard(event, searchId, suggestionsId, hiddenId) {
         if (event.key === "Enter") {
             event.preventDefault();
             if (searchId === "memberSearch") {
-                document.getElementById("collectionTypeSearch")?.focus();
-            } else if (searchId === "collectionTypeSearch") {
-                document.getElementById("collectionAmount")?.focus();
+                const next = document.getElementById("paymentMethod");
+                if (next) next.focus();
             }
         }
         return;
@@ -552,9 +717,8 @@ function handleSuggestionKeyboard(event, searchId, suggestionsId, hiddenId) {
         event.preventDefault();
         if (suggestions.style.display === "none") {
             if (searchId === "memberSearch") {
-                document.getElementById("collectionTypeSearch")?.focus();
-            } else if (searchId === "collectionTypeSearch") {
-                document.getElementById("collectionAmount")?.focus();
+                const next = document.getElementById("paymentMethod");
+                if (next) next.focus();
             }
             return;
         }
@@ -638,12 +802,89 @@ document.getElementById("collectionDate")?.addEventListener("keydown", function(
     }
 });
 
-document.getElementById("collectionAmount")?.addEventListener("keydown", function(e) {
+// Payment Method → Enter → jump into items grid (first type select)
+document.getElementById("paymentMethod")?.addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
         e.preventDefault();
-        document.getElementById("verificationStatus")?.focus();
+        const firstType = document.querySelector("#collectionItemsContainer .collection-type-select");
+        if (firstType) firstType.focus();
     }
 });
+
+// ── Item-row keyboard navigation helpers ─────────────────────────────────────
+
+/**
+ * Move focus to the same-column field in the next (direction=1) or
+ * previous (direction=-1) item row. Returns true if navigated.
+ */
+function navigateItemGrid(el, direction) {
+    const row = el.closest(".collection-item-row");
+    const container = document.getElementById("collectionItemsContainer");
+    if (!row || !container) return false;
+
+    const rows = Array.from(container.querySelectorAll(".collection-item-row"));
+    const targetIdx = rows.indexOf(row) + direction;
+    if (targetIdx < 0 || targetIdx >= rows.length) return false;
+
+    const target = rows[targetIdx];
+    let selector = null;
+    if (el.classList.contains("collection-type-select")) selector = ".collection-type-select";
+    else if (el.classList.contains("collection-fund"))        selector = ".collection-fund";
+    else if (el.classList.contains("collection-remark"))      selector = ".collection-remark";
+    else if (el.classList.contains("collection-amount"))      selector = ".collection-amount";
+
+    if (selector) target.querySelector(selector)?.focus();
+    return true;
+}
+
+/**
+ * Move focus forward within a row (Type → Fund → Remark → Amount → next row / new row).
+ */
+function navigateItemRowForward(el) {
+    const row = el.closest(".collection-item-row");
+    if (!row) return;
+
+    if (el.classList.contains("collection-type-select")) {
+        row.querySelector(".collection-fund")?.focus();
+    } else if (el.classList.contains("collection-fund")) {
+        row.querySelector(".collection-remark")?.focus();
+    } else if (el.classList.contains("collection-remark")) {
+        row.querySelector(".collection-amount")?.focus();
+    } else if (el.classList.contains("collection-amount")) {
+        const container = document.getElementById("collectionItemsContainer");
+        const rows = Array.from(container.querySelectorAll(".collection-item-row"));
+        const idx = rows.indexOf(row);
+        if (idx < rows.length - 1) {
+            rows[idx + 1].querySelector(".collection-type-select")?.focus();
+        } else {
+            addItemRow(); // automatically focuses new row's type select
+        }
+    }
+}
+
+/**
+ * Move focus backward within a row (Amount → Remark → Fund → Type → prev row's Amount).
+ */
+function navigateItemRowBackward(el) {
+    const row = el.closest(".collection-item-row");
+    if (!row) return;
+
+    if (el.classList.contains("collection-amount")) {
+        row.querySelector(".collection-remark")?.focus();
+    } else if (el.classList.contains("collection-remark")) {
+        row.querySelector(".collection-fund")?.focus();
+    } else if (el.classList.contains("collection-fund")) {
+        row.querySelector(".collection-type-select")?.focus();
+    } else if (el.classList.contains("collection-type-select")) {
+        // wrap to previous row's Amount field
+        const container = document.getElementById("collectionItemsContainer");
+        const rows = Array.from(container.querySelectorAll(".collection-item-row"));
+        const idx = rows.indexOf(row);
+        if (idx > 0) {
+            rows[idx - 1].querySelector(".collection-amount")?.focus();
+        }
+    }
+}
 
 // Global Escape key to cancel/close the modal
 document.addEventListener("keydown", function(e) {
@@ -903,35 +1144,34 @@ function renderCollectionsTable() {
 
 
         if (status === "pending") {
-
             actions = `
-                <button
-                    class="action-btn action-btn-verify"
-                    onclick="verifyCollection(${item.id})"
-                    title="Verify"
-                >
-                    Verify
-                </button>
-
-                <button
-                    class="action-btn action-btn-delete"
-                    onclick="deleteCollection(${item.id})"
-                    title="Delete"
-                >
-                    Delete
-                </button>
+                <button class="action-btn action-btn-edit"
+                        onclick="openEditModal(${item.id})"
+                        title="Edit">Edit</button>
+                <button class="action-btn action-btn-verify"
+                        onclick="verifyCollection(${item.id})"
+                        title="Verify">Verify</button>
+                <button class="action-btn action-btn-delete"
+                        onclick="deleteCollection(${item.id})"
+                        title="Delete">Delete</button>
             `;
-
-        } else {
-
+        } else if (status === "verified") {
             actions = `
-                <button
-                    class="action-btn action-btn-delete"
-                    onclick="deleteCollection(${item.id})"
-                    title="Delete"
-                >
-                    Delete
-                </button>
+                <button class="action-btn action-btn-edit"
+                        onclick="openEditModal(${item.id})"
+                        title="Edit">Edit</button>
+                <button class="action-btn action-btn-delete"
+                        onclick="deleteCollection(${item.id})"
+                        title="Delete">Delete</button>
+            `;
+        } else {
+            actions = `
+                <button class="action-btn action-btn-edit"
+                        onclick="openEditModal(${item.id})"
+                        title="Edit">Edit</button>
+                <button class="action-btn action-btn-delete"
+                        onclick="deleteCollection(${item.id})"
+                        title="Delete">Delete</button>
             `;
         }
 
@@ -1078,144 +1318,123 @@ if (collectionForm) {
 
             event.preventDefault();
 
-            // Prevent double submission
-            const submitBtn = collectionForm.querySelector("button[type='submit']");
-            let reEnableSubmitButton = () => {};
+            const isEdit = !!(document.getElementById("editCollectionId") && document.getElementById("editCollectionId").value);
+            const submitBtn = document.getElementById("saveCollectionBtn");
+
+            if (submitBtn && submitBtn.disabled) return;
             if (submitBtn) {
-                if (submitBtn.disabled) return;
                 submitBtn.disabled = true;
-                const originalText = submitBtn.textContent;
-                submitBtn.textContent = "Saving...";
+                submitBtn.textContent = isEdit ? "Updating..." : "Saving...";
                 submitBtn.classList.add("opacity-50", "cursor-not-allowed");
-                
-                reEnableSubmitButton = () => {
+            }
+
+            const reEnable = function() {
+                if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
+                    submitBtn.textContent = isEdit ? "Update Record" : "Save Record";
                     submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
-                };
-            }
-
-            const memberDropdown =
-                document.getElementById(
-                    "collectionMemberId"
-                );
-
-
-            const typeDropdown =
-                document.getElementById(
-                    "collectionType"
-                );
-
-
-            if (!memberDropdown.value) {
-                alert(
-                    "Please select a member."
-                );
-                reEnableSubmitButton();
-                return;
-            }
-
-
-            if (!typeDropdown.value) {
-                alert(
-                    "Please select a collection type."
-                );
-                reEnableSubmitButton();
-                return;
-            }
-
-
-            const amount =
-                Number(
-                    document.getElementById(
-                        "collectionAmount"
-                    ).value
-                );
-
-
-            if (!amount || amount <= 0) {
-                alert(
-                    "Please enter a valid amount."
-                );
-                reEnableSubmitButton();
-                return;
-            }
-
-            const rows = document.querySelectorAll('#collectionItemsContainer .collection-row');
-            const items = Array.from(rows).map(r => ({
-                type: r.querySelector('input[type=text]').value.trim(),
-                amount: Number(r.querySelector('input[type=number]').value)
-            }));
-            const payload = {
-                date: document.getElementById('collectionDate').value,
-                member_id: memberDropdown.value,
-                member_name: document.getElementById('memberSearch').value.split('(')[0].trim(),
-                items,
-                status: document.getElementById('verificationStatus').value
+                }
             };
 
+            const memberId = document.getElementById("collectionMemberId").value;
+            const date    = document.getElementById("collectionDate").value;
+
+            if (!memberId) {
+                alert("Please select a member.");
+                reEnable();
+                return;
+            }
+
+            if (!date) {
+                alert("Please enter a collection date.");
+                reEnable();
+                return;
+            }
+
+            const items = buildItemsArray();
+            if (!items.length) {
+                alert("Please add at least one collection item with a type and an amount greater than zero.");
+                reEnable();
+                return;
+            }
+
+            const memberName    = document.getElementById("memberSearch").value.split("(")[0].trim();
+            const paymentMethod = (document.getElementById("paymentMethod") && document.getElementById("paymentMethod").value) || "CASH";
+            const referenceNo   = (document.getElementById("referenceNo") && document.getElementById("referenceNo").value.trim()) || null;
+            const status        = document.getElementById("verificationStatus").value;
 
             try {
 
-                const result =
+                if (isEdit) {
+
+                    // ---- EDIT: PUT single record ----
+                    const editId = document.getElementById("editCollectionId").value;
+                    const item   = items[0]; // edit always has exactly one row
+
+                    await apiRequest(
+                        `/api/collections/${editId}`,
+                        {
+                            method: "PUT",
+                            body: JSON.stringify({
+                                date,
+                                member_id:      memberId,
+                                member_name:    memberName,
+                                type:           item.type,
+                                fund:           item.fund,
+                                amount:         item.amount,
+                                status,
+                                payment_method: paymentMethod,
+                                reference_no:   referenceNo,
+                                target:         item.fund || item.type
+                            })
+                        }
+                    );
+
+                    alert("Collection updated successfully.");
+
+                } else {
+
+                    // ---- CREATE: POST items array ----
                     await apiRequest(
                         "/api/collections",
                         {
                             method: "POST",
-
-                            body:
-                                JSON.stringify(
-                                    payload
-                                )
+                            body: JSON.stringify({
+                                date,
+                                member_id:      memberId,
+                                member_name:    memberName,
+                                payment_method: paymentMethod,
+                                reference_no:   referenceNo,
+                                status,
+                                items
+                            })
                         }
                     );
 
-
-                console.log(
-                    "Collection saved:",
-                    result
-                );
-
-
-                alert(
-                    "Collection recorded successfully."
-                );
+                    alert(
+                        items.length > 1
+                            ? `${items.length} collections recorded successfully.`
+                            : "Collection recorded successfully."
+                    );
+                }
 
 
-                localStorage.removeItem(
-                    "cfmms:GET:/api/collections"
-                );
-
-
-                localStorage.removeItem(
-                    "cfmms:dashboard:collections"
-                );
-
-
-                collectionForm.reset();
-
-                document.getElementById("memberSuggestions").style.display = "none";
-                document.getElementById("collectionTypeSuggestions").style.display = "none";
+                localStorage.removeItem("cfmms:GET:/api/collections");
+                localStorage.removeItem("cfmms:dashboard:summary");
+                localStorage.removeItem("cfmms:GET:/api/reports/dashboard-summary");
 
                 closeModal();
 
-
                 await loadCollectionsFromDB();
 
-                reEnableSubmitButton();
+                reEnable();
 
             } catch (error) {
 
-                console.error(
-                    "Save collection error:",
-                    error
-                );
+                console.error("Save collection error:", error);
 
-
-                alert(
-                    error.message
-                );
-                reEnableSubmitButton();
+                alert(error.message || "An error occurred while saving.");
+                reEnable();
             }
         }
     );
@@ -1259,10 +1478,11 @@ async function verifyCollection(id) {
         localStorage.removeItem(
             "cfmms:GET:/api/collections"
         );
-
-
         localStorage.removeItem(
-            "cfmms:dashboard:collections"
+            "cfmms:dashboard:summary"
+        );
+        localStorage.removeItem(
+            "cfmms:GET:/api/reports/dashboard-summary"
         );
 
 
@@ -1317,10 +1537,11 @@ async function deleteCollection(id) {
         localStorage.removeItem(
             "cfmms:GET:/api/collections"
         );
-
-
         localStorage.removeItem(
-            "cfmms:dashboard:collections"
+            "cfmms:dashboard:summary"
+        );
+        localStorage.removeItem(
+            "cfmms:GET:/api/reports/dashboard-summary"
         );
 
 
@@ -1352,106 +1573,74 @@ function updateCollectionMetrics() {
         collectionsData.length;
 
 
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0];
+
+    // Start of current week (Sunday)
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Current year & month
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+
     let totalAmount = 0;
-
     let pendingCount = 0;
-
+    let todayAmount = 0;
+    let todayRecords = 0;
+    let weeklyAmount = 0;
+    let weeklyRecords = 0;
+    let monthlyAmount = 0;
+    let monthlyRecords = 0;
 
     collectionsData.forEach(item => {
+        const amt = Number(item.amount || 0);
+        totalAmount += amt;
 
-        totalAmount +=
-            Number(item.amount || 0);
-
-
-        if (
-            String(item.status).toLowerCase() ===
-            "pending"
-        ) {
+        if (String(item.status).toLowerCase() === "pending") {
             pendingCount++;
+        }
+
+        const rawDate = item.collection_date || item.date;
+        if (rawDate) {
+            const itemDate = new Date(rawDate);
+            const itemDateStr = String(rawDate).split("T")[0];
+
+            if (itemDateStr === todayStr) {
+                todayAmount += amt;
+                todayRecords++;
+            }
+
+            if (itemDate >= startOfWeek && itemDate <= now) {
+                weeklyAmount += amt;
+                weeklyRecords++;
+            }
+
+            if (itemDate.getFullYear() === curYear && itemDate.getMonth() === curMonth) {
+                monthlyAmount += amt;
+                monthlyRecords++;
+            }
         }
     });
 
+    const todayTotal = document.getElementById("todayTotal");
+    const todayCount = document.getElementById("todayCount");
+    const weeklyTotal = document.getElementById("weeklyTotal");
+    const weeklyCount = document.getElementById("weeklyCount");
+    const monthlyTotal = document.getElementById("monthlyTotal");
+    const monthlyCount = document.getElementById("monthlyCount");
+    const pendingVerificationCount = document.getElementById("pendingVerificationCount");
+    const pendingPercentText = document.getElementById("pendingPercentText");
 
-    const formattedTotal =
-        `₱${totalAmount.toLocaleString()}`;
+    if (todayTotal) todayTotal.textContent = `₱${todayAmount.toLocaleString()}`;
+    if (todayCount) todayCount.textContent = `${todayRecords} records`;
 
+    if (weeklyTotal) weeklyTotal.textContent = `₱${weeklyAmount.toLocaleString()}`;
+    if (weeklyCount) weeklyCount.textContent = `${weeklyRecords} records`;
 
-    const todayTotal =
-        document.getElementById(
-            "todayTotal"
-        );
-
-
-    const todayCount =
-        document.getElementById(
-            "todayCount"
-        );
-
-
-    const weeklyTotal =
-        document.getElementById(
-            "weeklyTotal"
-        );
-
-
-    const weeklyCount =
-        document.getElementById(
-            "weeklyCount"
-        );
-
-
-    const monthlyTotal =
-        document.getElementById(
-            "monthlyTotal"
-        );
-
-
-    const monthlyCount =
-        document.getElementById(
-            "monthlyCount"
-        );
-
-
-    const pendingVerificationCount =
-        document.getElementById(
-            "pendingVerificationCount"
-        );
-
-
-    const pendingPercentText =
-        document.getElementById(
-            "pendingPercentText"
-        );
-
-
-    if (todayTotal)
-        todayTotal.textContent =
-            formattedTotal;
-
-
-    if (todayCount)
-        todayCount.textContent =
-            `${totalRecords} records`;
-
-
-    if (weeklyTotal)
-        weeklyTotal.textContent =
-            formattedTotal;
-
-
-    if (weeklyCount)
-        weeklyCount.textContent =
-            `${totalRecords} records`;
-
-
-    if (monthlyTotal)
-        monthlyTotal.textContent =
-            formattedTotal;
-
-
-    if (monthlyCount)
-        monthlyCount.textContent =
-            `${totalRecords} records`;
+    if (monthlyTotal) monthlyTotal.textContent = `₱${monthlyAmount.toLocaleString()}`;
+    if (monthlyCount) monthlyCount.textContent = `${monthlyRecords} records`;
 
 
     if (pendingVerificationCount)
@@ -1475,39 +1664,113 @@ function updateCollectionMetrics() {
 
 
 /* =========================================================
-   15. OPEN MODAL
+   15. OPEN MODAL  (Record New Collection)
    ========================================================= */
 
 async function openModal() {
 
-    const modal =
-        document.getElementById(
-            "collectionModal"
-        );
+    // Reset title & button
+    const titleEl = document.getElementById("modalTitle");
+    if (titleEl) titleEl.textContent = "Record New Collection";
+    const saveBtn = document.getElementById("saveCollectionBtn");
+    if (saveBtn) saveBtn.textContent = "Save Record";
 
+    // Clear edit flag
+    const editId = document.getElementById("editCollectionId");
+    if (editId) editId.value = "";
 
-    const dateInput =
-        document.getElementById(
-            "collectionDate"
-        );
+    // Set today's date
+    const dateInput = document.getElementById("collectionDate");
+    if (dateInput) dateInput.value = new Date().toISOString().split("T")[0];
 
+    // Reset header fields
+    const memberSearch = document.getElementById("memberSearch");
+    if (memberSearch) memberSearch.value = "";
+    const memberId = document.getElementById("collectionMemberId");
+    if (memberId) memberId.value = "";
+    const memberSugg = document.getElementById("memberSuggestions");
+    if (memberSugg) memberSugg.style.display = "none";
+    const pmEl = document.getElementById("paymentMethod");
+    if (pmEl) pmEl.value = "CASH";
+    const refEl = document.getElementById("referenceNo");
+    if (refEl) refEl.value = "";
+    const statusEl = document.getElementById("verificationStatus");
+    if (statusEl) statusEl.value = "verified";
 
-    if (!modal) return;
-
-
-    if (dateInput) {
-
-        dateInput.value =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-    }
-
-
-    modal.classList.add("show");
-    modal.style.display = "flex";
+    // Init item rows
+    const container = document.getElementById("collectionItemsContainer");
+    if (container) container.innerHTML = "";
 
     await loadCollectionTypes();
+    addItemRow();
+    updateTotal();
+
+    const modal = document.getElementById("collectionModal");
+    if (!modal) return;
+    modal.classList.add("show");
+    modal.style.display = "flex";
+}
+
+
+/* =========================================================
+   15b. OPEN EDIT MODAL  (Edit Existing Collection)
+   ========================================================= */
+
+async function openEditModal(id) {
+
+    const record = collectionsData.find(function(c) { return c.id === id; });
+    if (!record) {
+        alert("Record not found. Please refresh the page.");
+        return;
+    }
+
+    // Set title & button
+    const titleEl = document.getElementById("modalTitle");
+    if (titleEl) titleEl.textContent = "Edit Collection";
+    const saveBtn = document.getElementById("saveCollectionBtn");
+    if (saveBtn) saveBtn.textContent = "Update Record";
+
+    // Store the id being edited
+    const editId = document.getElementById("editCollectionId");
+    if (editId) editId.value = id;
+
+    // Populate header fields
+    const rawDate = record.date || record.collection_date || "";
+    const cleanDate = rawDate ? String(rawDate).split("T")[0] : "";
+    const dateInput = document.getElementById("collectionDate");
+    if (dateInput) dateInput.value = cleanDate;
+
+    const memberSearch = document.getElementById("memberSearch");
+    if (memberSearch) memberSearch.value = record.member_name || "";
+    const memberIdEl = document.getElementById("collectionMemberId");
+    if (memberIdEl) memberIdEl.value = record.member_id || "";
+    const memberSugg = document.getElementById("memberSuggestions");
+    if (memberSugg) memberSugg.style.display = "none";
+
+    const statusEl = document.getElementById("verificationStatus");
+    if (statusEl) statusEl.value = record.status || "pending";
+    const pmEl = document.getElementById("paymentMethod");
+    if (pmEl) pmEl.value = record.payment_method || "CASH";
+    const refEl = document.getElementById("referenceNo");
+    if (refEl) refEl.value = record.reference_no || "";
+
+    // Pre-fill the single item row with existing record data
+    const container = document.getElementById("collectionItemsContainer");
+    if (container) container.innerHTML = "";
+
+    await loadCollectionTypes();
+    addItemRow({
+        type:   record.type        || "",
+        fund:   record.fund_category || "",
+        remark: "",
+        amount: record.amount      || 0
+    });
+    updateTotal();
+
+    const modal = document.getElementById("collectionModal");
+    if (!modal) return;
+    modal.classList.add("show");
+    modal.style.display = "flex";
 }
 
 

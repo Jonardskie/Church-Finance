@@ -48,6 +48,15 @@ router.delete(
     controller.deleteCollection
 );
 
+// Update collection (Admin, Pastor, Treasurer)
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware('Admin', 'Pastor', 'Treasurer'),
+    controller.updateCollection
+);
+
+
 // Get collections by specific member ID (Admin, Pastor, Treasurer, Secretary)
 router.get(
     "/member/:member_id",

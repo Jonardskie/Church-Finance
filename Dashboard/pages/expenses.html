@@ -1515,6 +1515,12 @@ document
                 localStorage.removeItem(
                     "cfmms:expenses:list"
                 );
+                localStorage.removeItem(
+                    "cfmms:dashboard:summary"
+                );
+                localStorage.removeItem(
+                    "cfmms:GET:/api/reports/dashboard-summary"
+                );
 
                 await loadExpenses();
 
@@ -1633,6 +1639,12 @@ async function approveExpense(id) {
         localStorage.removeItem(
             "cfmms:expenses:list"
         );
+        localStorage.removeItem(
+            "cfmms:dashboard:summary"
+        );
+        localStorage.removeItem(
+            "cfmms:GET:/api/reports/dashboard-summary"
+        );
 
         await loadExpenses();
 
@@ -1736,6 +1748,12 @@ async function voidExpense(id) {
 
         localStorage.removeItem(
             "cfmms:expenses:list"
+        );
+        localStorage.removeItem(
+            "cfmms:dashboard:summary"
+        );
+        localStorage.removeItem(
+            "cfmms:GET:/api/reports/dashboard-summary"
         );
 
         await loadExpenses();
