@@ -1,29 +1,41 @@
+// config/db.js
+// Dynamic Multi-Tenant Database Proxy
+// Routes all query calls to the active church's connection pool via AsyncLocalStorage
+
 require("dotenv").config();
+const { masterPool, tenantStorage } = require("./tenantManager");
 
-const { Pool } = require("pg");
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
-
-pool.on("error", (err) => {
-    console.warn("⚠️ PostgreSQL pool connection reset:", err.code || err.message);
-});
-
-// Test connection but don't crash if it fails on startup
-pool.connect()
-    .then(() => {
-        console.log("✅ Connected to Neon PostgreSQL");
+// Test Master Database connection on startup
+masterPool.connect()
+    .then((client) => {
+        client.release();
+        console.log("✅ Connected to Neon PostgreSQL (Master / Default Database)");
     })
     .catch((err) => {
         console.warn("⚠️ Database connection warning:", err.message);
-        console.warn("⚠️ Ensure DATABASE_URL is set in environment variables");
     });
 
-module.exports = pool;
+/**
+ * Returns the active tenant pool if inside a tenant request context,
+ * otherwise falls back to the default master pool.
+ */
+function getActivePool() {
+    const store = tenantStorage.getStore();
+    return store?.pool || masterPool;
+}
+
+// Proxy wrapper around masterPool so any property access or method call
+// (like pool.query, pool.connect, pool.totalCount, etc.) dynamically dispatches
+// to the requesting church's dedicated connection pool.
+const poolProxy = new Proxy(masterPool, {
+    get(target, prop, receiver) {
+        const active = getActivePool();
+        const value = Reflect.get(active, prop, active);
+        if (typeof value === "function") {
+            return value.bind(active);
+        }
+        return value;
+    }
+});
+
+module.exports = poolProxy;

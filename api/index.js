@@ -9,42 +9,56 @@ const { rateLimit } = require("express-rate-limit");
 const app = express();
 app.set("trust proxy", 1);
 
-// Rate Limiters
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Secure File Upload (10MB limit, abort on oversize)
+app.use(fileUpload({
+    limits: { fileSize: 10 * 1024 * 1024 },
+    abortOnLimit: true
+}));
+
+// Multi-tenant routing middleware for Vercel
+const tenantMiddleware = require("../middleWare/tenantMiddleware");
+app.use(tenantMiddleware);
+
+// Rate Limiters (Tenant-Isolated)
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 150, // Limit each IP per church to 150 requests per windowMs
     message: {
         error: "Too many requests from this IP, please try again after 15 minutes"
     },
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+    keyGenerator: (req) => `${req.ip}_${req.churchSlug || "default"}`,
     skip: (req) => req.originalUrl && req.originalUrl.startsWith("/api/auth")
 });
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 15, // Limit each IP to 15 login attempts per windowMs
+    max: 20, // Limit each IP per church to 20 login attempts per windowMs
     message: {
         error: "Too many login attempts from this IP, please try again after 15 minutes"
     },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+    keyGenerator: (req) => `${req.ip}_${req.churchSlug || "default"}`
 });
 
 // Apply limiters to API paths
 app.use("/api/auth", authLimiter);
 app.use("/api", apiLimiter);
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(fileUpload());
-
 // Health check endpoint
 app.get("/api/health", (req, res) => {
     res.status(200).json({
         status: "ok",
         timestamp: new Date().toISOString(),
+        church: req.churchSlug || "maui",
         env: {
             databaseConnected: process.env.DATABASE_URL ? "✓ Set" : "✗ Missing",
             jwtSecret: process.env.JWT_SECRET ? "✓ Set" : "✗ Missing",
@@ -62,6 +76,7 @@ try {
     const reportRoutes = require("../Routes/report");
     const expenseRoutes = require("../Routes/expenses");
     const auditRoutes = require("../Routes/audit");
+    const settingsRoutes = require("../Routes/settings");
 
     app.use("/api/auth", authRoutes);
     app.use("/api/collections", collectionRoutes);
@@ -70,6 +85,7 @@ try {
     app.use("/api/expenses", expenseRoutes);
     app.use("/api/reports", reportRoutes);
     app.use("/api/audit", auditRoutes);
+    app.use("/api/settings", settingsRoutes);
 } catch (error) {
     console.error("❌ Error loading routes:", error.message);
 }

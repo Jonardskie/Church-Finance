@@ -346,7 +346,10 @@ document.getElementById("subGreeting").innerText = `${currentChurchName} · ${ne
 // ============================================================
 // 2. DASHBOARD DATA & CACHE ENGINE
 // ============================================================
-const DASHBOARD_CACHE_KEY = "cfmms:dashboard:summary";
+function getDashboardCacheKey() {
+    const church = (sessionStorage.getItem("church_slug") || "maui").toLowerCase();
+    return `cfmms:${church}:dashboard:summary`;
+}
 const DASHBOARD_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
 // Global Chart Instances
@@ -366,10 +369,11 @@ function formatCurrency(val) {
 
 async function fetchDashboardData(forceRefresh = false) {
     const token = sessionStorage.getItem("token");
+    const cacheKey = getDashboardCacheKey();
 
     if (!forceRefresh) {
         try {
-            const raw = localStorage.getItem(DASHBOARD_CACHE_KEY);
+            const raw = localStorage.getItem(cacheKey);
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (parsed && Date.now() < (parsed.expiresAt || 0)) {
@@ -399,7 +403,7 @@ async function fetchDashboardData(forceRefresh = false) {
 
     const json = await response.json();
     try {
-        localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({
+        localStorage.setItem(cacheKey, JSON.stringify({
             value: json,
             expiresAt: Date.now() + DASHBOARD_CACHE_TTL
         }));

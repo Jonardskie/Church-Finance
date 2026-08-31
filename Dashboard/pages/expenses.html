@@ -1238,7 +1238,8 @@ function setCachedJson(key, value, ttl = EXPENSES_CACHE_TTL) {
 
 async function cachedFetchJson(url, options = {}, key, ttl = EXPENSES_CACHE_TTL) {
     const method = (options.method || "GET").toUpperCase();
-    const cacheKey = key || `cfmms:${method}:${url}`;
+    const church = (sessionStorage.getItem("church_slug") || "maui").toLowerCase();
+    const cacheKey = key ? `cfmms:${church}:${key.replace(/^cfmms:/, '')}` : `cfmms:${church}:${method}:${url}`;
 
     if (method === "GET") {
         const cached = getCachedJson(cacheKey, ttl);

@@ -5,6 +5,7 @@ const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const path = require("path");
 const { rateLimit } = require("express-rate-limit");
+const tenantMiddleware = require("./middleWare/tenantMiddleware");
 
 // ============================================================
 // ERROR HANDLING
@@ -77,80 +78,70 @@ const app = express();
 app.set("trust proxy", 1);
 
 // ============================================================
-// RATE LIMITING
+// MIDDLEWARE
+// ============================================================
+
+app.use(cors());
+app.use(express.json());
+
+// Secure File Upload (10MB limit, abort on oversize)
+app.use(fileUpload({
+    limits: { fileSize: 10 * 1024 * 1024 },
+    abortOnLimit: true
+}));
+
+// Multi-Tenant Dynamic Database Routing Middleware
+app.use(tenantMiddleware);
+
+// ============================================================
+// RATE LIMITING (Tenant-Isolated)
 // ============================================================
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 150, // Limit each IP per church to 150 requests per windowMs
     message: {
         error: "Too many requests from this IP, please try again after 15 minutes"
     },
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+    keyGenerator: (req) => `${req.ip}_${req.churchSlug || "default"}`,
     skip: (req) => req.originalUrl && req.originalUrl.startsWith("/api/auth")
 });
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 15, // Limit each IP to 15 login attempts per windowMs
+    max: 20, // Limit each IP per church to 20 login attempts per windowMs
     message: {
         error: "Too many login attempts from this IP, please try again after 15 minutes"
     },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+    keyGenerator: (req) => `${req.ip}_${req.churchSlug || "default"}`
 });
 
 // Apply limiters to API paths
 app.use("/api/auth", authLimiter);
 app.use("/api", apiLimiter);
 
-
 // ============================================================
 // HEALTH CHECK
 // ============================================================
 
 app.get("/api/health", (req, res) => {
-
     res.status(200).json({
-
         status: "ok",
-
-        timestamp:
-            new Date().toISOString(),
-
+        timestamp: new Date().toISOString(),
+        church: req.churchSlug || "maui",
         env: {
-
-            databaseConnected:
-                process.env.DATABASE_URL
-                    ? "✓ Set"
-                    : "✗ Missing",
-
-            jwtSecret:
-                process.env.JWT_SECRET
-                    ? "✓ Set"
-                    : "✗ Missing",
-
-            nodeEnv:
-                process.env.NODE_ENV ||
-                "production"
-
+            databaseConnected: process.env.DATABASE_URL ? "✓ Set" : "✗ Missing",
+            jwtSecret: process.env.JWT_SECRET ? "✓ Set" : "✗ Missing",
+            nodeEnv: process.env.NODE_ENV || "production"
         }
-
     });
-
 });
-
-
-// ============================================================
-// MIDDLEWARE
-// ============================================================
-
-app.use(cors());
-
-app.use(express.json());
-
-app.use(fileUpload());
 
 
 // ============================================================

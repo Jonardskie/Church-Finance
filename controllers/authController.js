@@ -47,27 +47,30 @@ exports.login = async (req, res) => {
             });
         }
 
-        // Make sure the token payload includes the exact role string format, username, and name
+        // Make sure the token payload includes the exact role string format, username, name, and church_slug
         const normalizedRole = user.role ? String(user.role).trim() : "member";
+        const churchSlug = req.churchSlug || "maui";
         const token = jwt.sign(
             {
                 id: user.id,
                 username: user.username,
                 role: normalizedRole,
-                name: user.name || user.username
+                name: user.name || user.username,
+                church_slug: churchSlug
             },
             process.env.JWT_SECRET,
             { expiresIn: "8h" }
         );
 
-        console.log("🚀 JWT SESSION TOKEN CREATED SUCCESSFULY");
+        console.log(`🚀 JWT SESSION TOKEN CREATED FOR [${user.username}] AT CHURCH [${churchSlug}]`);
 
         return res.json({
             success: true,
             token,
             role: normalizedRole,
             username: user.username,
-            name: user.name || user.username
+            name: user.name || user.username,
+            church_slug: churchSlug
         });
 
     } catch (err) {

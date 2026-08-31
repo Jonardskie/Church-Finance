@@ -248,9 +248,18 @@
                 return;
             }
             if (confirm("Are you sure you want to log out of CFMMS?")) {
+                const currentChurch = sessionStorage.getItem("church_slug");
                 sessionStorage.clear();
-                localStorage.removeItem("cfmms:dashboard:summary");
-                window.location.replace("login.html");
+                // Clear all multi-tenant cached items from localStorage
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith("cfmms:") || k.startsWith("church_"))) {
+                        keysToRemove.push(k);
+                    }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+                window.location.replace(currentChurch ? `login.html?church=${currentChurch}` : "login.html");
             }
         });
     }

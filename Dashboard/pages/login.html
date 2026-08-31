@@ -93,6 +93,9 @@
 
             <form id="authLoginForm" autocomplete="off">
 
+                <!-- Hidden Church Code (defaults to maui or read from URL) -->
+                <input type="hidden" id="churchSlug" value="maui">
+
                 <!-- Username field -->
                 <div class="relative mb-4 sm:mb-5">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
@@ -187,9 +190,18 @@
         }
     })();
 
+    // Auto-detect church from URL (?church=grace or subdomain)
+    const urlParams = new URLSearchParams(window.location.search);
+    const churchFromUrl = urlParams.get("church") || urlParams.get("church_slug");
+    if (churchFromUrl) {
+        const slugInput = document.getElementById("churchSlug");
+        if (slugInput) slugInput.value = churchFromUrl.toLowerCase();
+    }
+
     document.getElementById("authLoginForm").addEventListener("submit", async function(event) {
         event.preventDefault();
 
+        const churchSlug = (document.getElementById("churchSlug")?.value || "maui").trim().toLowerCase();
         const username = document.getElementById("userEmail").value.trim();
         const password = document.getElementById("userPassword").value;
         const errorBlock = document.getElementById("errorBlock");
@@ -210,20 +222,21 @@
             const res = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "X-Church-Slug": churchSlug
                 },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ username, password, church_slug: churchSlug })
             });
 
             const data = await res.json();
 
             if (!res.ok || !data.token) {
                 if (errorBlock) {
-                    errorBlock.innerText = data.message || "Invalid credentials.";
+                    errorBlock.innerText = data.message || data.error || "Invalid credentials.";
                     errorBlock.classList.remove("hidden");
                     errorBlock.style.display = "block";
                 } else {
-                    alert(data.message || "Login failed");
+                    alert(data.message || data.error || "Login failed");
                 }
                 if (submitBtn) {
                     submitBtn.disabled = false;
@@ -232,11 +245,22 @@
                 return;
             }
 
+            // Clear any old multi-tenant cache from previous sessions
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith("cfmms:") || k.startsWith("church_"))) {
+                    keysToRemove.push(k);
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+
             // Store session tokens safely
             sessionStorage.setItem("token", data.token);
             sessionStorage.setItem("role", data.role || "Member");
             sessionStorage.setItem("username", data.username);
             sessionStorage.setItem("name", data.name || data.username);
+            sessionStorage.setItem("church_slug", data.church_slug || churchSlug);
 
             // ROLE-BASED REDIRECT
             const userRole = (data.role || "member").toLowerCase();

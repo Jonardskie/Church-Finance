@@ -531,9 +531,31 @@ function setCachedJson(key, value, ttl = COLLECTIONS_CACHE_TTL) {
     }
 }
 
+function invalidateCollectionsCache() {
+    const church = (sessionStorage.getItem("church_slug") || "maui").toLowerCase();
+    const keysToRemove = [
+        `cfmms:${church}:GET:/api/collections`,
+        `cfmms:${church}:dashboard:summary`,
+        `cfmms:${church}:GET:/api/reports/dashboard-summary`,
+        "cfmms:GET:/api/collections",
+        "cfmms:dashboard:summary",
+        "cfmms:GET:/api/reports/dashboard-summary"
+    ];
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.includes("collections") || k.includes("dashboard"))) {
+            keysToRemove.push(k);
+        }
+    }
+    keysToRemove.forEach(k => {
+        try { localStorage.removeItem(k); } catch (e) {}
+    });
+}
+
 async function cachedFetchJson(url, options = {}, key, ttl = COLLECTIONS_CACHE_TTL) {
     const method = (options.method || "GET").toUpperCase();
-    const cacheKey = key || `cfmms:${method}:${url}`;
+    const church = (sessionStorage.getItem("church_slug") || "maui").toLowerCase();
+    const cacheKey = key ? `cfmms:${church}:${key.replace(/^cfmms:/, '')}` : `cfmms:${church}:${method}:${url}`;
 
     if (method === "GET") {
         const cached = getCachedJson(cacheKey, ttl);
@@ -1124,8 +1146,8 @@ function renderCollectionsTable() {
     paginatedData.forEach(item => {
 
         const cleanDate =
-            item.date
-                ? String(item.date).split("T")[0]
+            (item.collection_date || item.date)
+                ? String(item.collection_date || item.date).split("T")[0]
                 : "N/A";
 
 
@@ -1419,9 +1441,7 @@ if (collectionForm) {
                 }
 
 
-                localStorage.removeItem("cfmms:GET:/api/collections");
-                localStorage.removeItem("cfmms:dashboard:summary");
-                localStorage.removeItem("cfmms:GET:/api/reports/dashboard-summary");
+                invalidateCollectionsCache();
 
                 closeModal();
 
@@ -1475,15 +1495,7 @@ async function verifyCollection(id) {
         );
 
 
-        localStorage.removeItem(
-            "cfmms:GET:/api/collections"
-        );
-        localStorage.removeItem(
-            "cfmms:dashboard:summary"
-        );
-        localStorage.removeItem(
-            "cfmms:GET:/api/reports/dashboard-summary"
-        );
+        invalidateCollectionsCache();
 
 
         await loadCollectionsFromDB();
@@ -1534,15 +1546,7 @@ async function deleteCollection(id) {
         );
 
 
-        localStorage.removeItem(
-            "cfmms:GET:/api/collections"
-        );
-        localStorage.removeItem(
-            "cfmms:dashboard:summary"
-        );
-        localStorage.removeItem(
-            "cfmms:GET:/api/reports/dashboard-summary"
-        );
+        invalidateCollectionsCache();
 
 
         await loadCollectionsFromDB();
@@ -1735,7 +1739,7 @@ async function openEditModal(id) {
     if (editId) editId.value = id;
 
     // Populate header fields
-    const rawDate = record.date || record.collection_date || "";
+    const rawDate = record.collection_date || record.date || "";
     const cleanDate = rawDate ? String(rawDate).split("T")[0] : "";
     const dateInput = document.getElementById("collectionDate");
     if (dateInput) dateInput.value = cleanDate;

@@ -86,6 +86,8 @@ exports.getCollections = async (req, res) => {
         const result = await pool.query(`
             SELECT
                 c.*,
+                COALESCE(c.collection_date, c.date)::date AS date,
+                COALESCE(c.collection_date, c.date)::date AS collection_date,
 
                 CASE
                     WHEN c.ps_type = 'PERCENTAGE'
@@ -509,7 +511,7 @@ exports.verifyCollection = async (req, res) => {
 // UPDATE COLLECTION (EDIT)
 exports.updateCollection = async (req, res) => {
     const { id } = req.params;
-    const { date, member_id, member_name, type, amount, status, payment_method, reference_no, target } = req.body;
+    const { date, member_id, member_name, type, amount, status, payment_method, reference_no, target, fund } = req.body;
 
     // Basic validation
     if (!date) return res.status(400).json({ error: "Collection date is required." });
@@ -522,36 +524,82 @@ exports.updateCollection = async (req, res) => {
         await client.query('BEGIN');
         // Fetch previous state for audit
         const oldResult = await client.query(`SELECT * FROM collections WHERE id = $1`, [id]);
+        if (oldResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: "Collection record not found." });
+        }
         const oldRow = oldResult.rows[0];
+
         // Prevent duplicate type for same member/date (excluding current record)
         const dup = await client.query(
-            `SELECT 1 FROM collections WHERE member_id=$1 AND collection_date=$2 AND type=$3 AND id <> $4`,
+            `SELECT 1 FROM collections WHERE member_id=$1 AND COALESCE(collection_date, date)=$2 AND type=$3 AND id <> $4`,
             [member_id, date, type, id]
         );
         if (dup.rowCount) {
             await client.query('ROLLBACK');
             return res.status(400).json({ error: "Duplicate collection type for this member/date." });
         }
+
+        // Fetch calculation rules for the updated collection type
+        const cfgResult = await client.query(
+            `SELECT * FROM collection_calculations WHERE LOWER(collection_type_name) = LOWER($1) AND active = TRUE LIMIT 1`,
+            [type]
+        );
+        const config = cfgResult.rows[0];
+        const psType = config ? config.ps_type : (oldRow.ps_type || "NONE");
+        const psRate = config ? Number(config.ps_rate) : Number(oldRow.ps_rate || 0);
+        const apportionmentType = config ? config.apportionment_type : (oldRow.apportionment_type || "NONE");
+        const apportionmentRate = config ? Number(config.apportionment_rate) : Number(oldRow.apportionment_rate || 0);
+
+        const psAmount = calculateAccounting(numericAmt, psType, psRate);
+        const apportionmentAmount = calculateAccounting(numericAmt, apportionmentType, apportionmentRate);
+
         const updateResult = await client.query(
             `UPDATE collections SET
-                collection_date=$1,
-                member_id=$2,
-                member_name=$3,
-                type=$4,
-                fund_category=$5,
-                amount=$6,
-                status=$7,
-                payment_method=$8,
-                reference_no=$9,
-                target=$10
-             WHERE id=$11 RETURNING *`,
-            [date, member_id, member_name || "ANONYMOUS", type, target || "General Fund", numericAmt, status, payment_method || "CASH", reference_no, target, id]
+                date = $1,
+                collection_date = $1,
+                member_id = $2,
+                member_name = $3,
+                type = $4,
+                fund_category = $5,
+                amount = $6,
+                status = $7,
+                payment_method = $8,
+                reference_no = $9,
+                target = $10,
+                ps_type = $11,
+                ps_rate = $12,
+                ps_amount = $13,
+                apportionment_type = $14,
+                apportionment_rate = $15,
+                apportionment_amount = $16
+             WHERE id = $17 RETURNING *`,
+            [
+                date,
+                member_id || null,
+                member_name || "ANONYMOUS",
+                type,
+                target || fund || "General Fund",
+                numericAmt,
+                status || "verified",
+                payment_method || "CASH",
+                reference_no || null,
+                target || fund || type,
+                psType,
+                psRate,
+                psAmount,
+                apportionmentType,
+                apportionmentRate,
+                apportionmentAmount,
+                id
+            ]
         );
         const updated = updateResult.rows[0];
+
         // Audit log for update with before/after details
         const { username } = getCurrentUser(req);
         const auditDesc = `Updated collection ID ${id}: ` +
-            `date ${oldRow.collection_date || "N/A"} → ${updated.collection_date}, ` +
+            `date ${oldRow.collection_date || oldRow.date || "N/A"} → ${updated.collection_date || updated.date}, ` +
             `member ${oldRow.member_id || "N/A"} → ${updated.member_id}, ` +
             `type ${oldRow.type || "N/A"} → ${updated.type}, ` +
             `amount ${oldRow.amount || 0} → ${updated.amount}, ` +
