@@ -533,6 +533,12 @@ exports.updateCollection = async (req, res) => {
         }
         const oldRow = oldResult.rows[0];
 
+        const userRole = (req.user && req.user.role ? req.user.role : "").toLowerCase();
+        if (userRole === "secretary" && String(oldRow.status).toLowerCase() === "verified") {
+            await client.query('ROLLBACK');
+            return res.status(403).json({ error: "Access Restricted: Verified collections are locked and cannot be edited by Secretary." });
+        }
+
         // Prevent duplicate type for same member/date (excluding current record)
         const dup = await client.query(
             `SELECT 1 FROM collections WHERE member_id=$1 AND COALESCE(collection_date, date)=$2 AND type=$3 AND id <> $4`,
@@ -557,7 +563,6 @@ exports.updateCollection = async (req, res) => {
         const psAmount = calculateAccounting(numericAmt, psType, psRate);
         const apportionmentAmount = calculateAccounting(numericAmt, apportionmentType, apportionmentRate);
 
-        const userRole = (req.user && req.user.role ? req.user.role : "").toLowerCase();
         const finalStatus = (userRole === "admin") ? (status || oldRow.status || "pending") : (oldRow.status || "pending");
 
         const updateResult = await client.query(

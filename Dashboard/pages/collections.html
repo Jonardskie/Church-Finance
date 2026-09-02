@@ -377,6 +377,16 @@ function addItemRow(prefill) {
     // -- Keyboard navigation for each field --
     function addRowKeyNav(el) {
         el.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'Enter' || e.keyCode === 13)) {
+                e.preventDefault();
+                e.stopPropagation();
+                const submitBtn = document.getElementById("saveCollectionBtn") || document.querySelector("#collectionModal button[type='submit']");
+                if (submitBtn && !submitBtn.disabled) {
+                    submitBtn.click();
+                }
+                return;
+            }
+
             if (e.key === 'Enter') {
                 e.preventDefault();
                 navigateItemRowForward(this);
@@ -748,6 +758,16 @@ function handleSuggestionKeyboard(event, searchId, suggestionsId, hiddenId) {
         return;
     }
 
+    if ((event.ctrlKey || event.metaKey) && (event.key === "Enter" || event.keyCode === 13)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const submitBtn = document.getElementById("saveCollectionBtn") || document.querySelector("#collectionModal button[type='submit']");
+        if (submitBtn && !submitBtn.disabled) {
+            submitBtn.click();
+        }
+        return;
+    }
+
     if (event.key === "Enter") {
         event.preventDefault();
         if (suggestions.style.display === "none") {
@@ -831,7 +851,7 @@ document.getElementById("collectionTypeSuggestions")?.addEventListener("click", 
 
 
 document.getElementById("collectionDate")?.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         document.getElementById("memberSearch")?.focus();
     }
@@ -839,7 +859,7 @@ document.getElementById("collectionDate")?.addEventListener("keydown", function(
 
 // Payment Method → Enter → jump into items grid (first type select)
 document.getElementById("paymentMethod")?.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         const firstType = document.querySelector("#collectionItemsContainer .collection-type-select");
         if (firstType) firstType.focus();
@@ -921,33 +941,33 @@ function navigateItemRowBackward(el) {
     }
 }
 
-// Global Escape key to cancel/close the modal
+// Global keyboard shortcuts (Ctrl+Enter to Save, Escape to Close)
 document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape") {
-        const modal = document.getElementById("collectionModal");
-        if (modal && (modal.style.display === "flex" || modal.classList.contains("show"))) {
-            const memberSuggestions = document.getElementById("memberSuggestions");
-            const collectionTypeSuggestions = document.getElementById("collectionTypeSuggestions");
-            const anySuggestionsVisible = (memberSuggestions && memberSuggestions.style.display === "block") || 
-                                         (collectionTypeSuggestions && collectionTypeSuggestions.style.display === "block");
-            
-            if (!anySuggestionsVisible) {
-                closeModal();
+    const modal = document.getElementById("collectionModal");
+    const isModalOpen = modal && (modal.style.display === "flex" || modal.classList.contains("show"));
+
+    if (e.key === "Escape" && isModalOpen) {
+        const memberSuggestions = document.getElementById("memberSuggestions");
+        const collectionTypeSuggestions = document.getElementById("collectionTypeSuggestions");
+        const anySuggestionsVisible = (memberSuggestions && memberSuggestions.style.display === "block") || 
+                                     (collectionTypeSuggestions && collectionTypeSuggestions.style.display === "block");
+        if (!anySuggestionsVisible) {
+            closeModal();
+        }
+        return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && (e.key === "Enter" || e.keyCode === 13)) {
+        if (isModalOpen) {
+            e.preventDefault();
+            e.stopPropagation();
+            const submitBtn = document.getElementById("saveCollectionBtn") || (modal && modal.querySelector("button[type='submit']"));
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.click();
             }
         }
     }
-});
-
-// Ctrl+Enter anywhere in the form to instantly Save/Submit
-document.getElementById("collectionForm")?.addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        const submitBtn = this.querySelector("button[type='submit']");
-        if (submitBtn) {
-            submitBtn.click();
-        }
-    }
-});
+}, true);
 
 
 /* =========================================================
@@ -1178,7 +1198,10 @@ function renderCollectionsTable() {
         const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
         const canVerify = userRole === "admin";
         const canDelete = ["admin", "pastor", "treasurer"].includes(userRole);
-        const canEdit = ["admin", "pastor", "treasurer", "secretary"].includes(userRole);
+        
+        // Secretary can ONLY edit if status is "pending" (locked once verified)
+        const canEdit = (["admin", "pastor", "treasurer"].includes(userRole)) ||
+                        (userRole === "secretary" && status === "pending");
 
         const verifyBtn = (canVerify && status === "pending")
             ? `<button class="action-btn action-btn-verify" onclick="verifyCollection(${item.id})" title="Verify">Verify</button>`
@@ -1192,7 +1215,7 @@ function renderCollectionsTable() {
             ? `<button class="action-btn action-btn-delete" onclick="deleteCollection(${item.id})" title="Delete">Delete</button>`
             : "";
 
-        const actions = [editBtn, verifyBtn, deleteBtn].filter(Boolean).join(" ") || `<span class="text-xs text-slate-400">View Only</span>`;
+        const actions = [editBtn, verifyBtn, deleteBtn].filter(Boolean).join(" ") || `<span class="text-xs text-slate-400 font-medium italic">Locked</span>`;
 
 
         tableBody.innerHTML += `
@@ -1800,6 +1823,12 @@ async function openEditModal(id) {
         return;
     }
 
+    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
+    if (userRole === "secretary" && String(record.status).toLowerCase() === "verified") {
+        alert("Access Restricted: This collection has already been verified by Admin and is locked from editing.");
+        return;
+    }
+
     // Set title & button
     const titleEl = document.getElementById("modalTitle");
     if (titleEl) titleEl.textContent = "Edit Collection";
@@ -1823,7 +1852,6 @@ async function openEditModal(id) {
     const memberSugg = document.getElementById("memberSuggestions");
     if (memberSugg) memberSugg.style.display = "none";
 
-    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
     const statusEl = document.getElementById("verificationStatus");
     if (statusEl) {
         statusEl.value = record.status || "pending";
