@@ -24,7 +24,7 @@
         "collections.html": ["admin", "pastor", "treasurer", "secretary", "finance"],
         "funds.html": ["admin", "treasurer", "finance"],
         "expenses.html": ["admin", "pastor", "treasurer", "finance"],
-        "reports.html": ["admin", "pastor", "treasurer", "finance"],
+        "reports.html": ["admin", "pastor", "treasurer", "secretary", "finance"],
         "audit.html": ["admin", "pastor", "treasurer", "finance"],
         "settings.html": ["admin", "pastor", "treasurer", "secretary", "finance"]
     };
@@ -65,7 +65,7 @@
         ["collections.html", "Collections", ["admin", "pastor", "treasurer", "secretary", "finance"]],
         ["funds.html", "Funds & Categories", ["admin", "treasurer", "finance"]],
         ["expenses.html", "Disbursements", ["admin", "pastor", "treasurer", "finance"]],
-        ["reports.html", "Financial Reports", ["admin", "pastor", "treasurer", "finance"]],
+        ["reports.html", "Financial Reports", ["admin", "pastor", "treasurer", "secretary", "finance"]],
         ["audit.html", "Audit Trail", ["admin", "pastor", "treasurer", "finance"]],
         ["settings.html", "System Settings", ["admin", "pastor", "treasurer", "secretary", "finance"]]
     ];
