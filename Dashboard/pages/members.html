@@ -1872,15 +1872,9 @@ function openModal(event) {
     }
 
 
-    const generatedMemberId =
-        "MUMC-" +
-        nextIdNum
-            .toString()
-            .padStart(
-                4,
-                "0"
-            );
-
+    const currentYear = new Date().getFullYear();
+    const churchPrefix = (sessionStorage.getItem("church_acronym") || "MUMC").replace(/[^a-zA-Z0-9]/g, "").toUpperCase() || "MUMC";
+    const generatedMemberId = `${churchPrefix}-${currentYear}-${nextIdNum.toString().padStart(4, "0")}`;
 
     const memberIdInput =
         document.getElementById(
@@ -1893,11 +1887,13 @@ function openModal(event) {
         );
 
     if (memberIdInput) {
-        memberIdInput.value = generatedMemberId;
+        memberIdInput.value = "";
+        memberIdInput.placeholder = `${generatedMemberId} (Assigned Automatically)`;
     }
 
     if (loginIdInput) {
-        loginIdInput.value = generatedMemberId;
+        loginIdInput.value = "";
+        loginIdInput.placeholder = `${generatedMemberId} (Assigned Automatically)`;
     }
 
 
@@ -2196,7 +2192,7 @@ document
             const generatedOfficialName = [name1, middleName, name2].filter(Boolean).join(" ");
 
             const data = {
-                member_id: document.getElementById("memberId").value,
+                member_id: selectedEditId ? (document.getElementById("memberId").value || null) : null,
                 official_name: generatedOfficialName,
                 name_1: name1,
                 middle_name: middleName || null,

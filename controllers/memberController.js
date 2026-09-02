@@ -232,7 +232,9 @@ exports.createMember = async (req, res) => {
         }
 
         const finalMemberId =
-            member_id || await generateMemberId(pool);
+            (member_id && /^[A-Za-z0-9]+-\d{4}-\d{4}$/.test(String(member_id).trim()))
+                ? String(member_id).trim()
+                : await generateMemberId(pool);
 
         const finalLoginId =
             finalMemberId;
