@@ -29,13 +29,20 @@
         "settings.html": ["admin", "pastor", "treasurer", "secretary", "finance"]
     };
 
-    // Client-side Page Guard
+    // Client-side Authentication & Page Guard
+    const token = sessionStorage.getItem("token");
+    if (!token || token === "undefined" || token === "null") {
+        sessionStorage.clear();
+        window.location.replace("login.html");
+        return;
+    }
+
     if (pagePermissions[currentPage] && !pagePermissions[currentPage].includes(userRole)) {
         if (userRole === "member") {
             window.location.replace("member_portal.html");
             return;
         } else {
-            alert("Access Restricted: You do not have authorization to view this section.");
+            showToast("Access Restricted: You do not have authorization to view this section.", "warning");
             window.location.replace("index.html");
             return;
         }

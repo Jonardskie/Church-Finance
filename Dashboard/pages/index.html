@@ -315,7 +315,6 @@
     if (!token || token === "undefined" || token === "null") {
         sessionStorage.clear();
         document.documentElement.style.display = "none";
-        alert("Access Denied: Please log in first.");
         window.location.replace("login.html");
         throw new Error("Unauthenticated session intercepted.");
     }

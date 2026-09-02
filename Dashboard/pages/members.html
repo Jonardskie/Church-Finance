@@ -513,21 +513,13 @@
 ========================================================= */
 
 (function () {
-
     const token =
         sessionStorage.getItem("token");
 
-    if (!token) {
-
-        alert(
-            "Access Denied: Please log in to access the workspace."
-        );
-
-        window.location.href =
-            "/pages/login.html";
-
+    if (!token || token === "undefined" || token === "null") {
+        sessionStorage.clear();
+        window.location.replace("login.html");
     }
-
 })();
 
 
@@ -653,34 +645,6 @@ async function cachedFetchJson(url, options = {}, key, ttl = MEMBER_CACHE_TTL) {
         throw error;
     }
 }
-
-
-/* =========================================================
-   ROLE CONTROL
-========================================================= */
-
-function checkPageAccess() {
-
-    const token =
-        sessionStorage.getItem("token");
-
-    if (!token) {
-
-        alert(
-            "Unauthorized access. Please login."
-        );
-
-        window.location.href =
-            "/pages/login.html";
-
-        return;
-
-    }
-
-}
-
-
-checkPageAccess();
 
 
 /* =========================================================
