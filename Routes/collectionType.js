@@ -16,6 +16,14 @@ router.post(
     controller.createType
 );
 
+// Reorder collection types (Admin, Treasurer)
+router.put(
+    "/reorder",
+    authMiddleware,
+    roleMiddleware("Admin", "Treasurer"),
+    controller.reorderTypes
+);
+
 router.put(
     "/:id",
     authMiddleware,

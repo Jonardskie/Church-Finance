@@ -80,7 +80,8 @@ CREATE TABLE IF NOT EXISTS collection_types (
     ps_calculation_type VARCHAR(50) DEFAULT 'none', -- 'none', 'percentage', 'fixed'
     ps_rate NUMERIC DEFAULT 0,
     apportionment_calculation_type VARCHAR(50) DEFAULT 'none',
-    apportionment_rate NUMERIC DEFAULT 0
+    apportionment_rate NUMERIC DEFAULT 0,
+    display_order INTEGER DEFAULT 0
 );
 
 -- 6. COLLECTION CALCULATIONS & ACCOUNTING CONFIG

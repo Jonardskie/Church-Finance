@@ -19,9 +19,10 @@ exports.getTypes = async (req, res) => {
                 ps_calculation_type,
                 ps_rate,
                 apportionment_calculation_type,
-                apportionment_rate
+                apportionment_rate,
+                COALESCE(display_order, id) AS display_order
             FROM collection_types
-            ORDER BY id ASC
+            ORDER BY COALESCE(display_order, id) ASC, id ASC
         `);
 
         res.json(result.rows);
@@ -168,10 +169,11 @@ exports.createType = async (req, res) => {
                 ps_calculation_type,
                 ps_rate,
                 apportionment_calculation_type,
-                apportionment_rate
+                apportionment_rate,
+                display_order
             )
             VALUES
-            ($1, $2, $3, $4, $5, $6, $7)
+            ($1, $2, $3, $4, $5, $6, $7, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM collection_types))
             RETURNING *
             `,
             [
@@ -414,5 +416,52 @@ exports.deleteType = async (req, res) => {
             error: err.message
         });
 
+    }
+};
+
+
+// ============================================================
+// REORDER COLLECTION TYPES (DRAG & DROP)
+// ============================================================
+
+exports.reorderTypes = async (req, res) => {
+    const { order } = req.body; // Array of IDs in new sequence: [1, 5, 2, 3]
+
+    if (!Array.isArray(order) || order.length === 0) {
+        return res.status(400).json({ error: "An array of collection type IDs is required." });
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        for (let i = 0; i < order.length; i++) {
+            const typeId = parseInt(order[i], 10);
+            if (!isNaN(typeId)) {
+                await client.query(
+                    "UPDATE collection_types SET display_order = $1 WHERE id = $2",
+                    [i + 1, typeId]
+                );
+            }
+        }
+
+        const username = req.user?.username || "Admin";
+        await client.query(
+            "INSERT INTO audit_logs (user_name, action_type, table_name, details) VALUES ($1, $2, $3, $4)",
+            [username, "REORDER_COLLECTION_TYPES", "collection_types", `Reordered ${order.length} collection types.`]
+        );
+
+        await client.query("COMMIT");
+
+        res.json({
+            success: true,
+            message: "Collection types reordered successfully."
+        });
+    } catch (err) {
+        await client.query("ROLLBACK");
+        console.error("REORDER COLLECTION TYPES ERROR:", err);
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
     }
 };

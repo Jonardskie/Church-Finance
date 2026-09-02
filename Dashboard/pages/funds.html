@@ -152,6 +152,7 @@
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
                         <tr class="[&>th]:py-3.5 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th class="w-12 text-center" title="Drag to reorder">Order</th>
                             <th>ID</th>
                             <th>Collection Type</th>
                             <th>Description</th>
@@ -163,7 +164,7 @@
                     </thead>
                     <tbody id="typeTable" class="divide-y divide-slate-100 [&>tr>td]:py-3.5 [&>tr>td]:px-4">
                         <tr>
-                            <td colspan="7" class="text-center py-8 text-slate-400">Loading collection types...</td>
+                            <td colspan="8" class="text-center py-8 text-slate-400">Loading collection types...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -806,15 +807,19 @@ function renderTable() {
 
 
                 return `
+                    <tr class="hover:bg-slate-50 transition-colors group drag-row select-none"
+                        draggable="true"
+                        data-id="${type.id}">
 
-                    <tr class="hover:bg-slate-50 transition-colors">
-
-                        <td>
-                            <strong>
-                                ${escapeHtml(type.id)}
-                            </strong>
+                        <td class="w-12 text-center py-3.5 px-3">
+                            <span class="inline-flex items-center justify-center p-1.5 rounded text-slate-300 group-hover:text-slate-600 hover:bg-slate-200/60 transition-all cursor-grab active:cursor-grabbing text-base" title="Drag to reorder">
+                                ⠿
+                            </span>
                         </td>
 
+                        <td class="font-medium text-slate-500">
+                            <strong>${escapeHtml(type.id)}</strong>
+                        </td>
 
                         <td>
                             <span class="type-name font-semibold text-navy">
@@ -822,83 +827,134 @@ function renderTable() {
                             </span>
                         </td>
 
-
                         <td class="text-slate-600">
-                            ${escapeHtml(
-                                type.description ||
-                                "—"
-                            )}
+                            ${escapeHtml(type.description || "—")}
                         </td>
 
-
                         <td>
-                            ${formatCalculation(
-                                type.ps_calculation_type,
-                                psRate
-                            )}
+                            ${formatCalculation(type.ps_calculation_type, psRate)}
                         </td>
 
-
                         <td>
-                            ${formatCalculation(
-                                type.apportionment_calculation_type,
-                                apportionmentRate
-                            )}
+                            ${formatCalculation(type.apportionment_calculation_type, apportionmentRate)}
                         </td>
 
-
                         <td>
-
-                            <span
-                                class="
-                                    status
-                                    ${
-                                        isActive
-                                            ? "active-status"
-                                            : "inactive-status"
-                                    }
-                                "
-                            >
-                                ${escapeHtml(
-                                    type.status ||
-                                    "Inactive"
-                                )}
+                            <span class="status ${isActive ? "active-status" : "inactive-status"}">
+                                ${escapeHtml(type.status || "Inactive")}
                             </span>
-
                         </td>
 
-
                         <td>
-
                             <div class="action-buttons">
-
-                                <button
-                                    type="button"
-                                    class="btn-edit"
-                                    onclick="editType(${type.id})"
-                                >
+                                <button type="button" class="btn-edit" onclick="editType(${type.id})">
                                     Edit
                                 </button>
-
-                                <button
-                                    type="button"
-                                    class="btn-delete"
-                                    onclick="deleteType(${type.id})"
-                                >
+                                <button type="button" class="btn-delete" onclick="deleteType(${type.id})">
                                     Delete
                                 </button>
-
                             </div>
-
                         </td>
-
                     </tr>
-
                 `;
-
             }
         ).join("");
 
+    initTableDragAndDrop();
+}
+
+
+/* =========================================================
+   DRAG AND DROP REORDERING
+   ========================================================= */
+
+let draggedRow = null;
+
+function initTableDragAndDrop() {
+    const tableBody = $("typeTable");
+    if (!tableBody) return;
+
+    const rows = tableBody.querySelectorAll("tr.drag-row");
+    rows.forEach(row => {
+        row.addEventListener("dragstart", (e) => {
+            draggedRow = row;
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", row.dataset.id);
+            row.classList.add("opacity-40", "bg-blue-50/70");
+        });
+
+        row.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            if (!draggedRow || draggedRow === row) return;
+
+            const rect = row.getBoundingClientRect();
+            const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+
+            rows.forEach(r => r.classList.remove("border-t-2", "border-b-2", "border-navy"));
+
+            if (next) {
+                row.classList.add("border-b-2", "border-navy");
+            } else {
+                row.classList.add("border-t-2", "border-navy");
+            }
+        });
+
+        row.addEventListener("dragleave", () => {
+            row.classList.remove("border-t-2", "border-b-2", "border-navy");
+        });
+
+        row.addEventListener("drop", async (e) => {
+            e.preventDefault();
+            row.classList.remove("border-t-2", "border-b-2", "border-navy");
+            if (!draggedRow || draggedRow === row) return;
+
+            const rect = row.getBoundingClientRect();
+            const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+
+            tableBody.insertBefore(draggedRow, next ? row.nextSibling : row);
+
+            const newOrder = Array.from(tableBody.querySelectorAll("tr.drag-row")).map(r => Number(r.dataset.id));
+            await saveCollectionTypesOrder(newOrder);
+        });
+
+        row.addEventListener("dragend", () => {
+            rows.forEach(r => r.classList.remove("opacity-40", "bg-blue-50/70", "border-t-2", "border-b-2", "border-navy"));
+            draggedRow = null;
+        });
+    });
+}
+
+async function saveCollectionTypesOrder(orderIds) {
+    const token = sessionStorage.getItem("token");
+    try {
+        const church = (sessionStorage.getItem("church_slug") || "maui").toLowerCase();
+        localStorage.removeItem(FUNDS_COLLECTION_TYPES_CACHE_KEY);
+        localStorage.removeItem(`cfmms:${church}:GET:/api/collection-types`);
+        localStorage.removeItem(`cfmms:GET:/api/collection-types`);
+
+        const response = await fetch("/api/collection-types/reorder", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token,
+                "X-Church-Slug": church
+            },
+            body: JSON.stringify({ order: orderIds })
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.error) {
+            throw new Error(data.error || "Failed to save reordered collection types.");
+        }
+
+        collectionTypesData.sort((a, b) => orderIds.indexOf(a.id) - orderIds.indexOf(b.id));
+        showToast("Category order updated successfully!", "success");
+    } catch(err) {
+        console.error("Reorder save error:", err);
+        showToast(err.message || "Failed to save new order", "error");
+        await loadTypesFromDB();
+    }
 }
 
 
