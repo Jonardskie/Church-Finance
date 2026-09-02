@@ -570,6 +570,17 @@ function clearMemberCache() {
             sessionStorage.removeItem(k);
         });
     } catch (_) {}
+
+    try {
+        localStorage.setItem("cfmms:event:updated", Date.now().toString());
+    } catch (_) {}
+    try {
+        if (typeof BroadcastChannel !== "undefined") {
+            const bc = new BroadcastChannel("cfmms_live_sync");
+            bc.postMessage("update");
+            bc.close();
+        }
+    } catch (_) {}
 }
 
 function getCachedJson(key, ttl = MEMBER_CACHE_TTL) {

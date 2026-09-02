@@ -1236,6 +1236,19 @@ function setCachedJson(key, value, ttl = EXPENSES_CACHE_TTL) {
     }
 }
 
+function notifyDashboardLiveSync() {
+    try {
+        localStorage.setItem("cfmms:event:updated", Date.now().toString());
+    } catch (_) {}
+    try {
+        if (typeof BroadcastChannel !== "undefined") {
+            const bc = new BroadcastChannel("cfmms_live_sync");
+            bc.postMessage("update");
+            bc.close();
+        }
+    } catch (_) {}
+}
+
 async function cachedFetchJson(url, options = {}, key, ttl = EXPENSES_CACHE_TTL) {
     const method = (options.method || "GET").toUpperCase();
     const church = (sessionStorage.getItem("church_slug") || "maui").toLowerCase();
@@ -1522,6 +1535,7 @@ document
                 localStorage.removeItem(
                     "cfmms:GET:/api/reports/dashboard-summary"
                 );
+                notifyDashboardLiveSync();
 
                 await loadExpenses();
 
@@ -1646,6 +1660,7 @@ async function approveExpense(id) {
         localStorage.removeItem(
             "cfmms:GET:/api/reports/dashboard-summary"
         );
+        notifyDashboardLiveSync();
 
         await loadExpenses();
 
@@ -1756,6 +1771,7 @@ async function voidExpense(id) {
         localStorage.removeItem(
             "cfmms:GET:/api/reports/dashboard-summary"
         );
+        notifyDashboardLiveSync();
 
         await loadExpenses();
 

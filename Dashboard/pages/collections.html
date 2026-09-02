@@ -637,6 +637,17 @@ function invalidateCollectionsCache() {
     keysToRemove.forEach(k => {
         try { localStorage.removeItem(k); } catch (e) {}
     });
+
+    try {
+        localStorage.setItem("cfmms:event:updated", Date.now().toString());
+    } catch (_) {}
+    try {
+        if (typeof BroadcastChannel !== "undefined") {
+            const bc = new BroadcastChannel("cfmms_live_sync");
+            bc.postMessage("update");
+            bc.close();
+        }
+    } catch (_) {}
 }
 
 async function cachedFetchJson(url, options = {}, key, ttl = COLLECTIONS_CACHE_TTL) {
