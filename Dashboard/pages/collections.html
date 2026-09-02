@@ -187,8 +187,23 @@
 
         <!-- Modal Header -->
         <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100">
-            <h2 class="text-base font-bold text-navy" id="modalTitle">Record New Collection</h2>
+            <div class="flex items-center gap-3">
+                <h2 class="text-base font-bold text-navy" id="modalTitle">Record New Collection</h2>
+                <div id="batchStats" class="hidden text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Batch: <strong id="batchCountText">0</strong> saved (<strong id="batchTotalText">₱0.00</strong>)</span>
+                </div>
+            </div>
             <span class="text-slate-400 hover:text-slate-600 cursor-pointer text-2xl font-light leading-none" onclick="closeModal()">&times;</span>
+        </div>
+
+        <!-- Success Toast Notification inside Modal -->
+        <div id="modalSuccessToast" class="hidden mx-6 mt-3 px-4 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span id="modalSuccessMsg">Collection saved successfully!</span>
+            </div>
+            <span class="text-emerald-600 text-[11px] font-normal bg-white/80 px-2 py-0.5 rounded-md border border-emerald-100">Ready for next</span>
         </div>
 
         <form id="collectionForm" autocomplete="off" class="flex flex-col min-h-0">
@@ -493,6 +508,8 @@ let currentPage = 1;
 const PAGE_SIZE = 10;
 let memberOptions = [];
 let collectionTypeOptions = [];
+let currentBatchCount = 0;
+let currentBatchTotal = 0;
 
 
 /* =========================================================
@@ -1412,11 +1429,17 @@ if (collectionForm) {
                         }
                     );
 
+                    invalidateCollectionsCache();
+                    closeModal();
+                    await loadCollectionsFromDB();
+                    reEnable();
                     alert("Collection updated successfully.");
 
                 } else {
 
-                    // ---- CREATE: POST items array ----
+                    // ---- CREATE: POST items array (Continuous Batch Entry Mode) ----
+                    const totalSaved = items.reduce((sum, it) => sum + Number(it.amount || 0), 0);
+
                     await apiRequest(
                         "/api/collections",
                         {
@@ -1433,21 +1456,54 @@ if (collectionForm) {
                         }
                     );
 
-                    alert(
-                        items.length > 1
-                            ? `${items.length} collections recorded successfully.`
-                            : "Collection recorded successfully."
-                    );
+                    // 1. Invalidate cache and silently update background table
+                    invalidateCollectionsCache();
+                    loadCollectionsFromDB();
+
+                    // 2. Increment Batch statistics
+                    currentBatchCount += 1;
+                    currentBatchTotal += totalSaved;
+
+                    const batchCountText = document.getElementById("batchCountText");
+                    const batchTotalText = document.getElementById("batchTotalText");
+                    const batchStats = document.getElementById("batchStats");
+                    if (batchCountText) batchCountText.textContent = currentBatchCount;
+                    if (batchTotalText) batchTotalText.textContent = `₱${currentBatchTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                    if (batchStats) batchStats.classList.remove("hidden");
+
+                    // 3. Show non-blocking success toast inside modal
+                    const modalSuccessToast = document.getElementById("modalSuccessToast");
+                    const modalSuccessMsg = document.getElementById("modalSuccessMsg");
+                    if (modalSuccessToast && modalSuccessMsg) {
+                        const itemSummary = items.length > 1 ? `${items.length} items` : (items[0].type || "Collection");
+                        modalSuccessMsg.textContent = `Saved ${memberName || "Anonymous"} (${itemSummary}): ₱${totalSaved.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        modalSuccessToast.classList.remove("hidden");
+                    }
+
+                    // 4. Reset form inputs for NEXT envelope (KEEPING the date, status, and payment method!)
+                    const memberSearchEl = document.getElementById("memberSearch");
+                    if (memberSearchEl) memberSearchEl.value = "";
+                    const memberIdEl = document.getElementById("collectionMemberId");
+                    if (memberIdEl) memberIdEl.value = "";
+                    const memberSuggEl = document.getElementById("memberSuggestions");
+                    if (memberSuggEl) memberSuggEl.style.display = "none";
+                    const refNoEl = document.getElementById("referenceNo");
+                    if (refNoEl) refNoEl.value = "";
+
+                    // Reset items table to 1 clean blank row
+                    const container = document.getElementById("collectionItemsContainer");
+                    if (container) container.innerHTML = "";
+                    addItemRow();
+                    updateTotal();
+
+                    // Re-enable save button
+                    reEnable();
+
+                    // 5. Auto-focus cursor directly back to Member Search
+                    setTimeout(() => {
+                        if (memberSearchEl) memberSearchEl.focus();
+                    }, 50);
                 }
-
-
-                invalidateCollectionsCache();
-
-                closeModal();
-
-                await loadCollectionsFromDB();
-
-                reEnable();
 
             } catch (error) {
 
@@ -1673,6 +1729,14 @@ function updateCollectionMetrics() {
 
 async function openModal() {
 
+    // Reset batch counter on fresh modal open
+    currentBatchCount = 0;
+    currentBatchTotal = 0;
+    const batchStats = document.getElementById("batchStats");
+    if (batchStats) batchStats.classList.add("hidden");
+    const toast = document.getElementById("modalSuccessToast");
+    if (toast) toast.classList.add("hidden");
+
     // Reset title & button
     const titleEl = document.getElementById("modalTitle");
     if (titleEl) titleEl.textContent = "Record New Collection";
@@ -1683,9 +1747,11 @@ async function openModal() {
     const editId = document.getElementById("editCollectionId");
     if (editId) editId.value = "";
 
-    // Set today's date
+    // Set today's date if empty
     const dateInput = document.getElementById("collectionDate");
-    if (dateInput) dateInput.value = new Date().toISOString().split("T")[0];
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split("T")[0];
+    }
 
     // Reset header fields
     const memberSearch = document.getElementById("memberSearch");
@@ -1713,6 +1779,10 @@ async function openModal() {
     if (!modal) return;
     modal.classList.add("show");
     modal.style.display = "flex";
+
+    setTimeout(() => {
+        if (memberSearch) memberSearch.focus();
+    }, 100);
 }
 
 
@@ -1721,6 +1791,11 @@ async function openModal() {
    ========================================================= */
 
 async function openEditModal(id) {
+
+    const batchStats = document.getElementById("batchStats");
+    if (batchStats) batchStats.classList.add("hidden");
+    const toast = document.getElementById("modalSuccessToast");
+    if (toast) toast.classList.add("hidden");
 
     const record = collectionsData.find(function(c) { return c.id === id; });
     if (!record) {
@@ -1784,17 +1859,17 @@ async function openEditModal(id) {
 
 function closeModal() {
 
-    const modal =
-        document.getElementById(
-            "collectionModal"
-        );
-
-
+    const modal = document.getElementById("collectionModal");
     if (modal) {
         modal.classList.remove("show");
-        modal.style.display =
-            "none";
+        modal.style.display = "none";
     }
+
+    const toast = document.getElementById("modalSuccessToast");
+    if (toast) toast.classList.add("hidden");
+
+    const editId = document.getElementById("editCollectionId");
+    if (editId) editId.value = "";
 }
 
 
