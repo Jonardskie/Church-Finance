@@ -32,6 +32,14 @@ router.post(
     controller.createCollection
 );
 
+// Batch Verify Collections (Admin ONLY)
+router.put(
+    "/verify-batch",
+    authMiddleware,
+    roleMiddleware("Admin"),
+    controller.verifyBatchCollections
+);
+
 // Verify collection (Admin ONLY)
 router.put(
     "/verify/:id",

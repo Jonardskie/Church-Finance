@@ -510,6 +510,77 @@ exports.verifyCollection = async (req, res) => {
     }
 };
 
+// ============================================================
+// BATCH VERIFY COLLECTIONS (ADMIN ONLY)
+// ============================================================
+
+exports.verifyBatchCollections = async (req, res) => {
+    try {
+        const { ids, date } = req.body;
+
+        if ((!Array.isArray(ids) || ids.length === 0) && !date) {
+            return res.status(400).json({
+                error: "Please provide a list of collection IDs or a date to verify."
+            });
+        }
+
+        let result;
+        if (Array.isArray(ids) && ids.length > 0) {
+            const numericIds = ids.map(Number).filter(n => Number.isFinite(n));
+            if (numericIds.length === 0) {
+                return res.status(400).json({ error: "Invalid collection IDs provided." });
+            }
+
+            result = await pool.query(
+                `UPDATE collections
+                 SET status = 'verified'
+                 WHERE id = ANY($1::int[]) AND status = 'pending'
+                 RETURNING id, amount, type, member_name`,
+                [numericIds]
+            );
+        } else if (date) {
+            result = await pool.query(
+                `UPDATE collections
+                 SET status = 'verified'
+                 WHERE (collection_date = $1 OR date = $1) AND status = 'pending'
+                 RETURNING id, amount, type, member_name`,
+                [date]
+            );
+        }
+
+        const updatedCount = result ? result.rowCount : 0;
+        const totalAmount = result ? result.rows.reduce((sum, r) => sum + Number(r.amount || 0), 0) : 0;
+
+        const { username } = getCurrentUser(req);
+        await pool.query(
+            `INSERT INTO audit_logs (user_name, action_type, table_name, details)
+             VALUES ($1, $2, $3, $4)`,
+            [
+                username,
+                "BATCH_VERIFY_COLLECTIONS",
+                "collections",
+                JSON.stringify({
+                    verifiedCount: updatedCount,
+                    totalAmount: totalAmount,
+                    collectionIds: result ? result.rows.map(r => r.id) : []
+                })
+            ]
+        );
+
+        res.json({
+            message: `${updatedCount} collection(s) verified successfully.`,
+            updatedCount,
+            totalAmount
+        });
+
+    } catch (err) {
+        console.error("BATCH VERIFY ERROR:", err);
+        res.status(500).json({
+            error: err.message
+        });
+    }
+};
+
 // -----------------------------------------------------------
 // UPDATE COLLECTION (EDIT)
 exports.updateCollection = async (req, res) => {

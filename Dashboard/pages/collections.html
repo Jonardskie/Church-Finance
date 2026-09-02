@@ -137,15 +137,35 @@
 
         <!-- DATA MANAGEMENT SECTION -->
         <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 class="text-base font-bold text-navy">Collections Ledger</h2>
-                <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <div class="p-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <!-- Status Queue Tabs -->
+                <div class="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0" id="statusFilterTabs">
+                    <button type="button" onclick="setStatusTab('all')" id="tabAll"
+                            class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-navy text-white shadow-sm flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                        <span>All Collections</span>
+                        <span id="tabCountAll" class="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-mono font-bold">0</span>
+                    </button>
+                    <button type="button" onclick="setStatusTab('pending')" id="tabPending"
+                            class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span>Pending Review</span>
+                        <span id="tabCountPending" class="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-mono font-bold">0</span>
+                    </button>
+                    <button type="button" onclick="setStatusTab('verified')" id="tabVerified"
+                            class="status-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Verified</span>
+                        <span id="tabCountVerified" class="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold">0</span>
+                    </button>
+                </div>
+
+                <!-- Search Input & Status Dropdown -->
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                     <input type="text"
                            class="w-full sm:w-64 px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy focus:ring-2 focus:ring-navy/10"
                            id="searchInput"
                            placeholder="Search by member or date...">
-                    <select class="px-3.5 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy"
-                            id="statusFilter">
+                    <select class="hidden" id="statusFilter">
                         <option value="All Status">All Status</option>
                         <option value="verified">Verified</option>
                         <option value="pending">Pending</option>
@@ -157,6 +177,9 @@
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
                         <tr class="[&>th]:py-3.5 [&>th]:px-4 [&>th]:font-semibold [&>th]:uppercase [&>th]:tracking-wider">
+                            <th id="thCheckbox" class="w-10 text-center">
+                                <input type="checkbox" id="selectAllPending" onchange="toggleSelectAllPending(this)" title="Select all pending" class="rounded border-slate-300 text-navy focus:ring-navy cursor-pointer">
+                            </th>
                             <th>Date ▾</th>
                             <th>Member</th>
                             <th>Type</th>
@@ -174,6 +197,23 @@
             <!-- Pagination Controls -->
             <div id="collectionPagination" class="flex justify-between items-center px-4 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl gap-2"></div>
         </section>
+
+        <!-- Floating Batch Verification Bar (Admin Only) -->
+        <div id="batchVerifyBar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white backdrop-blur-md px-6 py-3.5 rounded-2xl shadow-2xl z-[2000] flex items-center gap-5 border border-slate-700/60 animate-in fade-in slide-in-from-bottom-5">
+            <div class="flex items-center gap-3">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="text-sm font-medium"><strong id="batchSelectedCount" class="text-white font-bold">0</strong> pending selected</span>
+                <span class="text-slate-400 text-xs font-mono">• Sum: <strong id="batchSelectedSum" class="text-emerald-400 font-bold text-sm">₱0.00</strong></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="clearSelectedPending()" class="px-3 py-1.5 text-xs text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" onclick="executeBatchVerify()" id="btnExecuteBatchVerify" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all shadow-lg flex items-center gap-1.5 cursor-pointer">
+                    <span>✓ Verify Selected (<span id="batchBtnCount">0</span>)</span>
+                </button>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -1148,11 +1188,20 @@ function renderCollectionsTable() {
     window.currentFilteredCollections = filteredData;
     tableBody.innerHTML = "";
 
+    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
+    const canVerify = userRole === "admin";
+    const canDelete = ["admin", "pastor", "treasurer"].includes(userRole);
+
+    const thCheckbox = document.getElementById("thCheckbox");
+    if (thCheckbox) {
+        thCheckbox.style.display = canVerify ? "" : "none";
+    }
+
     if (filteredData.length === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td
-                    colspan="7"
+                    colspan="${canVerify ? 8 : 7}"
                     style="
                         text-align:center;
                         color:#94a3b8;
@@ -1194,10 +1243,6 @@ function renderCollectionsTable() {
                 item.status || ""
             ).toLowerCase();
 
-
-        const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
-        const canVerify = userRole === "admin";
-        const canDelete = ["admin", "pastor", "treasurer"].includes(userRole);
         
         // Secretary can ONLY edit if status is "pending" (locked once verified)
         const canEdit = (["admin", "pastor", "treasurer"].includes(userRole)) ||
@@ -1217,9 +1262,20 @@ function renderCollectionsTable() {
 
         const actions = [editBtn, verifyBtn, deleteBtn].filter(Boolean).join(" ") || `<span class="text-xs text-slate-400 font-medium italic">Locked</span>`;
 
+        const isChecked = selectedPendingIds.has(Number(item.id));
+        const checkboxCell = canVerify
+            ? `<td class="text-center w-10">
+                ${status === "pending" 
+                    ? `<input type="checkbox" class="pending-cb cursor-pointer rounded border-slate-300 text-navy focus:ring-navy" value="${item.id}" data-amount="${item.amount || 0}" ${isChecked ? "checked" : ""} onchange="handlePendingCbChange(${item.id}, this)">`
+                    : `<span class="text-emerald-500 font-bold text-xs" title="Verified">✓</span>`
+                }
+               </td>`
+            : "";
 
         tableBody.innerHTML += `
             <tr class="hover:bg-slate-50 transition-colors">
+
+                ${checkboxCell}
 
                 <td class="text-slate-500">
                     ${escapeHTML(cleanDate)}
@@ -1262,6 +1318,22 @@ function renderCollectionsTable() {
             </tr>
         `;
     });
+
+    // Update master checkbox
+    const masterCb = document.getElementById("selectAllPending");
+    if (masterCb) {
+        const visiblePending = paginatedData.filter(it => String(it.status).toLowerCase() === "pending");
+        if (visiblePending.length > 0 && visiblePending.every(it => selectedPendingIds.has(Number(it.id)))) {
+            masterCb.checked = true;
+            masterCb.indeterminate = false;
+        } else if (visiblePending.some(it => selectedPendingIds.has(Number(it.id)))) {
+            masterCb.checked = false;
+            masterCb.indeterminate = true;
+        } else {
+            masterCb.checked = false;
+            masterCb.indeterminate = false;
+        }
+    }
 
     renderPagination(filteredData);
     updateCollectionMetrics();
@@ -1729,6 +1801,168 @@ function updateCollectionMetrics() {
     if (pendingPercentText)
         pendingPercentText.textContent =
             `${percentage}% of total`;
+
+    const tabCountAll = document.getElementById("tabCountAll");
+    const tabCountPending = document.getElementById("tabCountPending");
+    const tabCountVerified = document.getElementById("tabCountVerified");
+
+    if (tabCountAll) tabCountAll.textContent = totalRecords;
+    if (tabCountPending) tabCountPending.textContent = pendingCount;
+    if (tabCountVerified) tabCountVerified.textContent = Math.max(0, totalRecords - pendingCount);
+}
+
+
+/* =========================================================
+   14b. BATCH VERIFICATION & STATUS QUEUE TABS (ADMIN ONLY)
+   ========================================================= */
+
+const selectedPendingIds = new Set();
+
+function updateBatchVerifyBar() {
+    const bar = document.getElementById("batchVerifyBar");
+    if (!bar) return;
+
+    if (selectedPendingIds.size === 0) {
+        bar.classList.add("hidden");
+        return;
+    }
+
+    let sum = 0;
+    selectedPendingIds.forEach(id => {
+        const item = collectionsData.find(c => Number(c.id) === Number(id));
+        if (item) {
+            sum += Number(item.amount || 0);
+        }
+    });
+
+    const countEl = document.getElementById("batchSelectedCount");
+    const sumEl = document.getElementById("batchSelectedSum");
+    const btnCount = document.getElementById("batchBtnCount");
+
+    if (countEl) countEl.innerText = selectedPendingIds.size;
+    if (sumEl) sumEl.innerText = `₱${sum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (btnCount) btnCount.innerText = selectedPendingIds.size;
+
+    bar.classList.remove("hidden");
+}
+
+function handlePendingCbChange(id, cb) {
+    if (cb.checked) {
+        selectedPendingIds.add(Number(id));
+    } else {
+        selectedPendingIds.delete(Number(id));
+    }
+    updateBatchVerifyBar();
+}
+
+function toggleSelectAllPending(masterCb) {
+    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
+    if (userRole !== "admin") return;
+
+    const filtered = window.currentFilteredCollections || collectionsData;
+    const pendingItems = filtered.filter(item => String(item.status).toLowerCase() === "pending");
+
+    if (masterCb.checked) {
+        pendingItems.forEach(item => selectedPendingIds.add(Number(item.id)));
+    } else {
+        selectedPendingIds.clear();
+    }
+    renderCollectionsTable();
+    updateBatchVerifyBar();
+}
+
+function clearSelectedPending() {
+    selectedPendingIds.clear();
+    const masterCb = document.getElementById("selectAllPending");
+    if (masterCb) masterCb.checked = false;
+    renderCollectionsTable();
+    updateBatchVerifyBar();
+}
+
+async function executeBatchVerify() {
+    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
+    if (userRole !== "admin") {
+        alert("Access Restricted: Only Admin has authority to verify collections.");
+        return;
+    }
+
+    const ids = Array.from(selectedPendingIds);
+    if (ids.length === 0) {
+        alert("No pending collections selected.");
+        return;
+    }
+
+    let sum = 0;
+    ids.forEach(id => {
+        const item = collectionsData.find(c => Number(c.id) === Number(id));
+        if (item) sum += Number(item.amount || 0);
+    });
+
+    if (!confirm(`Verify ${ids.length} selected collection(s) totaling ₱${sum.toLocaleString()}?`)) {
+        return;
+    }
+
+    const btn = document.getElementById("btnExecuteBatchVerify");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>Verifying...</span>`;
+    }
+
+    try {
+        const res = await apiRequest("/api/collections/verify-batch", {
+            method: "PUT",
+            body: JSON.stringify({ ids })
+        });
+
+        alert(res.message || `${ids.length} collection(s) verified successfully!`);
+        clearSelectedPending();
+        invalidateCollectionsCache();
+        await loadCollectionsFromDB();
+    } catch (err) {
+        console.error("Batch verify error:", err);
+        alert(err.message || "Failed to batch verify collections.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>✓ Verify Selected (<span id="batchBtnCount">0</span>)</span>`;
+        }
+    }
+}
+
+function setStatusTab(tab) {
+    const filterEl = document.getElementById("statusFilter");
+    if (filterEl) {
+        if (tab === "all") filterEl.value = "All Status";
+        else if (tab === "pending") filterEl.value = "pending";
+        else if (tab === "verified") filterEl.value = "verified";
+    }
+
+    const tabAll = document.getElementById("tabAll");
+    const tabPending = document.getElementById("tabPending");
+    const tabVerified = document.getElementById("tabVerified");
+
+    const activeClasses = ["bg-navy", "text-white", "shadow-sm"];
+    const inactiveClasses = ["bg-slate-100", "hover:bg-slate-200", "text-slate-700"];
+
+    [tabAll, tabPending, tabVerified].forEach(btn => {
+        if (!btn) return;
+        btn.classList.remove(...activeClasses);
+        btn.classList.add(...inactiveClasses);
+    });
+
+    if (tab === "all" && tabAll) {
+        tabAll.classList.remove(...inactiveClasses);
+        tabAll.classList.add(...activeClasses);
+    } else if (tab === "pending" && tabPending) {
+        tabPending.classList.remove(...inactiveClasses);
+        tabPending.classList.add(...activeClasses);
+    } else if (tab === "verified" && tabVerified) {
+        tabVerified.classList.remove(...inactiveClasses);
+        tabVerified.classList.add(...activeClasses);
+    }
+
+    currentPage = 1;
+    renderCollectionsTable();
 }
 
 
