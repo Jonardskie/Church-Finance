@@ -176,10 +176,11 @@ exports.createMember = async (req, res) => {
 
     try {
 
-        // Auto-construct official_name if not directly provided
-        const finalOfficialName = (official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ")).trim();
         const cleanName1 = (name_1 || "").trim();
+        const cleanMiddleName = (middle_name || "").trim();
         const cleanName2 = (name_2 || "").trim();
+        // Auto-generate official_name as First Name + Middle Name + Last Name
+        const finalOfficialName = [cleanName1, cleanMiddleName, cleanName2].filter(Boolean).join(" ") || (official_name || "").trim();
         const cleanPhone = (phone || "").trim();
         const cleanEmail = (email || "").trim().toLowerCase();
         const cleanGovId = (gov_id || "").trim();
@@ -424,10 +425,11 @@ exports.updateMember = async (req, res) => {
         const existingMember = existingMemberResult.rows[0];
         const memberLoginId = existingMember.member_id;
 
-        // Auto-construct official_name if not explicitly set
-        const finalOfficialName = (official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ")).trim();
         const cleanName1 = (name_1 || "").trim();
+        const cleanMiddleName = (middle_name || "").trim();
         const cleanName2 = (name_2 || "").trim();
+        // Auto-generate official_name as First Name + Middle Name + Last Name
+        const finalOfficialName = [cleanName1, cleanMiddleName, cleanName2].filter(Boolean).join(" ") || (official_name || "").trim();
         const cleanPhone = (phone || "").trim();
         const cleanEmail = (email || "").trim().toLowerCase();
         const cleanGovId = (gov_id || "").trim();
