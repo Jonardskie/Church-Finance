@@ -223,8 +223,8 @@
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Status</label>
                         <select id="verificationStatus"
                                 class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 font-sans outline-none focus:bg-white focus:border-navy">
+                            <option value="pending" selected>Pending (For Review)</option>
                             <option value="verified">Verified</option>
-                            <option value="pending">Pending</option>
                         </select>
                     </div>
                 </div>
@@ -1380,7 +1380,8 @@ if (collectionForm) {
             const memberName    = document.getElementById("memberSearch").value.split("(")[0].trim();
             const paymentMethod = (document.getElementById("paymentMethod") && document.getElementById("paymentMethod").value) || "CASH";
             const referenceNo   = (document.getElementById("referenceNo") && document.getElementById("referenceNo").value.trim()) || null;
-            const status        = document.getElementById("verificationStatus").value;
+            const userRole      = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
+            const status        = (userRole === "admin") ? (document.getElementById("verificationStatus").value || "pending") : "pending";
 
             try {
 
@@ -1749,8 +1750,19 @@ async function openModal() {
     if (pmEl) pmEl.value = "CASH";
     const refEl = document.getElementById("referenceNo");
     if (refEl) refEl.value = "";
+    
+    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
     const statusEl = document.getElementById("verificationStatus");
-    if (statusEl) statusEl.value = "verified";
+    if (statusEl) {
+        statusEl.value = "pending";
+        if (userRole !== "admin") {
+            statusEl.disabled = true;
+            statusEl.classList.add("bg-slate-100", "cursor-not-allowed", "opacity-75");
+        } else {
+            statusEl.disabled = false;
+            statusEl.classList.remove("bg-slate-100", "cursor-not-allowed", "opacity-75");
+        }
+    }
 
     // Init item rows
     const container = document.getElementById("collectionItemsContainer");
@@ -1811,8 +1823,18 @@ async function openEditModal(id) {
     const memberSugg = document.getElementById("memberSuggestions");
     if (memberSugg) memberSugg.style.display = "none";
 
+    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
     const statusEl = document.getElementById("verificationStatus");
-    if (statusEl) statusEl.value = record.status || "pending";
+    if (statusEl) {
+        statusEl.value = record.status || "pending";
+        if (userRole !== "admin") {
+            statusEl.disabled = true;
+            statusEl.classList.add("bg-slate-100", "cursor-not-allowed", "opacity-75");
+        } else {
+            statusEl.disabled = false;
+            statusEl.classList.remove("bg-slate-100", "cursor-not-allowed", "opacity-75");
+        }
+    }
     const pmEl = document.getElementById("paymentMethod");
     if (pmEl) pmEl.value = record.payment_method || "CASH";
     const refEl = document.getElementById("referenceNo");

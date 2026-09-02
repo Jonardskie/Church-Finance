@@ -151,6 +151,9 @@ exports.createCollection = async (req, res) => {
             amount
         } = req.body;
 
+        const userRole = (req.user && req.user.role ? req.user.role : "").toLowerCase();
+        const finalStatus = (userRole === "admin") ? (status || "pending") : "pending";
+
         if (!date) {
             return res.status(400).json({ error: "Collection date is required." });
         }
@@ -200,7 +203,7 @@ exports.createCollection = async (req, res) => {
                     entryType,
                     fund || "General Fund",
                     numericAmt,
-                    status || "pending",
+                    finalStatus,
                     payment_method || "CASH",
                     reference_no || null,
                     target || fund || entryType,
@@ -370,7 +373,7 @@ exports.createCollection = async (req, res) => {
                 type,
                 fund || "General Fund",
                 numericAmount,
-                status || "pending",
+                finalStatus,
 
                 payment_method || "CASH",
                 reference_no || null,
@@ -554,6 +557,9 @@ exports.updateCollection = async (req, res) => {
         const psAmount = calculateAccounting(numericAmt, psType, psRate);
         const apportionmentAmount = calculateAccounting(numericAmt, apportionmentType, apportionmentRate);
 
+        const userRole = (req.user && req.user.role ? req.user.role : "").toLowerCase();
+        const finalStatus = (userRole === "admin") ? (status || oldRow.status || "pending") : (oldRow.status || "pending");
+
         const updateResult = await client.query(
             `UPDATE collections SET
                 date = $1,
@@ -581,7 +587,7 @@ exports.updateCollection = async (req, res) => {
                 type,
                 target || fund || "General Fund",
                 numericAmt,
-                status || "verified",
+                finalStatus,
                 payment_method || "CASH",
                 reference_no || null,
                 target || fund || type,
