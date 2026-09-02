@@ -555,7 +555,9 @@ function renderAuditLogs(logs) {
     const end = start + PAGE_SIZE;
     const paginatedLogs = logs.slice(start, end);
 
-    body.innerHTML = paginatedLogs.map((log) => {
+    body.innerHTML = paginatedLogs.map((log, index) => {
+        const absoluteIndex = start + index;
+        const targetId = log.id != null ? log.id : absoluteIndex;
         return `
         <tr class="hover:bg-slate-50 transition-colors">
             <td class="text-slate-500 whitespace-nowrap">
@@ -577,9 +579,9 @@ function renderAuditLogs(logs) {
             </td>
             <td>
                 <button
-                    class="view-btn"
+                    class="view-btn cursor-pointer"
                     type="button"
-                    onclick="openDetailsModal(${log.id})"
+                    onclick="openDetailsModal('${targetId}')"
                 >
                     View
                 </button>
@@ -628,12 +630,25 @@ function renderPagination(logs) {
     pagination.style.display = "flex";
 }
 
-function openDetailsModal(id) {
-    const log = (allAuditLogs && allAuditLogs.find(l => Number(l.id) === Number(id))) ||
-                (window.currentAuditLogs && window.currentAuditLogs.find(l => Number(l.id) === Number(id)));
+function openDetailsModal(target) {
+    let log = null;
+
+    if (target != null && target !== "undefined") {
+        // 1. First try matching by database ID
+        log = (allAuditLogs && allAuditLogs.find(l => String(l.id) === String(target))) ||
+              (window.currentAuditLogs && window.currentAuditLogs.find(l => String(l.id) === String(target)));
+
+        // 2. Fallback to array index if numeric
+        if (!log && !isNaN(Number(target))) {
+            const idx = Number(target);
+            log = (window.currentAuditLogs && window.currentAuditLogs[idx]) ||
+                  (allAuditLogs && allAuditLogs[idx]);
+        }
+    }
 
     if (!log) {
-        console.error("Audit record not found for ID:", id);
+        console.error("Audit record not found for target:", target);
+        alert("Unable to open record details.");
         return;
     }
 

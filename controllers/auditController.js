@@ -71,6 +71,7 @@ exports.getAuditLogs = async (req, res) => {
 
         const result = await pool.query(`
             SELECT
+                id,
                 user_name,
                 action_type,
                 table_name,
