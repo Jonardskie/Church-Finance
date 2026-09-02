@@ -1175,40 +1175,24 @@ function renderCollectionsTable() {
             ).toLowerCase();
 
 
-        let actions = "";
+        const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
+        const canVerify = userRole === "admin";
+        const canDelete = ["admin", "pastor", "treasurer"].includes(userRole);
+        const canEdit = ["admin", "pastor", "treasurer", "secretary"].includes(userRole);
 
+        const verifyBtn = (canVerify && status === "pending")
+            ? `<button class="action-btn action-btn-verify" onclick="verifyCollection(${item.id})" title="Verify">Verify</button>`
+            : "";
 
-        if (status === "pending") {
-            actions = `
-                <button class="action-btn action-btn-edit"
-                        onclick="openEditModal(${item.id})"
-                        title="Edit">Edit</button>
-                <button class="action-btn action-btn-verify"
-                        onclick="verifyCollection(${item.id})"
-                        title="Verify">Verify</button>
-                <button class="action-btn action-btn-delete"
-                        onclick="deleteCollection(${item.id})"
-                        title="Delete">Delete</button>
-            `;
-        } else if (status === "verified") {
-            actions = `
-                <button class="action-btn action-btn-edit"
-                        onclick="openEditModal(${item.id})"
-                        title="Edit">Edit</button>
-                <button class="action-btn action-btn-delete"
-                        onclick="deleteCollection(${item.id})"
-                        title="Delete">Delete</button>
-            `;
-        } else {
-            actions = `
-                <button class="action-btn action-btn-edit"
-                        onclick="openEditModal(${item.id})"
-                        title="Edit">Edit</button>
-                <button class="action-btn action-btn-delete"
-                        onclick="deleteCollection(${item.id})"
-                        title="Delete">Delete</button>
-            `;
-        }
+        const editBtn = canEdit
+            ? `<button class="action-btn action-btn-edit" onclick="openEditModal(${item.id})" title="Edit">Edit</button>`
+            : "";
+
+        const deleteBtn = canDelete
+            ? `<button class="action-btn action-btn-delete" onclick="deleteCollection(${item.id})" title="Delete">Delete</button>`
+            : "";
+
+        const actions = [editBtn, verifyBtn, deleteBtn].filter(Boolean).join(" ") || `<span class="text-xs text-slate-400">View Only</span>`;
 
 
         tableBody.innerHTML += `
@@ -1518,6 +1502,11 @@ if (collectionForm) {
    ========================================================= */
 
 async function verifyCollection(id) {
+    const userRole = (sessionStorage.getItem("role") || "admin").trim().toLowerCase();
+    if (userRole !== "admin") {
+        showToast("Access Restricted: Only Admin has authority to verify collection records.", "warning");
+        return;
+    }
 
     if (
         !confirm(

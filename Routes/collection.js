@@ -32,11 +32,11 @@ router.post(
     controller.createCollection
 );
 
-// Verify collection (Admin, Pastor, Treasurer)
+// Verify collection (Admin ONLY)
 router.put(
     "/verify/:id",
     authMiddleware,
-    roleMiddleware("Admin", "Pastor", "Treasurer"),
+    roleMiddleware("Admin"),
     controller.verifyCollection
 );
 
