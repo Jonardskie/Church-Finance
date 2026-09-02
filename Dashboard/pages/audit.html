@@ -555,8 +555,7 @@ function renderAuditLogs(logs) {
     const end = start + PAGE_SIZE;
     const paginatedLogs = logs.slice(start, end);
 
-    body.innerHTML = paginatedLogs.map((log, index) => {
-        const absoluteIndex = start + index;
+    body.innerHTML = paginatedLogs.map((log) => {
         return `
         <tr class="hover:bg-slate-50 transition-colors">
             <td class="text-slate-500 whitespace-nowrap">
@@ -573,14 +572,14 @@ function renderAuditLogs(logs) {
             <td class="text-slate-600">
                 ${escapeHtml(log.table_name || "—")}
             </td>
-            <td class="text-slate-600 max-w-xs truncate">
+            <td class="text-slate-600 max-w-xs truncate" title="${escapeHtml(log.details || "—")}">
                 ${escapeHtml(log.details || "—")}
             </td>
             <td>
                 <button
                     class="view-btn"
                     type="button"
-                    onclick="openDetailsModal(${absoluteIndex})"
+                    onclick="openDetailsModal(${log.id})"
                 >
                     View
                 </button>
@@ -628,67 +627,39 @@ function renderPagination(logs) {
     `;
     pagination.style.display = "flex";
 }
-function openDetailsModal(index) {
 
-    const logs =
-        window.currentAuditLogs || [];
-
-    const log =
-        logs[index];
-
+function openDetailsModal(id) {
+    const log = (allAuditLogs && allAuditLogs.find(l => Number(l.id) === Number(id))) ||
+                (window.currentAuditLogs && window.currentAuditLogs.find(l => Number(l.id) === Number(id)));
 
     if (!log) {
-
-        console.error(
-            "Audit record not found:",
-            index
-        );
-
+        console.error("Audit record not found for ID:", id);
         return;
-
     }
 
+    document.getElementById("detailUser").textContent = log.user_name || "System";
+    document.getElementById("detailAction").textContent = log.action_type || "—";
+    document.getElementById("detailTable").textContent = log.table_name || "—";
+    document.getElementById("detailDate").textContent = formatDateTime(log.created_at);
 
-    document.getElementById(
-        "detailUser"
-    ).textContent =
-        log.user_name ||
-        "System";
+    let detailsText = log.details || "No additional details";
+    try {
+        if (typeof detailsText === "string" && (detailsText.trim().startsWith("{") || detailsText.trim().startsWith("["))) {
+            const parsed = JSON.parse(detailsText);
+            detailsText = JSON.stringify(parsed, null, 2);
+        }
+    } catch (_) {}
 
+    const detailEl = document.getElementById("detailDetails");
+    if (detailEl) {
+        detailEl.textContent = detailsText;
+    }
 
-    document.getElementById(
-        "detailAction"
-    ).textContent =
-        log.action_type ||
-        "—";
-
-
-    document.getElementById(
-        "detailTable"
-    ).textContent =
-        log.table_name ||
-        "—";
-
-
-    document.getElementById(
-        "detailDate"
-    ).textContent =
-        formatDateTime(
-            log.created_at
-        );
-
-
-    document.getElementById(
-        "detailDetails"
-    ).textContent =
-        log.details ||
-        "No additional details";
-
-
-    document.getElementById(
-        "detailsModal"
-    ).classList.add("show");
-
+    const modal = document.getElementById("detailsModal");
+    if (modal) {
+        modal.classList.add("show");
+        modal.style.display = "flex";
+    }
 }
 
 
@@ -933,65 +904,8 @@ function openDetailsModal(index) {
 
 
     // ========================================================
-    // DETAILS MODAL
+    // CLOSE DETAILS MODAL
     // ========================================================
-
-    function openDetailsModal(index) {
-
-        const log =
-            allAuditLogs[index];
-
-
-        if (!log) {
-
-            return;
-
-        }
-
-
-        document.getElementById(
-            "detailUser"
-        ).textContent =
-            log.user_name ||
-            "System";
-
-
-        document.getElementById(
-            "detailAction"
-        ).textContent =
-            log.action_type ||
-            "—";
-
-
-        document.getElementById(
-            "detailTable"
-        ).textContent =
-            log.table_name ||
-            "—";
-
-
-        document.getElementById(
-            "detailDate"
-        ).textContent =
-            formatDateTime(
-                log.created_at
-            );
-
-
-        document.getElementById(
-            "detailDetails"
-        ).textContent =
-            log.details ||
-            "No additional details";
-
-
-        const modal = document.getElementById("detailsModal");
-        if (modal) {
-            modal.classList.add("show");
-            modal.style.display = "flex";
-        }
-
-    }
 
 
     function closeDetailsModal() {
