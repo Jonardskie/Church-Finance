@@ -321,3 +321,51 @@ body.modal-open {
         display: none !important;
     }
 }
+
+/* ============================================================
+   CFMMS MODERN NOTIFICATION & TOAST SYSTEM
+============================================================ */
+
+@keyframes toastSlideIn {
+    0% {
+        opacity: 0;
+        transform: translate3d(100%, 0, 0) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes toastSlideOut {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        max-height: 200px;
+        margin-bottom: 12px;
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(100%, 0, 0) scale(0.9);
+        max-height: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+.cfmms-toast {
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: all 0.25s ease;
+}
+
+.cfmms-toast.toast-hide {
+    animation: toastSlideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.cfmms-toast-progress {
+    height: 3px;
+    width: 100%;
+    transform-origin: left;
+    transition: transform linear;
+}
