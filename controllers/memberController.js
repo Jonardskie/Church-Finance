@@ -176,14 +176,65 @@ exports.createMember = async (req, res) => {
 
     try {
 
+        // Auto-construct official_name if not directly provided
+        const finalOfficialName = (official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ")).trim();
+        const cleanName1 = (name_1 || "").trim();
+        const cleanName2 = (name_2 || "").trim();
+        const cleanPhone = (phone || "").trim();
+        const cleanEmail = (email || "").trim().toLowerCase();
+        const cleanGovId = (gov_id || "").trim();
+
+        // ----------------------------------------------------
+        // DUPLICATE MEMBER DETECTION & PREVENTION GUARD
+        // ----------------------------------------------------
+        const dupCheck = await pool.query(
+            `
+            SELECT id, member_id, official_name, name_1, name_2, phone, email, gov_id
+            FROM members
+            WHERE
+                (
+                    $1 <> '' AND (
+                        LOWER(TRIM(official_name)) = LOWER(TRIM($1))
+                        OR ($2 <> '' AND $3 <> '' AND LOWER(TRIM(name_1)) = LOWER(TRIM($2)) AND LOWER(TRIM(name_2)) = LOWER(TRIM($3)))
+                    )
+                )
+                OR ($4 <> '' AND phone IS NOT NULL AND TRIM(phone) <> '' AND TRIM(phone) = TRIM($4))
+                OR ($5 <> '' AND email IS NOT NULL AND TRIM(email) <> '' AND LOWER(TRIM(email)) = LOWER(TRIM($5)))
+                OR ($6 <> '' AND gov_id IS NOT NULL AND TRIM(gov_id) <> '' AND LOWER(TRIM(gov_id)) = LOWER(TRIM($6)))
+            LIMIT 1
+            `,
+            [finalOfficialName, cleanName1, cleanName2, cleanPhone, cleanEmail, cleanGovId]
+        );
+
+        if (dupCheck.rows.length > 0) {
+            const existing = dupCheck.rows[0];
+            let reason = "";
+
+            if (finalOfficialName && existing.official_name && existing.official_name.trim().toLowerCase() === finalOfficialName.toLowerCase()) {
+                reason = `named '${existing.official_name}'`;
+            } else if (cleanName1 && cleanName2 && existing.name_1 && existing.name_2 && existing.name_1.trim().toLowerCase() === cleanName1.toLowerCase() && existing.name_2.trim().toLowerCase() === cleanName2.toLowerCase()) {
+                reason = `named '${existing.official_name || (existing.name_1 + " " + existing.name_2)}'`;
+            } else if (cleanPhone && existing.phone && existing.phone.trim() === cleanPhone) {
+                reason = `with contact number '${existing.phone}' (${existing.official_name})`;
+            } else if (cleanEmail && existing.email && existing.email.trim().toLowerCase() === cleanEmail.toLowerCase()) {
+                reason = `with email address '${existing.email}' (${existing.official_name})`;
+            } else if (cleanGovId && existing.gov_id && existing.gov_id.trim().toLowerCase() === cleanGovId.toLowerCase()) {
+                reason = `with Gov ID '${existing.gov_id}' (${existing.official_name})`;
+            } else {
+                reason = `named '${existing.official_name}'`;
+            }
+
+            const phoneInfo = existing.phone ? ` (Phone: ${existing.phone})` : "";
+            return res.status(409).json({
+                error: `⚠️ A member ${reason} already exists with Member ID ${existing.member_id}${phoneInfo}. Please use or edit the existing profile.`
+            });
+        }
+
         const finalMemberId =
             member_id || await generateMemberId(pool);
 
         const finalLoginId =
             finalMemberId;
-
-        // Auto-construct official_name if not directly provided
-        const finalOfficialName = official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ");
 
         const insertMemberQuery = `
             INSERT INTO members (
@@ -374,7 +425,59 @@ exports.updateMember = async (req, res) => {
         const memberLoginId = existingMember.member_id;
 
         // Auto-construct official_name if not explicitly set
-        const finalOfficialName = official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ");
+        const finalOfficialName = (official_name || [name_1, middle_name, name_2].filter(Boolean).join(" ")).trim();
+        const cleanName1 = (name_1 || "").trim();
+        const cleanName2 = (name_2 || "").trim();
+        const cleanPhone = (phone || "").trim();
+        const cleanEmail = (email || "").trim().toLowerCase();
+        const cleanGovId = (gov_id || "").trim();
+
+        // ----------------------------------------------------
+        // DUPLICATE MEMBER DETECTION & PREVENTION GUARD (UPDATE)
+        // ----------------------------------------------------
+        const dupCheck = await pool.query(
+            `
+            SELECT id, member_id, official_name, name_1, name_2, phone, email, gov_id
+            FROM members
+            WHERE id <> $1 AND (
+                (
+                    $2 <> '' AND (
+                        LOWER(TRIM(official_name)) = LOWER(TRIM($2))
+                        OR ($3 <> '' AND $4 <> '' AND LOWER(TRIM(name_1)) = LOWER(TRIM($3)) AND LOWER(TRIM(name_2)) = LOWER(TRIM($4)))
+                    )
+                )
+                OR ($5 <> '' AND phone IS NOT NULL AND TRIM(phone) <> '' AND TRIM(phone) = TRIM($5))
+                OR ($6 <> '' AND email IS NOT NULL AND TRIM(email) <> '' AND LOWER(TRIM(email)) = LOWER(TRIM($6)))
+                OR ($7 <> '' AND gov_id IS NOT NULL AND TRIM(gov_id) <> '' AND LOWER(TRIM(gov_id)) = LOWER(TRIM($7)))
+            )
+            LIMIT 1
+            `,
+            [id, finalOfficialName, cleanName1, cleanName2, cleanPhone, cleanEmail, cleanGovId]
+        );
+
+        if (dupCheck.rows.length > 0) {
+            const existing = dupCheck.rows[0];
+            let reason = "";
+
+            if (finalOfficialName && existing.official_name && existing.official_name.trim().toLowerCase() === finalOfficialName.toLowerCase()) {
+                reason = `named '${existing.official_name}'`;
+            } else if (cleanName1 && cleanName2 && existing.name_1 && existing.name_2 && existing.name_1.trim().toLowerCase() === cleanName1.toLowerCase() && existing.name_2.trim().toLowerCase() === cleanName2.toLowerCase()) {
+                reason = `named '${existing.official_name || (existing.name_1 + " " + existing.name_2)}'`;
+            } else if (cleanPhone && existing.phone && existing.phone.trim() === cleanPhone) {
+                reason = `with contact number '${existing.phone}' (${existing.official_name})`;
+            } else if (cleanEmail && existing.email && existing.email.trim().toLowerCase() === cleanEmail.toLowerCase()) {
+                reason = `with email address '${existing.email}' (${existing.official_name})`;
+            } else if (cleanGovId && existing.gov_id && existing.gov_id.trim().toLowerCase() === cleanGovId.toLowerCase()) {
+                reason = `with Gov ID '${existing.gov_id}' (${existing.official_name})`;
+            } else {
+                reason = `named '${existing.official_name}'`;
+            }
+
+            const phoneInfo = existing.phone ? ` (Phone: ${existing.phone})` : "";
+            return res.status(409).json({
+                error: `⚠️ A member ${reason} already exists with Member ID ${existing.member_id}${phoneInfo}. Please check details.`
+            });
+        }
 
         // ==========================================
         // NORMALIZE ROLE
