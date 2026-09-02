@@ -560,8 +560,23 @@ const MEMBER_CACHE_TTL = 5 * 60 * 1000;
 
 function clearMemberCache() {
     try {
-        localStorage.removeItem("cfmms:members:list");
-        sessionStorage.removeItem("cfmms:members:list");
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.includes("member") || k.includes("cfmms:"))) {
+                keysToRemove.push(k);
+            }
+        }
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const k = sessionStorage.key(i);
+            if (k && (k.includes("member") || k.includes("cfmms:"))) {
+                keysToRemove.push(k);
+            }
+        }
+        keysToRemove.forEach(k => {
+            localStorage.removeItem(k);
+            sessionStorage.removeItem(k);
+        });
     } catch (_) {}
 }
 
@@ -603,7 +618,7 @@ async function cachedFetchJson(url, options = {}, key, ttl = MEMBER_CACHE_TTL) {
     const church = (sessionStorage.getItem("church_slug") || "maui").toLowerCase();
     const cacheKey = key ? `cfmms:${church}:${key.replace(/^cfmms:/, '')}` : `cfmms:${church}:${method}:${url}`;
 
-    if (method === "GET") {
+    if (method === "GET" && !options.forceRefresh && !options.bypassCache) {
         const cached = getCachedJson(cacheKey, ttl);
         if (cached !== null) {
             return cached;
@@ -903,14 +918,13 @@ async function loadMembers({ resetFilters = false, forceRefresh = false } = {}) 
                 "/api/members",
                 {
                     method: "GET",
-
                     headers: {
                         "Content-Type":
                             "application/json",
-
                         "Authorization":
                             "Bearer " + token
-                    }
+                    },
+                    forceRefresh: forceRefresh
                 },
                 "cfmms:members:list"
             );
@@ -2307,8 +2321,9 @@ document
                     "success"
                 );
 
+                clearMemberCache();
                 closeModal();
-                await loadMembers({ forceRefresh: true });
+                await loadMembers({ resetFilters: true, forceRefresh: true });
 
             } catch (err) {
                 console.error("Save Member Error:", err);
