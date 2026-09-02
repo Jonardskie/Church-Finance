@@ -305,7 +305,7 @@
         if (!container) {
             container = document.createElement("div");
             container.id = "cfmms-toast-container";
-            container.className = "fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 pointer-events-none max-w-sm sm:max-w-md w-full px-4 sm:px-0";
+            container.className = "fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3 pointer-events-none max-w-lg w-[calc(100%-2rem)] sm:w-[500px]";
             document.body.appendChild(container);
         }
         return container;
@@ -320,28 +320,28 @@
 
     const TOAST_THEMES = {
         success: {
-            bg: "bg-white/95 border-emerald-200 text-slate-800 shadow-emerald-500/10",
+            bg: "bg-white/95 border-emerald-300 text-slate-800 shadow-2xl shadow-emerald-900/10 ring-1 ring-emerald-500/15",
             iconBg: "bg-emerald-50 border border-emerald-200",
             bar: "bg-emerald-500",
             titleColor: "text-emerald-950",
             badge: "bg-emerald-100/80 text-emerald-800"
         },
         error: {
-            bg: "bg-white/95 border-rose-200 text-slate-800 shadow-rose-500/10",
+            bg: "bg-white/95 border-rose-300 text-slate-800 shadow-2xl shadow-rose-900/10 ring-1 ring-rose-500/15",
             iconBg: "bg-rose-50 border border-rose-200",
             bar: "bg-rose-500",
             titleColor: "text-rose-950",
             badge: "bg-rose-100/80 text-rose-800"
         },
         warning: {
-            bg: "bg-white/95 border-amber-200 text-slate-800 shadow-amber-500/10",
+            bg: "bg-white/95 border-amber-300 text-slate-800 shadow-2xl shadow-amber-900/10 ring-1 ring-amber-500/15",
             iconBg: "bg-amber-50 border border-amber-200",
             bar: "bg-amber-500",
             titleColor: "text-amber-950",
             badge: "bg-amber-100/80 text-amber-800"
         },
         info: {
-            bg: "bg-white/95 border-sky-200 text-slate-800 shadow-sky-500/10",
+            bg: "bg-white/95 border-sky-300 text-slate-800 shadow-2xl shadow-sky-900/10 ring-1 ring-sky-500/15",
             iconBg: "bg-sky-50 border border-sky-200",
             bar: "bg-sky-500",
             titleColor: "text-sky-950",
@@ -349,7 +349,7 @@
         }
     };
 
-    window.showToast = function(message, type = "info", title = null, duration = 4500) {
+    window.showToast = function(message, type = "info", title = null, duration = 5000) {
         if (!message) return;
 
         // Auto-detect type if not explicitly set
@@ -369,13 +369,13 @@
         const defaultTitles = {
             success: "Success",
             error: "Action Failed",
-            warning: "Duplicate / Notice",
+            warning: "Attention Required",
             info: "Notice"
         };
         const displayTitle = title || defaultTitles[type] || "Notice";
 
         const toast = document.createElement("div");
-        toast.className = `cfmms-toast pointer-events-auto relative flex flex-col rounded-2xl border backdrop-blur-md shadow-2xl overflow-hidden ${theme.bg}`;
+        toast.className = `cfmms-toast pointer-events-auto relative flex flex-col rounded-2xl border backdrop-blur-md shadow-2xl overflow-hidden w-full ${theme.bg}`;
 
         const formattedMsg = cleanMsg.replace(/^⚠️\s*/, "").replace(/^✅\s*/, "").replace(/^❌\s*/, "");
 
