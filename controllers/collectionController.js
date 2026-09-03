@@ -31,7 +31,7 @@ function auditDetails(action, collection, extra = "") {
     return [
         action,
         `Receipt: ${collection.receipt_no || "N/A"}`,
-        `Donor: ${collection.member_name || "ANONYMOUS"}`,
+        `Donor: ${collection.member_name || "GUEST"}`,
         `Amount: ${collection.amount || 0}`,
         extra
     ]
@@ -200,7 +200,7 @@ exports.createCollection = async (req, res) => {
                 [
                     date,
                     member_id || null,
-                    member_name || "ANONYMOUS",
+                    member_name || "GUEST",
                     entryType,
                     fund || "General Fund",
                     numericAmt,
@@ -370,7 +370,7 @@ exports.createCollection = async (req, res) => {
             [
                 date,
                 member_id || null,
-                member_name || "ANONYMOUS",
+                member_name || "GUEST",
                 type,
                 fund || "General Fund",
                 numericAmount,
@@ -660,7 +660,7 @@ exports.updateCollection = async (req, res) => {
             [
                 date,
                 member_id || null,
-                member_name || "ANONYMOUS",
+                member_name || "GUEST",
                 type,
                 target || fund || "General Fund",
                 numericAmt,
@@ -1303,7 +1303,7 @@ exports.exportCashTallyExcel = async (req, res) => {
         const ledgerData = collections.map(c => ({
             "Receipt #": c.receipt_no || "—",
             "Date": c.date ? String(c.date).split("T")[0] : "—",
-            "Donor Name": c.giver_name || "Anonymous",
+            "Donor Name": c.giver_name || "Guest",
             "Fund Category": c.category || "General Fund",
             "Payment Method": c.payment_method || "CASH",
             "Amount (₱)": Number(c.amount) || 0,

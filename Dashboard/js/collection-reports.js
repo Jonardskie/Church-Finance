@@ -1792,7 +1792,7 @@ async function exportPPTX() {
             // Fill page rows
             pageRows.forEach(row => {
                 tableBody.push([
-                    { text: String(row.donor || row.member_name || "ANONYMOUS"), options: { fontSize: 11, bold: true, fontFace: "Arial" } },
+                    { text: String(row.donor || row.member_name || "GUEST"), options: { fontSize: 11, bold: true, fontFace: "Arial" } },
                     { text: money(row.amount), options: { fontSize: 11, bold: true, align: "right", fontFace: "Arial" } }
                 ]);
             });

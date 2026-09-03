@@ -971,7 +971,7 @@ async function loadMemberDropdown() {
 
 
         memberOptions = [
-            { id: "ANONYMOUS", name: "Anonymous / Guest" },
+            { id: "GUEST", name: "Guest" },
             ...members
                 .filter(member => member.status === "Active")
                 .map(member => ({
@@ -1827,7 +1827,7 @@ if (collectionForm) {
                     const modalSuccessMsg = document.getElementById("modalSuccessMsg");
                     if (modalSuccessToast && modalSuccessMsg) {
                         const itemSummary = items.length > 1 ? `${items.length} items` : (items[0].type || "Collection");
-                        modalSuccessMsg.textContent = `Saved ${memberName || "Anonymous"} (${itemSummary}): ₱${totalSaved.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                        modalSuccessMsg.textContent = `Saved ${memberName || "Guest"} (${itemSummary}): ₱${totalSaved.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                         modalSuccessToast.classList.remove("hidden");
                     }
 

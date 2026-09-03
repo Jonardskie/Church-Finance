@@ -437,7 +437,7 @@ exports.collectionDetail = async (req, res) => {
                             ),
                             ''
                         ),
-                        'ANONYMOUS'
+                        'GUEST'
                     ) AS donor,
 
 
@@ -930,7 +930,7 @@ exports.exportExcel = async (
                             ),
                             ''
                         ),
-                        'ANONYMOUS'
+                        'GUEST'
                     ) AS "Donor",
 
 
@@ -1510,7 +1510,7 @@ exports.exportExcel = async (
                 r.values = [
                     row["Receipt #"] || "—",
                     dDate,
-                    row["Donor"] || "ANONYMOUS",
+                    row["Donor"] || "GUEST",
                     row["Target"] || row["Type"] || "General Fund",
                     methodDisplay,
                     amt,
@@ -2141,7 +2141,7 @@ exports.getDashboardSummary = async (req, res) => {
                 id,
                 receipt_no,
                 COALESCE(collection_date, date) AS date,
-                COALESCE(member_name, 'Anonymous') AS giver_name,
+                COALESCE(member_name, 'Guest') AS giver_name,
                 COALESCE(NULLIF(TRIM(fund_category), ''), type, 'General Fund') AS category,
                 COALESCE(payment_method, 'CASH') AS method,
                 amount::numeric,

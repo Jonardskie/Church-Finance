@@ -818,7 +818,7 @@ function renderRecentTable() {
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="font-semibold text-navy py-3 px-3">${c.receipt_no || '—'}</td>
                     <td class="text-slate-500 py-3 px-3">${rawDate}</td>
-                    <td class="font-medium text-slate-800 py-3 px-3">${c.giver_name || 'Anonymous'}</td>
+                    <td class="font-medium text-slate-800 py-3 px-3">${c.giver_name || 'Guest'}</td>
                     <td class="py-3 px-3"><span class="tag-pill tag-blue">${c.category || 'General Fund'}</span></td>
                     <td class="text-slate-500 text-xs py-3 px-3">${c.method || 'CASH'}</td>
                     <td class="text-right font-bold text-emerald-600 py-3 px-3">${formatCurrency(c.amount)}</td>

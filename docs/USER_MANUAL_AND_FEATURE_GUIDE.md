@@ -101,7 +101,7 @@ Navigate to **Collections** in the sidebar. This module supports recording multi
 2. **Receipt Header**:
    * **Date**: Defaults to today (editable for past Sundays).
    * **Verification Status**: Defaults to `Verified` so funds immediately reflect on financial reports.
-   * **Member / Contributor**: Type any part of a member's name; an autocomplete dropdown will appear. You can also type `ANONYMOUS` for loose basket offerings.
+   * **Member / Contributor**: Type any part of a member's name; an autocomplete dropdown will appear. You can also type `GUEST` for loose basket offerings or non-member visitors.
    * **Payment Method**: Select `Cash`, `Check`, `Bank Transfer`, `GCash`, or `Other`.
 3. **Itemized Contributions Table**:
    * **Type**: Select collection fund (e.g., *Tithes, Lord's Acre, Thanksgiving, Pledges, Building Fund*).
