@@ -1,6 +1,7 @@
 // controllers/collectionController.js
 
 const pool = require("../config/db");
+const XLSX = require("xlsx");
 
 
 // ============================================================
@@ -1146,6 +1147,222 @@ exports.getMySummary = async (req, res) => {
 
     } catch (err) {
         console.error("GET MY SUMMARY ERROR:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// ============================================================
+// SUNDAY CASH TALLY & RECONCILIATION
+// ============================================================
+
+exports.getCashTallySummary = async (req, res) => {
+    const churchSlug = req.churchSlug || "maui";
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ error: "startDate and endDate are required." });
+    }
+
+    try {
+        // Calculate ledger sum for date range
+        const ledgerRes = await pool.query(
+            `SELECT COALESCE(SUM(amount), 0) AS total_amount, COUNT(*) AS total_count
+             FROM collections
+             WHERE date >= $1 AND date <= $2 AND LOWER(status) != 'voided'`,
+            [startDate, endDate]
+        );
+
+        const totalLedgerAmount = Number(ledgerRes.rows[0]?.total_amount || 0);
+        const collectionsCount = Number(ledgerRes.rows[0]?.total_count || 0);
+
+        // Check for existing saved tally
+        const tallyRes = await pool.query(
+            `SELECT * FROM sunday_cash_counts
+             WHERE start_date = $1 AND end_date = $2
+             ORDER BY id DESC LIMIT 1`,
+            [startDate, endDate]
+        );
+
+        const savedTally = tallyRes.rows[0] || null;
+
+        res.json({
+            success: true,
+            startDate,
+            endDate,
+            totalLedgerAmount,
+            collectionsCount,
+            savedTally
+        });
+    } catch (err) {
+        console.error("GET CASH TALLY SUMMARY ERROR:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.saveCashTally = async (req, res) => {
+    const churchSlug = req.churchSlug || "maui";
+    const {
+        startDate,
+        endDate,
+        serviceName,
+        bills1000,
+        bills500,
+        bills200,
+        bills100,
+        bills50,
+        bills20,
+        coins20,
+        coins10,
+        coins5,
+        coins1,
+        coinsLoose,
+        checksTotal,
+        onlineTotal,
+        totalPhysicalCash,
+        totalLedgerAmount,
+        varianceAmount,
+        status,
+        varianceNote,
+        counterName,
+        secretaryName,
+        treasurerName
+    } = req.body;
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ error: "startDate and endDate are required." });
+    }
+
+    try {
+        const query = `
+            INSERT INTO sunday_cash_counts (
+                church_slug, start_date, end_date, service_name,
+                bills_1000, bills_500, bills_200, bills_100, bills_50, bills_20,
+                coins_20, coins_10, coins_5, coins_1, coins_loose,
+                checks_total, online_total, total_physical_cash, total_ledger_amount,
+                variance_amount, status, variance_note, counter_name, secretary_name, treasurer_name
+            ) VALUES (
+                $1, $2, $3, $4,
+                $5, $6, $7, $8, $9, $10,
+                $11, $12, $13, $14, $15,
+                $16, $17, $18, $19,
+                $20, $21, $22, $23, $24, $25
+            )
+            RETURNING *;
+        `;
+
+        const values = [
+            churchSlug, startDate, endDate, serviceName || 'Sunday Worship Service',
+            Number(bills1000 || 0), Number(bills500 || 0), Number(bills200 || 0), Number(bills100 || 0), Number(bills50 || 0), Number(bills20 || 0),
+            Number(coins20 || 0), Number(coins10 || 0), Number(coins5 || 0), Number(coins1 || 0), Number(coinsLoose || 0),
+            Number(checksTotal || 0), Number(onlineTotal || 0), Number(totalPhysicalCash || 0), Number(totalLedgerAmount || 0),
+            Number(varianceAmount || 0), status || 'TALLY_MATCH', varianceNote || '', counterName || '', secretaryName || '', treasurerName || ''
+        ];
+
+        const result = await pool.query(query, values);
+        res.json({
+            success: true,
+            data: result.rows[0]
+        });
+    } catch (err) {
+        console.error("SAVE CASH TALLY ERROR:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.exportCashTallyExcel = async (req, res) => {
+    const churchSlug = req.churchSlug || "maui";
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+        return res.status(400).json({ error: "startDate and endDate are required." });
+    }
+
+    try {
+        // Fetch collections for date range
+        const colRes = await pool.query(
+            `SELECT c.receipt_no, c.date, c.member_name AS giver_name, COALESCE(ct.type_name, c.type, 'General Fund') AS category, c.payment_method, c.amount, c.status
+             FROM collections c
+             LEFT JOIN collection_types ct ON c.collection_type_id = ct.collection_type_id
+             WHERE c.date >= $1 AND c.date <= $2 AND LOWER(c.status) != 'voided'
+             ORDER BY c.date DESC, c.id DESC`,
+            [startDate, endDate]
+        );
+
+        // Fetch tally details
+        const tallyRes = await pool.query(
+            `SELECT * FROM sunday_cash_counts
+             WHERE start_date = $1 AND end_date = $2
+             ORDER BY id DESC LIMIT 1`,
+            [startDate, endDate]
+        );
+
+        const tally = tallyRes.rows[0] || {};
+        const collections = colRes.rows;
+
+        // SHEET 1: Financial Summary & Ledger
+        const ledgerData = collections.map(c => ({
+            "Receipt #": c.receipt_no || "—",
+            "Date": c.date ? String(c.date).split("T")[0] : "—",
+            "Donor Name": c.giver_name || "Anonymous",
+            "Fund Category": c.category || "General Fund",
+            "Payment Method": c.payment_method || "CASH",
+            "Amount (₱)": Number(c.amount) || 0,
+            "Status": c.status || "Verified"
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const wsLedger = XLSX.utils.json_to_sheet(ledgerData);
+        wsLedger["!cols"] = [{ wch: 15 }, { wch: 14 }, { wch: 25 }, { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 14 }];
+        XLSX.utils.book_append_sheet(wb, wsLedger, "Financial Summary");
+
+        // SHEET 2: Sunday Cash Count & Tally Statement
+        const tallySheetData = [
+            ["SUNDAY CASH COUNT & RECONCILIATION STATEMENT"],
+            ["Church Slug:", churchSlug.toUpperCase()],
+            ["Date Range:", `${startDate} to ${endDate}`],
+            ["Service Name:", tally.service_name || "Sunday Worship Service"],
+            ["Tally Status:", tally.status || "TALLY_MATCH"],
+            [""],
+            ["PHYSICAL CASH DENOMINATIONS", "COUNT", "SUBTOTAL (₱)"],
+            ["₱1,000 Bills", tally.bills_1000 || 0, (tally.bills_1000 || 0) * 1000],
+            ["₱500 Bills", tally.bills_500 || 0, (tally.bills_500 || 0) * 500],
+            ["₱200 Bills", tally.bills_200 || 0, (tally.bills_200 || 0) * 200],
+            ["₱100 Bills", tally.bills_100 || 0, (tally.bills_100 || 0) * 100],
+            ["₱50 Bills", tally.bills_50 || 0, (tally.bills_50 || 0) * 50],
+            ["₱20 Bills / Notes", tally.bills_20 || 0, (tally.bills_20 || 0) * 20],
+            ["₱20 Coins", tally.coins_20 || 0, (tally.coins_20 || 0) * 20],
+            ["₱10 Coins", tally.coins_10 || 0, (tally.coins_10 || 0) * 10],
+            ["₱5 Coins", tally.coins_5 || 0, (tally.coins_5 || 0) * 5],
+            ["₱1 Coins", tally.coins_1 || 0, (tally.coins_1 || 0) * 1],
+            ["Loose Coins Total", "—", Number(tally.coins_loose) || 0],
+            ["Checks Total", "—", Number(tally.checks_total) || 0],
+            ["GCash / Online Transfers", "—", Number(tally.online_total) || 0],
+            ["TOTAL PHYSICAL CASH COUNT", "—", Number(tally.total_physical_cash) || 0],
+            [""],
+            ["RECONCILIATION SUMMARY"],
+            ["Total Ledger Input Amount", "—", Number(tally.total_ledger_amount) || 0],
+            ["Total Physical Cash Count", "—", Number(tally.total_physical_cash) || 0],
+            ["Variance (Over/Short)", "—", Number(tally.variance_amount) || 0],
+            ["Variance Explanation / Notes:", tally.variance_note || "None"],
+            [""],
+            ["SIGNATORIES & APPROVALS"],
+            ["Prepared / Counted by (Steward):", tally.counter_name || "___________________"],
+            ["Recorded by (Church Secretary):", tally.secretary_name || "___________________"],
+            ["Verified by (Treasurer / Admin):", tally.treasurer_name || "___________________"]
+        ];
+
+        const wsTally = XLSX.utils.aoa_to_sheet(tallySheetData);
+        wsTally["!cols"] = [{ wch: 32 }, { wch: 15 }, { wch: 22 }];
+        XLSX.utils.book_append_sheet(wb, wsTally, "Sunday Cash Count & Tally");
+
+        const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", `attachment; filename=CFMMS_Sunday_Cash_Tally_${startDate}_to_${endDate}.xlsx`);
+        return res.send(buffer);
+
+    } catch (err) {
+        console.error("EXPORT CASH TALLY EXCEL ERROR:", err);
         res.status(500).json({ error: err.message });
     }
 };

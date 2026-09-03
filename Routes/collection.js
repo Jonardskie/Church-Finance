@@ -88,4 +88,26 @@ router.post(
     controller.updateCalculationConfig
 );
 
+// Sunday Cash Tally Routes (Admin, Pastor, Treasurer, Secretary)
+router.get(
+    "/cash-tally/summary",
+    authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    controller.getCashTallySummary
+);
+
+router.post(
+    "/cash-tally",
+    authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    controller.saveCashTally
+);
+
+router.get(
+    "/cash-tally/export-excel",
+    authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    controller.exportCashTallyExcel
+);
+
 module.exports = router;

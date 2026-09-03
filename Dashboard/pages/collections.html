@@ -90,10 +90,16 @@
                 <h1 class="text-2xl lg:text-3xl font-bold text-navy">Collections</h1>
                 <p class="text-sm text-slate-500 mt-1">Manage tithes, offerings, and donations</p>
             </div>
-            <button class="bg-navy hover:bg-navy-dark text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
-                    onclick="openModal()">
-                Record Collection
-            </button>
+            <div class="flex items-center gap-2.5">
+                <button type="button" onclick="openCashTallyModal()"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer">
+                    <span>💵 Sunday Cash Tally</span>
+                </button>
+                <button class="bg-navy hover:bg-navy-dark text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
+                        onclick="openModal()">
+                    + Record Collection
+                </button>
+            </div>
         </div>
 
         <!-- METRIC CARDS -->
@@ -239,6 +245,234 @@
             <div id="collectionPagination" class="flex justify-between items-center px-4 py-3 border-t border-slate-100 bg-slate-50/50 rounded-b-xl gap-2"></div>
         </section>
     </main>
+</div>
+
+<!-- SUNDAY CASH DENOMINATION & TALLY MODAL -->
+<div class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm justify-center items-start z-[2550] p-4 overflow-y-auto"
+     id="cashTallyModal"
+     onclick="if (event.target === this) closeCashTallyModal()"
+     style="display: none;">
+    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden my-6 mx-auto relative flex flex-col z-10"
+         onclick="event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="flex-shrink-0 flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xl">💵</div>
+                <div>
+                    <h2 class="text-base font-bold text-navy">Sunday Cash Denomination & Tally</h2>
+                    <p class="text-xs text-slate-500">Count physical currency to reconcile against collection ledger entries for a date range.</p>
+                </div>
+            </div>
+            <span class="text-slate-400 hover:text-slate-600 cursor-pointer text-2xl font-light leading-none" onclick="closeCashTallyModal()">&times;</span>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 space-y-6 overflow-y-auto max-h-[80vh]">
+
+            <!-- Date Range & Service Filter Bar -->
+            <div class="bg-blue-50/60 rounded-xl border border-blue-100 p-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">From Date *</label>
+                        <input type="date" id="tallyStartDate" onchange="fetchTallySummary()"
+                               class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">To Date *</label>
+                        <input type="date" id="tallyEndDate" onchange="fetchTallySummary()"
+                               class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Service / Worship Event</label>
+                        <input type="text" id="tallyServiceName" value="Sunday Worship Service" placeholder="e.g. Sunday Worship Service"
+                               class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Denomination Entry Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Left Column: Banknotes / Bills -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-xs font-bold text-navy uppercase tracking-wider mb-3 flex items-center justify-between">
+                        <span>💵 Banknotes / Bills Count</span>
+                        <span class="text-[11px] text-slate-500 font-normal">Count x Bill</span>
+                    </h3>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱1,000 Bill</span>
+                            <input type="number" id="bill1000" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="sub1000">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱500 Bill</span>
+                            <input type="number" id="bill500" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="sub500">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱200 Bill</span>
+                            <input type="number" id="bill200" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="sub200">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱100 Bill</span>
+                            <input type="number" id="bill100" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="sub100">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱50 Bill</span>
+                            <input type="number" id="bill50" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="sub50">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱20 Note</span>
+                            <input type="number" id="bill20" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="sub20">₱0.00</span>
+                        </div>
+                        <div class="pt-2 border-t border-slate-200 flex justify-between items-center font-bold text-xs text-navy">
+                            <span>Bills Total:</span>
+                            <span class="font-mono" id="totalBillsSub">₱0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Coins, Checks & Online -->
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <h3 class="text-xs font-bold text-navy uppercase tracking-wider mb-3 flex items-center justify-between">
+                        <span>🪙 Coins, Checks & Online</span>
+                        <span class="text-[11px] text-slate-500 font-normal">Count / Amount</span>
+                    </h3>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱20 Coin</span>
+                            <input type="number" id="coin20" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="subCoin20">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱10 Coin</span>
+                            <input type="number" id="coin10" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="subCoin10">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱5 Coin</span>
+                            <input type="number" id="coin5" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="subCoin5">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">₱1 Coin</span>
+                            <input type="number" id="coin1" min="0" value="0" oninput="calculatePhysicalTally()"
+                                   class="w-20 px-2 py-1 border border-slate-300 rounded text-center text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-28 text-right" id="subCoin1">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">Loose Coins</span>
+                            <input type="number" id="coinsLoose" step="0.01" min="0" value="0.00" oninput="calculatePhysicalTally()"
+                                   class="w-24 px-2 py-1 border border-slate-300 rounded text-right text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-24 text-right" id="subCoinsLoose">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">Checks Total</span>
+                            <input type="number" id="checksTotal" step="0.01" min="0" value="0.00" oninput="calculatePhysicalTally()"
+                                   class="w-24 px-2 py-1 border border-slate-300 rounded text-right text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-24 text-right" id="subChecks">₱0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-700 w-24">GCash / Online</span>
+                            <input type="number" id="onlineTotal" step="0.01" min="0" value="0.00" oninput="calculatePhysicalTally()"
+                                   class="w-24 px-2 py-1 border border-slate-300 rounded text-right text-xs bg-white font-mono outline-none focus:border-navy">
+                            <span class="font-mono font-bold text-slate-800 w-24 text-right" id="subOnline">₱0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Live Tally & Variance Box -->
+            <div id="tallyResultBanner" class="p-5 rounded-xl border transition-all duration-200 bg-emerald-50 border-emerald-200 text-emerald-900">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center pb-3 border-b border-emerald-200/60">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Total Physical Cash</span>
+                        <div class="text-xl font-black font-mono text-emerald-700 mt-0.5" id="tallyPhysicalTotal">₱0.00</div>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Ledger Total for Selected Dates</span>
+                        <div class="text-xl font-black font-mono text-navy mt-0.5" id="tallyLedgerTotal">₱0.00</div>
+                        <span class="text-[10px] text-slate-400 font-medium" id="tallyRecordCount">0 records</span>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Variance (Cash - Ledger)</span>
+                        <div class="text-xl font-black font-mono text-emerald-700 mt-0.5" id="tallyVarianceTotal">₱0.00</div>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <div class="flex items-center gap-2" id="tallyStatusContainer">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                        <span class="text-xs font-bold text-emerald-800" id="tallyStatusText">✓ PERFECT TALLY MATCH! Physical cash matches collection ledger entries.</span>
+                    </div>
+                    <button type="button" onclick="exportTallyExcel()"
+                            class="px-3.5 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>Export 2-Sheet Excel (.xlsx)</span>
+                    </button>
+                </div>
+
+                <!-- Variance Note Box (Shows when variance != 0) -->
+                <div id="varianceNoteContainer" class="mt-3 hidden">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-red-700 mb-1">Variance Note / Discrepancy Reason *</label>
+                    <input type="text" id="tallyVarianceNote" placeholder="e.g. Unrecorded envelope cash ₱50 or coin rounding difference"
+                           class="w-full px-3 py-1.5 border border-red-300 rounded-lg text-xs bg-white text-slate-800 outline-none focus:ring-1 focus:ring-red-500">
+                </div>
+            </div>
+
+            <!-- Signatories Input -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Counter / Steward Name</label>
+                    <input type="text" id="tallyCounterName" placeholder="e.g. Bro. Juan Dela Cruz"
+                           class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-navy">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Church Secretary Name</label>
+                    <input type="text" id="tallySecretaryName" placeholder="e.g. Sis. Maria Santos"
+                           class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-navy">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Treasurer / Verifier Name</label>
+                    <input type="text" id="tallyTreasurerName" placeholder="e.g. Admin Treasurer"
+                           class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-navy">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="flex-shrink-0 px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <span id="tallySaveMsg" class="text-xs font-semibold text-slate-500"></span>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="closeCashTallyModal()"
+                        class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg transition">
+                    Cancel
+                </button>
+                <button type="button" id="saveTallyBtn" onclick="saveSundayCashTally()"
+                        class="px-5 py-2 bg-navy hover:bg-navy-light text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+                    <span>Save Tally Record</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <!-- RECORD / EDIT COLLECTION MODAL -->
@@ -2242,6 +2476,220 @@ function escapeHTML(value) {
 /* =========================================================
    19. START COLLECTIONS PAGE
    ========================================================= */
+
+/* =========================================================
+   20. SUNDAY CASH DENOMINATION TALLY LOGIC
+   ========================================================= */
+let currentTallyLedgerAmount = 0;
+
+function openCashTallyModal() {
+    const today = new Date();
+    const lastSunday = new Date(today);
+    lastSunday.setDate(today.getDate() - today.getDay());
+    const startDateStr = lastSunday.toISOString().split("T")[0];
+    const endDateStr = today.toISOString().split("T")[0];
+
+    document.getElementById("tallyStartDate").value = startDateStr;
+    document.getElementById("tallyEndDate").value = endDateStr;
+
+    ["bill1000", "bill500", "bill200", "bill100", "bill50", "bill20", "coin20", "coin10", "coin5", "coin1"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 0;
+    });
+    ["coinsLoose", "checksTotal", "onlineTotal"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "0.00";
+    });
+
+    document.getElementById("cashTallyModal").style.display = "flex";
+    fetchTallySummary();
+}
+
+function closeCashTallyModal() {
+    document.getElementById("cashTallyModal").style.display = "none";
+}
+
+async function fetchTallySummary() {
+    const startDate = document.getElementById("tallyStartDate").value;
+    const endDate = document.getElementById("tallyEndDate").value;
+    if (!startDate || !endDate) return;
+
+    try {
+        const res = await fetch(`/api/collections/cash-tally/summary?startDate=${startDate}&endDate=${endDate}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (json.success) {
+            currentTallyLedgerAmount = Number(json.totalLedgerAmount) || 0;
+            document.getElementById("tallyLedgerTotal").innerText = `₱${currentTallyLedgerAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+            document.getElementById("tallyRecordCount").innerText = `${json.collectionsCount || 0} collections in range`;
+
+            if (json.savedTally) {
+                const t = json.savedTally;
+                document.getElementById("bill1000").value = t.bills_1000 || 0;
+                document.getElementById("bill500").value = t.bills_500 || 0;
+                document.getElementById("bill200").value = t.bills_200 || 0;
+                document.getElementById("bill100").value = t.bills_100 || 0;
+                document.getElementById("bill50").value = t.bills_50 || 0;
+                document.getElementById("bill20").value = t.bills_20 || 0;
+                document.getElementById("coin20").value = t.coins_20 || 0;
+                document.getElementById("coin10").value = t.coins_10 || 0;
+                document.getElementById("coin5").value = t.coins_5 || 0;
+                document.getElementById("coin1").value = t.coins_1 || 0;
+                document.getElementById("coinsLoose").value = (Number(t.coins_loose) || 0).toFixed(2);
+                document.getElementById("checksTotal").value = (Number(t.checks_total) || 0).toFixed(2);
+                document.getElementById("onlineTotal").value = (Number(t.online_total) || 0).toFixed(2);
+                document.getElementById("tallyServiceName").value = t.service_name || "Sunday Worship Service";
+                document.getElementById("tallyCounterName").value = t.counter_name || "";
+                document.getElementById("tallySecretaryName").value = t.secretary_name || "";
+                document.getElementById("tallyTreasurerName").value = t.treasurer_name || "";
+                if (t.variance_note) document.getElementById("tallyVarianceNote").value = t.variance_note;
+            }
+
+            calculatePhysicalTally();
+        }
+    } catch (e) {
+        console.error("Fetch tally summary error:", e);
+    }
+}
+
+function calculatePhysicalTally() {
+    const b1000 = (Number(document.getElementById("bill1000").value) || 0) * 1000;
+    const b500  = (Number(document.getElementById("bill500").value) || 0) * 500;
+    const b200  = (Number(document.getElementById("bill200").value) || 0) * 200;
+    const b100  = (Number(document.getElementById("bill100").value) || 0) * 100;
+    const b50   = (Number(document.getElementById("bill50").value) || 0) * 50;
+    const b20   = (Number(document.getElementById("bill20").value) || 0) * 20;
+
+    document.getElementById("sub1000").innerText = `₱${b1000.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("sub500").innerText  = `₱${b500.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("sub200").innerText  = `₱${b200.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("sub100").innerText  = `₱${b100.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("sub50").innerText   = `₱${b50.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("sub20").innerText   = `₱${b20.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+    const totalBills = b1000 + b500 + b200 + b100 + b50 + b20;
+    document.getElementById("totalBillsSub").innerText = `₱${totalBills.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+    const c20 = (Number(document.getElementById("coin20").value) || 0) * 20;
+    const c10 = (Number(document.getElementById("coin10").value) || 0) * 10;
+    const c5  = (Number(document.getElementById("coin5").value) || 0) * 5;
+    const c1  = (Number(document.getElementById("coin1").value) || 0) * 1;
+    const cLoose = Number(document.getElementById("coinsLoose").value) || 0;
+    const checks = Number(document.getElementById("checksTotal").value) || 0;
+    const online = Number(document.getElementById("onlineTotal").value) || 0;
+
+    document.getElementById("subCoin20").innerText = `₱${c20.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("subCoin10").innerText = `₱${c10.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("subCoin5").innerText  = `₱${c5.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("subCoin1").innerText  = `₱${c1.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("subCoinsLoose").innerText = `₱${cLoose.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("subChecks").innerText = `₱${checks.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    document.getElementById("subOnline").innerText = `₱${online.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+    const totalPhysicalCash = totalBills + c20 + c10 + c5 + c1 + cLoose + checks + online;
+    const variance = Number((totalPhysicalCash - currentTallyLedgerAmount).toFixed(2));
+
+    document.getElementById("tallyPhysicalTotal").innerText = `₱${totalPhysicalCash.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+    const varEl = document.getElementById("tallyVarianceTotal");
+    varEl.innerText = `${variance >= 0 ? '+' : ''}₱${variance.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+    const banner = document.getElementById("tallyResultBanner");
+    const statusContainer = document.getElementById("tallyStatusContainer");
+    const noteContainer = document.getElementById("varianceNoteContainer");
+
+    if (Math.abs(variance) < 0.01) {
+        banner.className = "p-5 rounded-xl border transition-all duration-200 bg-emerald-50 border-emerald-200 text-emerald-900";
+        varEl.className = "text-xl font-black font-mono text-emerald-700 mt-0.5";
+        statusContainer.innerHTML = `<span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span><span class="text-xs font-bold text-emerald-800" id="tallyStatusText">✓ PERFECT TALLY MATCH! Physical cash matches collection ledger entries.</span>`;
+        noteContainer.classList.add("hidden");
+    } else {
+        banner.className = "p-5 rounded-xl border transition-all duration-200 bg-red-50 border-red-200 text-red-900";
+        varEl.className = "text-xl font-black font-mono text-red-600 mt-0.5";
+        const msg = variance > 0
+            ? `⚠️ OVERAGE DISCREPANCY (+₱${variance.toFixed(2)}): Physical cash is HIGHER than ledger entries.`
+            : `⚠️ SHORTAGE DISCREPANCY (-₱${Math.abs(variance).toFixed(2)}): Physical cash is LOWER than ledger entries.`;
+        statusContainer.innerHTML = `<span class="w-3 h-3 rounded-full bg-red-500 inline-block animate-ping"></span><span class="text-xs font-bold text-red-800">${msg}</span>`;
+        noteContainer.classList.remove("hidden");
+    }
+}
+
+async function saveSundayCashTally() {
+    const startDate = document.getElementById("tallyStartDate").value;
+    const endDate = document.getElementById("tallyEndDate").value;
+    const serviceName = document.getElementById("tallyServiceName").value;
+
+    const b1000 = Number(document.getElementById("bill1000").value) || 0;
+    const b500  = Number(document.getElementById("bill500").value) || 0;
+    const b200  = Number(document.getElementById("bill200").value) || 0;
+    const b100  = Number(document.getElementById("bill100").value) || 0;
+    const b50   = Number(document.getElementById("bill50").value) || 0;
+    const b20   = Number(document.getElementById("bill20").value) || 0;
+
+    const c20 = Number(document.getElementById("coin20").value) || 0;
+    const c10 = Number(document.getElementById("coin10").value) || 0;
+    const c5  = Number(document.getElementById("coin5").value) || 0;
+    const c1  = Number(document.getElementById("coin1").value) || 0;
+    const cLoose = Number(document.getElementById("coinsLoose").value) || 0;
+    const checks = Number(document.getElementById("checksTotal").value) || 0;
+    const online = Number(document.getElementById("onlineTotal").value) || 0;
+
+    const totalPhysicalCash = (b1000*1000) + (b500*500) + (b200*200) + (b100*100) + (b50*50) + (b20*20) + (c20*20) + (c10*10) + (c5*5) + (c1*1) + cLoose + checks + online;
+    const varianceAmount = Number((totalPhysicalCash - currentTallyLedgerAmount).toFixed(2));
+    const status = Math.abs(varianceAmount) < 0.01 ? "TALLY_MATCH" : (varianceAmount > 0 ? "OVERAGE" : "SHORTAGE");
+
+    const varianceNote = document.getElementById("tallyVarianceNote")?.value || "";
+    const counterName = document.getElementById("tallyCounterName")?.value || "";
+    const secretaryName = document.getElementById("tallySecretaryName")?.value || "";
+    const treasurerName = document.getElementById("tallyTreasurerName")?.value || "";
+
+    const saveBtn = document.getElementById("saveTallyBtn");
+    const saveMsg = document.getElementById("tallySaveMsg");
+
+    saveBtn.disabled = true;
+    saveBtn.innerText = "Saving...";
+
+    try {
+        const res = await fetch("/api/collections/cash-tally", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                startDate, endDate, serviceName,
+                bills1000: b1000, bills500: b500, bills200: b200, bills100: b100, bills50: b50, bills20: b20,
+                coins20: c20, coins10: c10, coins5: c5, coins1: c1, coinsLoose: cLoose,
+                checksTotal: checks, onlineTotal: online,
+                totalPhysicalCash, totalLedgerAmount: currentTallyLedgerAmount, varianceAmount,
+                status, varianceNote, counterName, secretaryName, treasurerName
+            })
+        });
+
+        const json = await res.json();
+        if (res.ok && json.success) {
+            saveMsg.className = "text-xs font-semibold text-emerald-600";
+            saveMsg.innerText = "✓ Sunday Cash Tally record saved successfully!";
+        } else {
+            throw new Error(json.error || "Failed to save tally.");
+        }
+    } catch (e) {
+        saveMsg.className = "text-xs font-semibold text-red-600";
+        saveMsg.innerText = e.message;
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save Tally Record";
+    }
+}
+
+function exportTallyExcel() {
+    const startDate = document.getElementById("tallyStartDate").value;
+    const endDate = document.getElementById("tallyEndDate").value;
+    if (!startDate || !endDate) return;
+
+    window.open(`/api/collections/cash-tally/export-excel?startDate=${startDate}&endDate=${endDate}`, '_blank');
+}
 
 loadMemberDropdown();
 
