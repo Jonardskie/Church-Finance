@@ -351,6 +351,8 @@ async function loadReports() {
 
         renderMethods(methods);
 
+        await loadTallyReportSection();
+
 
     } catch (error) {
 
@@ -1818,6 +1820,109 @@ async function exportPPTX() {
 
     // Save presentation
     pptx.writeFile({ fileName: `MUMC_Financial_Report_${from}_to_${to}.pptx` });
+}
+
+// ============================================================
+// SUNDAY CASH COUNT & TALLY SECTION RENDERING
+// ============================================================
+
+async function loadTallyReportSection() {
+    const { from, to } = getDates();
+    if (!from || !to) return;
+
+    try {
+        const res = await fetch(`/api/collections/cash-tally/summary?startDate=${from}&endDate=${to}`, {
+            headers: apiHeaders()
+        });
+        const json = await res.json();
+        if (json.success && json.savedTally) {
+            const t = json.savedTally;
+            const b1000 = Number(t.bills_1000) || 0;
+            const b500  = Number(t.bills_500) || 0;
+            const b200  = Number(t.bills_200) || 0;
+            const b100  = Number(t.bills_100) || 0;
+            const b50   = Number(t.bills_50) || 0;
+            const b20   = Number(t.bills_20) || 0;
+            const c20   = Number(t.coins_20) || 0;
+            const c10   = Number(t.coins_10) || 0;
+            const c5    = Number(t.coins_5) || 0;
+            const c1    = Number(t.coins_1) || 0;
+            const cLoose = Number(t.coins_loose) || 0;
+            const checks = Number(t.checks_total) || 0;
+            const online = Number(t.online_total) || 0;
+
+            const totalPhys = Number(t.total_physical_cash) || 0;
+            const totalLedger = Number(t.total_ledger_amount) || 0;
+            const variance = Number(t.variance_amount) || 0;
+
+            const tbody = document.getElementById("tallyReportBody");
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr><td>₱1,000 Bill</td><td class="text-center font-mono">${b1000}</td><td class="text-right font-mono">${money(b1000*1000)}</td></tr>
+                    <tr><td>₱500 Bill</td><td class="text-center font-mono">${b500}</td><td class="text-right font-mono">${money(b500*500)}</td></tr>
+                    <tr><td>₱200 Bill</td><td class="text-center font-mono">${b200}</td><td class="text-right font-mono">${money(b200*200)}</td></tr>
+                    <tr><td>₱100 Bill</td><td class="text-center font-mono">${b100}</td><td class="text-right font-mono">${money(b100*100)}</td></tr>
+                    <tr><td>₱50 Bill</td><td class="text-center font-mono">${b50}</td><td class="text-right font-mono">${money(b50*50)}</td></tr>
+                    <tr><td>₱20 Note</td><td class="text-center font-mono">${b20}</td><td class="text-right font-mono">${money(b20*20)}</td></tr>
+                    <tr><td>₱20 Coin</td><td class="text-center font-mono">${c20}</td><td class="text-right font-mono">${money(c20*20)}</td></tr>
+                    <tr><td>₱10 Coin</td><td class="text-center font-mono">${c10}</td><td class="text-right font-mono">${money(c10*10)}</td></tr>
+                    <tr><td>₱5 Coin</td><td class="text-center font-mono">${c5}</td><td class="text-right font-mono">${money(c5*5)}</td></tr>
+                    <tr><td>₱1 Coin</td><td class="text-center font-mono">${c1}</td><td class="text-right font-mono">${money(c1*1)}</td></tr>
+                    <tr><td>Loose Coins</td><td class="text-center font-mono">—</td><td class="text-right font-mono">${money(cLoose)}</td></tr>
+                    <tr><td>Checks Total</td><td class="text-center font-mono">—</td><td class="text-right font-mono">${money(checks)}</td></tr>
+                    <tr><td>GCash / Online</td><td class="text-center font-mono">—</td><td class="text-right font-mono">${money(online)}</td></tr>
+                    <tr class="font-bold bg-slate-100/80 text-navy"><td>TOTAL PHYSICAL CASH</td><td class="text-center font-mono">—</td><td class="text-right font-mono">${money(totalPhys)}</td></tr>
+                `;
+            }
+
+            document.getElementById("tallyReportPhysical").innerText = money(totalPhys);
+            document.getElementById("tallyReportLedger").innerText = money(totalLedger);
+            const varEl = document.getElementById("tallyReportVariance");
+            varEl.innerText = `${variance >= 0 ? '+' : ''}${money(variance)}`;
+
+            const badge = document.getElementById("tallyBadgeStatus");
+            if (Math.abs(variance) < 0.01) {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
+                badge.innerText = "✓ TALLY PERFECT MATCH";
+                varEl.className = "font-black font-mono text-sm text-emerald-700";
+            } else {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300 animate-pulse";
+                badge.innerText = `⚠️ DISCREPANCY (${variance > 0 ? 'OVERAGE' : 'SHORTAGE'})`;
+                varEl.className = "font-black font-mono text-sm text-red-600";
+            }
+
+            const noteBox = document.getElementById("tallyReportNoteBox");
+            if (t.variance_note) {
+                noteBox.classList.remove("hidden");
+                document.getElementById("tallyReportNoteText").innerText = t.variance_note;
+            } else {
+                noteBox.classList.add("hidden");
+            }
+
+            document.getElementById("sigReportCounter").innerText = t.counter_name || "_________________";
+            document.getElementById("sigReportSecretary").innerText = t.secretary_name || "_________________";
+            document.getElementById("sigReportTreasurer").innerText = t.treasurer_name || "_________________";
+
+        } else {
+            const tbody = document.getElementById("tallyReportBody");
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-400 italic">No Sunday Cash Count saved for date range ${from} to ${to}.</td></tr>`;
+            }
+            const badge = document.getElementById("tallyBadgeStatus");
+            if (badge) {
+                badge.className = "px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200";
+                badge.innerText = "No Saved Tally Record";
+            }
+            document.getElementById("tallyReportPhysical").innerText = money(0);
+            document.getElementById("tallyReportLedger").innerText = money(json.totalLedgerAmount || 0);
+            document.getElementById("tallyReportVariance").innerText = money(0);
+            document.getElementById("sigReportCounter").innerText = "_________________";
+            document.getElementById("sigReportSecretary").innerText = "_________________";
+            document.getElementById("sigReportTreasurer").innerText = "_________________";
+        }
+    } catch (e) {
+        console.error("Load tally report section error:", e);
+    }
 }
 
 

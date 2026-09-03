@@ -235,6 +235,90 @@
             </div>
         </section>
 
+        <!-- 3. SUNDAY CASH COUNT & TALLY RECONCILIATION -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-2">
+                <div>
+                    <h2 class="text-base font-bold text-navy">3. Sunday Cash Count & Tally Reconciliation</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Physical currency denomination audit, envelope reconciliation, and signatories.</p>
+                </div>
+                <div id="tallyBadgeStatus" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    Checking Tally Status...
+                </div>
+            </div>
+
+            <div class="p-5 space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <!-- Denomination Breakdown Table -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h3 class="text-xs font-bold text-navy uppercase tracking-wider mb-3 flex items-center justify-between">
+                            <span>💵 Currency Denomination Breakdown</span>
+                            <span class="text-[11px] text-slate-400 font-normal">Physical Count</span>
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="text-slate-500 font-semibold border-b border-slate-200 text-left">
+                                    <tr class="[&>th]:pb-2">
+                                        <th>Denomination</th>
+                                        <th class="text-center">Count</th>
+                                        <th class="text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tallyReportBody" class="divide-y divide-slate-200/60 text-slate-700 [&>tr>td]:py-2">
+                                    <tr><td colspan="3" class="py-3 text-center text-slate-400">Loading cash count data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Reconciliation Summary & Signatories -->
+                    <div class="space-y-4">
+                        <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100 space-y-3">
+                            <h3 class="text-xs font-bold text-navy uppercase tracking-wider">📊 Reconciliation Tally Summary</h3>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-600">Total Physical Cash Counted:</span>
+                                    <span class="font-bold font-mono text-emerald-700 text-sm" id="tallyReportPhysical">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-600">Total Envelopes in Ledger:</span>
+                                    <span class="font-bold font-mono text-navy text-sm" id="tallyReportLedger">₱0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-blue-200/60">
+                                    <span class="font-bold text-slate-700">Variance (Over/Short):</span>
+                                    <span class="font-black font-mono text-sm" id="tallyReportVariance">₱0.00</span>
+                                </div>
+                            </div>
+                            <div id="tallyReportNoteBox" class="hidden text-xs bg-red-50 border border-red-200 text-red-800 p-2.5 rounded-lg font-medium">
+                                <strong>Note:</strong> <span id="tallyReportNoteText">—</span>
+                            </div>
+                        </div>
+
+                        <!-- Signatories Block -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                            <h3 class="text-xs font-bold text-navy uppercase tracking-wider">✍️ Official Signatories & Approvals</h3>
+                            <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                                <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs">
+                                    <div class="font-bold text-slate-800 truncate" id="sigReportCounter">_________________</div>
+                                    <div class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">Counter / Steward</div>
+                                </div>
+                                <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs">
+                                    <div class="font-bold text-slate-800 truncate" id="sigReportSecretary">_________________</div>
+                                    <div class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">Church Secretary</div>
+                                </div>
+                                <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs">
+                                    <div class="font-bold text-slate-800 truncate" id="sigReportTreasurer">_________________</div>
+                                    <div class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">Treasurer / Admin</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
         <!-- ACCOUNTING SETTINGS -->
         <section class="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden settings-section">
             <div class="p-5 border-b border-slate-100">

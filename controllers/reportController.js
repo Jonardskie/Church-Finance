@@ -1720,6 +1720,252 @@ exports.exportExcel = async (
             { width: 22 }
         ];
 
+        // ====================================================
+        // 4. SUNDAY CASH COUNT & TALLY STATEMENT SHEET
+        // ====================================================
+
+        const wsTally = workbook.addWorksheet("Sunday Cash Count & Tally", {
+            pageSetup: {
+                orientation: "portrait",
+                fitToPage: true,
+                fitToWidth: 1,
+                fitToHeight: 0,
+                paperSize: 9, // A4
+                margins: { left: 0.35, right: 0.35, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 }
+            }
+        });
+
+        // Query saved cash tally for date range
+        let tally = {};
+        try {
+            const tallyRes = await pool.query(
+                `SELECT * FROM sunday_cash_counts
+                 WHERE start_date >= $1 AND end_date <= $2
+                 ORDER BY id DESC LIMIT 1`,
+                [from, to]
+            );
+            if (tallyRes.rows.length > 0) {
+                tally = tallyRes.rows[0];
+            } else {
+                const tallyRes2 = await pool.query(
+                    `SELECT * FROM sunday_cash_counts ORDER BY id DESC LIMIT 1`
+                );
+                if (tallyRes2.rows.length > 0) tally = tallyRes2.rows[0];
+            }
+        } catch (tErr) {
+            console.error("Tally query error for Excel export:", tErr);
+        }
+
+        // Header Title Block
+        wsTally.mergeCells("A1:D1");
+        wsTally.getCell("A1").value = churchName;
+        wsTally.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: "FF1E3A8A" } };
+        wsTally.getCell("A1").alignment = { vertical: "middle", horizontal: "center" };
+        wsTally.getRow(1).height = 26;
+
+        wsTally.mergeCells("A2:D2");
+        wsTally.getCell("A2").value = "SUNDAY CASH COUNT & RECONCILIATION STATEMENT";
+        wsTally.getCell("A2").font = { name: "Calibri", size: 12, bold: true, color: { argb: "FF334155" } };
+        wsTally.getCell("A2").alignment = { vertical: "middle", horizontal: "center" };
+        wsTally.getRow(2).height = 20;
+
+        wsTally.mergeCells("A3:D3");
+        wsTally.getCell("A3").value = "Church Financial Management & Monitoring System (CFMMS)";
+        wsTally.getCell("A3").font = { name: "Calibri", size: 9.5, italic: true, color: { argb: "FF64748B" } };
+        wsTally.getCell("A3").alignment = { vertical: "middle", horizontal: "center" };
+        wsTally.getRow(3).height = 16;
+
+        wsTally.mergeCells("A4:D4");
+        const tallyStatusText = tally.status || "TALLY_MATCH";
+        wsTally.getCell("A4").value = `Service Period: ${tally.start_date ? String(tally.start_date).split('T')[0] : from} to ${tally.end_date ? String(tally.end_date).split('T')[0] : to}   |   Service Name: ${tally.service_name || 'Sunday Worship Service'}   |   Status: ${tallyStatusText}`;
+        wsTally.getCell("A4").font = { name: "Calibri", size: 9.5, bold: true, color: { argb: "FF1E293B" } };
+        wsTally.getCell("A4").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+        wsTally.getCell("A4").alignment = { vertical: "middle", horizontal: "center" };
+        wsTally.getCell("A4").border = borderThin;
+        wsTally.getRow(4).height = 20;
+
+        wsTally.getRow(5).height = 10;
+
+        // Denominations Table Headers
+        const tHeader = wsTally.getRow(6);
+        tHeader.values = ["CURRENCY DENOMINATIONS", "TYPE / UNIT", "COUNT / QUANTITY", "SUBTOTAL (₱)"];
+        tHeader.height = 24;
+        tHeader.eachCell(cell => {
+            cell.fill = headerFill;
+            cell.font = headerFont;
+            cell.alignment = { vertical: "middle", horizontal: "center" };
+            cell.border = borderThin;
+        });
+
+        const b1000 = Number(tally.bills_1000) || 0;
+        const b500  = Number(tally.bills_500) || 0;
+        const b200  = Number(tally.bills_200) || 0;
+        const b100  = Number(tally.bills_100) || 0;
+        const b50   = Number(tally.bills_50) || 0;
+        const b20   = Number(tally.bills_20) || 0;
+        const c20   = Number(tally.coins_20) || 0;
+        const c10   = Number(tally.coins_10) || 0;
+        const c5    = Number(tally.coins_5) || 0;
+        const c1    = Number(tally.coins_1) || 0;
+        const cLoose = Number(tally.coins_loose) || 0;
+        const checks = Number(tally.checks_total) || 0;
+        const online = Number(tally.online_total) || 0;
+
+        const tallyRowsData = [
+            ["₱1,000 Banknote", "Banknote", b1000, b1000 * 1000],
+            ["₱500 Banknote", "Banknote", b500, b500 * 500],
+            ["₱200 Banknote", "Banknote", b200, b200 * 200],
+            ["₱100 Banknote", "Banknote", b100, b100 * 100],
+            ["₱50 Banknote", "Banknote", b50, b50 * 50],
+            ["₱20 Note", "Banknote", b20, b20 * 20],
+            ["₱20 Coin", "Coin", c20, c20 * 20],
+            ["₱10 Coin", "Coin", c10, c10 * 10],
+            ["₱5 Coin", "Coin", c5, c5 * 5],
+            ["₱1 Coin", "Coin", c1, c1 * 1],
+            ["Loose Coins Total", "Loose Coins", "—", cLoose],
+            ["Checks Total", "Bank Check", "—", checks],
+            ["GCash / Online Transfers", "Electronic", "—", online]
+        ];
+
+        let tCurrRow = 7;
+        tallyRowsData.forEach((td, idx) => {
+            const tr = wsTally.getRow(tCurrRow);
+            tr.values = td;
+            tr.height = 19;
+            tr.eachCell((cell, colNum) => {
+                cell.font = { name: "Calibri", size: 10, color: { argb: "FF1E293B" } };
+                cell.border = borderThin;
+                if (idx % 2 === 1) cell.fill = zebraFill;
+
+                if (colNum === 1) {
+                    cell.alignment = { vertical: "middle", horizontal: "left" };
+                } else if (colNum === 2) {
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                } else if (colNum === 3) {
+                    cell.alignment = { vertical: "middle", horizontal: "center" };
+                    if (typeof td[2] === "number") cell.numFmt = "#,##0";
+                } else {
+                    cell.alignment = { vertical: "middle", horizontal: "right" };
+                    cell.numFmt = '"₱"#,##0.00;[Red]("₱"#,##0.00);"-"';
+                }
+            });
+            tCurrRow++;
+        });
+
+        // Physical Cash Total Row
+        const totalPhysical = Number(tally.total_physical_cash) || 
+            ((b1000*1000) + (b500*500) + (b200*200) + (b100*100) + (b50*50) + (b20*20) + (c20*20) + (c10*10) + (c5*5) + (c1*1) + cLoose + checks + online);
+
+        const physTotalRow = wsTally.getRow(tCurrRow);
+        physTotalRow.values = ["TOTAL PHYSICAL CURRENCY COUNT", "", "", totalPhysical];
+        physTotalRow.height = 24;
+        wsTally.mergeCells(`A${tCurrRow}:C${tCurrRow}`);
+        physTotalRow.eachCell((cell, colNum) => {
+            cell.font = { name: "Calibri", size: 11, bold: true, color: { argb: "FF1E3A8A" } };
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDBEAFE" } };
+            cell.border = borderDoubleBottom;
+            if (colNum === 1) {
+                cell.alignment = { vertical: "middle", horizontal: "left" };
+            } else if (colNum === 4) {
+                cell.alignment = { vertical: "middle", horizontal: "right" };
+                cell.numFmt = '"₱"#,##0.00;[Red]("₱"#,##0.00);"-"';
+            }
+        });
+
+        tCurrRow += 2;
+
+        // Reconciliation Summary Box
+        const reconTitleRow = wsTally.getRow(tCurrRow);
+        wsTally.mergeCells(`A${tCurrRow}:D${tCurrRow}`);
+        reconTitleRow.getCell(1).value = "RECONCILIATION TALLY SUMMARY";
+        reconTitleRow.getCell(1).font = { name: "Calibri", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+        reconTitleRow.getCell(1).fill = headerFill;
+        reconTitleRow.getCell(1).alignment = { vertical: "middle", horizontal: "center" };
+        reconTitleRow.height = 22;
+        tCurrRow++;
+
+        const ledgerAmt = Number(tally.total_ledger_amount) || 0;
+        const variance = Number(tally.variance_amount) || (totalPhysical - ledgerAmt);
+
+        const reconLines = [
+            ["Total Physical Cash Counted", totalPhysical],
+            ["Total Envelopes Recorded in Ledger", ledgerAmt],
+            ["Tally Variance (Physical - Ledger)", variance]
+        ];
+
+        reconLines.forEach((rl, rIdx) => {
+            const rRow = wsTally.getRow(tCurrRow);
+            rRow.values = [rl[0], "", "", rl[1]];
+            wsTally.mergeCells(`A${tCurrRow}:C${tCurrRow}`);
+            rRow.height = 20;
+            rRow.eachCell((cell, colNum) => {
+                cell.font = { name: "Calibri", size: 10.5, bold: rIdx === 2, color: { argb: rIdx === 2 && variance !== 0 ? "FFDC2626" : "FF1E293B" } };
+                cell.border = borderThin;
+                if (colNum === 1) cell.alignment = { vertical: "middle", horizontal: "left" };
+                if (colNum === 4) {
+                    cell.alignment = { vertical: "middle", horizontal: "right" };
+                    cell.numFmt = '"₱"#,##0.00;[Red]("₱"#,##0.00);"-"';
+                }
+            });
+            tCurrRow++;
+        });
+
+        if (tally.variance_note) {
+            const noteRow = wsTally.getRow(tCurrRow);
+            noteRow.values = [`Variance Explanation / Note: ${tally.variance_note}`];
+            wsTally.mergeCells(`A${tCurrRow}:D${tCurrRow}`);
+            noteRow.height = 22;
+            noteRow.getCell(1).font = { name: "Calibri", size: 10, italic: true, color: { argb: "FFB91C1C" } };
+            noteRow.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEE2E2" } };
+            noteRow.getCell(1).border = borderThin;
+            tCurrRow++;
+        }
+
+        tCurrRow += 2;
+
+        // Signatories Block
+        const sigTitleRow = wsTally.getRow(tCurrRow);
+        wsTally.mergeCells(`A${tCurrRow}:D${tCurrRow}`);
+        sigTitleRow.getCell(1).value = "OFFICIAL SIGNATORIES & APPROVALS";
+        sigTitleRow.getCell(1).font = { name: "Calibri", size: 11, bold: true, color: { argb: "FF1E3A8A" } };
+        sigTitleRow.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDBEAFE" } };
+        sigTitleRow.getCell(1).alignment = { vertical: "middle", horizontal: "center" };
+        sigTitleRow.height = 22;
+        tCurrRow += 2;
+
+        const sigNamesRow = wsTally.getRow(tCurrRow);
+        sigNamesRow.values = [
+            tally.counter_name || "______________________",
+            "",
+            tally.secretary_name || "______________________",
+            tally.treasurer_name || "______________________"
+        ];
+        sigNamesRow.height = 20;
+        sigNamesRow.eachCell(cell => {
+            cell.font = { name: "Calibri", size: 10.5, bold: true, color: { argb: "FF0F172A" } };
+            cell.alignment = { vertical: "bottom", horizontal: "center" };
+        });
+        tCurrRow++;
+
+        const sigTitlesRow = wsTally.getRow(tCurrRow);
+        sigTitlesRow.values = [
+            "Prepared / Counted by (Steward)",
+            "",
+            "Recorded by (Church Secretary)",
+            "Verified by (Treasurer / Admin)"
+        ];
+        sigTitlesRow.height = 18;
+        sigTitlesRow.eachCell(cell => {
+            cell.font = { name: "Calibri", size: 9.5, italic: true, color: { argb: "FF64748B" } };
+            cell.alignment = { vertical: "top", horizontal: "center" };
+        });
+
+        wsTally.columns = [
+            { width: 32 },
+            { width: 18 },
+            { width: 22 },
+            { width: 25 }
+        ];
 
         // ====================================================
         // SEND WORKBOOK BUFFER
