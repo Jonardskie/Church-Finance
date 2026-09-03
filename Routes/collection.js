@@ -56,11 +56,11 @@ router.delete(
     controller.deleteCollection
 );
 
-// Update collection (Admin, Pastor, Treasurer)
+// Update collection (Admin, Pastor, Treasurer, Secretary)
 router.put(
     "/:id",
     authMiddleware,
-    roleMiddleware('Admin', 'Pastor', 'Treasurer'),
+    roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
     controller.updateCollection
 );
 
