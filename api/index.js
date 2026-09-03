@@ -77,6 +77,7 @@ try {
     const expenseRoutes = require("../Routes/expenses");
     const auditRoutes = require("../Routes/audit");
     const settingsRoutes = require("../Routes/settings");
+    const permissionRoutes = require("../Routes/permission");
 
     app.use("/api/auth", authRoutes);
     app.use("/api/collections", collectionRoutes);
@@ -86,6 +87,7 @@ try {
     app.use("/api/reports", reportRoutes);
     app.use("/api/audit", auditRoutes);
     app.use("/api/settings", settingsRoutes);
+    app.use("/api/permissions", permissionRoutes);
 } catch (error) {
     console.error("❌ Error loading routes:", error.message);
 }

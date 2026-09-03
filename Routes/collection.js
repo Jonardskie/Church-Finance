@@ -7,6 +7,8 @@ const controller = require("../controllers/collectionController");
 const authMiddleware = require("../middleWare/authMiddleware");
 const roleMiddleware = require("../middleWare/roleMiddleware");
 
+const permissionMiddleware = require("../middleWare/permissionMiddleware");
+
 // ============================================================
 // USER SIDE (MEMBER PORTAL) ROUTES - ANY AUTHENTICATED MEMBER
 // ============================================================
@@ -21,6 +23,7 @@ router.get(
     "/",
     authMiddleware,
     roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    permissionMiddleware("collections", "view"),
     controller.getCollections
 );
 
@@ -29,6 +32,7 @@ router.post(
     "/",
     authMiddleware,
     roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    permissionMiddleware("collections", "create"),
     controller.createCollection
 );
 
@@ -37,6 +41,7 @@ router.put(
     "/verify-batch",
     authMiddleware,
     roleMiddleware("Admin"),
+    permissionMiddleware("collections", "verify"),
     controller.verifyBatchCollections
 );
 
@@ -45,6 +50,7 @@ router.put(
     "/verify/:id",
     authMiddleware,
     roleMiddleware("Admin"),
+    permissionMiddleware("collections", "verify"),
     controller.verifyCollection
 );
 
@@ -53,6 +59,7 @@ router.delete(
     "/:id",
     authMiddleware,
     roleMiddleware("Admin", "Pastor", "Treasurer"),
+    permissionMiddleware("collections", "delete"),
     controller.deleteCollection
 );
 
@@ -61,6 +68,7 @@ router.put(
     "/:id",
     authMiddleware,
     roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    permissionMiddleware("collections", "edit"),
     controller.updateCollection
 );
 

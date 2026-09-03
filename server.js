@@ -31,6 +31,8 @@ let memberRoutes;
 let reportRoutes;
 let expenseRoutes;
 let auditRoutes;
+let settingsRoutes;
+let permissionRoutes;
 
 try {
 
@@ -56,6 +58,9 @@ try {
 
     settingsRoutes =
         require("./Routes/settings");
+
+    permissionRoutes =
+        require("./Routes/permission");
 
     console.log("✅ All routes loaded successfully");
 
@@ -221,6 +226,15 @@ if (settingsRoutes) {
     app.use(
         "/api/settings",
         settingsRoutes
+    );
+
+}
+
+if (permissionRoutes) {
+
+    app.use(
+        "/api/permissions",
+        permissionRoutes
     );
 
 }

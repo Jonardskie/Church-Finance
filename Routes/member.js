@@ -5,6 +5,7 @@ const controller = require("../controllers/memberController");
 // IMPORT MIDDLEWARES
 const authMiddleware = require("../middleWare/authMiddleware");
 const roleMiddleware = require("../middleWare/roleMiddleware");
+const permissionMiddleware = require("../middleWare/permissionMiddleware");
 
 // =========================
 // CREATE SINGLE MEMBER (Allowed: Admin, Pastor, Secretary)
@@ -13,6 +14,7 @@ router.post(
     "/",
     authMiddleware,
     roleMiddleware("Admin", "Pastor", "Secretary"),
+    permissionMiddleware("members", "create"),
     controller.createMember
 );
 
@@ -23,6 +25,7 @@ router.post(
     "/import",
     authMiddleware,
     roleMiddleware("Admin", "Pastor", "Secretary"),
+    permissionMiddleware("members", "create"),
     controller.importMembers
 );
 
@@ -32,6 +35,7 @@ router.post(
 router.get(
     "/",
     authMiddleware,
+    permissionMiddleware("members", "view"),
     controller.getMembers
 );
 
@@ -51,6 +55,7 @@ router.put(
     "/:id",
     authMiddleware,
     roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    permissionMiddleware("members", "edit"),
     controller.updateMember
 );
 
@@ -63,6 +68,7 @@ router.delete(
     "/batch",
     authMiddleware,
     roleMiddleware("Admin", "Pastor"),
+    permissionMiddleware("members", "delete"),
     controller.deleteMembersBatch
 );
 
@@ -75,6 +81,7 @@ router.delete(
     "/:id",
     authMiddleware,
     roleMiddleware("Admin", "Pastor"),
+    permissionMiddleware("members", "delete"),
     controller.deleteMember
 );
 

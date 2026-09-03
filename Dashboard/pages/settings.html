@@ -207,6 +207,50 @@
                 </div>
             </div>
 
+            <!-- DYNAMIC ROLE & ACTION PERMISSION MATRIX CARD (ADMIN ONLY) -->
+            <div id="permissionMatrixCard" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:col-span-2 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-slate-100 gap-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">⚙️</span>
+                            <h2 class="text-base font-bold text-navy">Granular Role & Action Permission Matrix</h2>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Customize specific action permissions (view, add, edit, verify, delete, export) for each role across all pages.</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                        Admin Master Control
+                    </span>
+                </div>
+
+                <form id="permissionMatrixForm" class="space-y-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
+                                    <th class="py-3 px-4 w-2/5">Module & Specific Action</th>
+                                    <th class="py-3 px-3 text-center">Pastor</th>
+                                    <th class="py-3 px-3 text-center">Treasurer</th>
+                                    <th class="py-3 px-3 text-center">Secretary</th>
+                                    <th class="py-3 px-3 text-center">Member</th>
+                                </tr>
+                            </thead>
+                            <tbody id="permissionMatrixBody" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Dynamically populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <p id="matrixSaveMsg" class="text-xs font-semibold text-slate-500"></p>
+                        <button type="submit" id="saveMatrixBtn"
+                                class="px-6 py-2.5 bg-navy hover:bg-navy-light text-white text-xs font-semibold rounded-lg transition shadow-sm flex items-center gap-2">
+                            <span>Save Permission Matrix</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- SYSTEM DOCUMENTATION & STARTER TOOLKIT CARD -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:col-span-2">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-slate-100 gap-2">
@@ -311,6 +355,7 @@ if (prefixInput && prefixPreview) {
 }
 
 async function loadChurchSettings() {
+    loadPermissionMatrix();
     try {
         const res = await fetch("/api/settings/church");
         const json = await res.json();
@@ -410,6 +455,173 @@ document.getElementById("churchSettingsForm").addEventListener("submit", async f
     } finally {
         saveBtn.disabled = false;
         saveBtn.innerHTML = `<span>Save Church Profile</span>`;
+    }
+});
+
+// ============================================================
+// DYNAMIC ROLE & ACTION PERMISSION MATRIX LOGIC
+// ============================================================
+const permissionModules = [
+    {
+        key: "members",
+        title: "👥 Members Directory (members.html)",
+        actions: [
+            { key: "view", label: "View Member Directory & Profile" },
+            { key: "create", label: "Add New Member Record (+ Button)" },
+            { key: "edit", label: "Edit Member Information (Edit Button)" },
+            { key: "delete", label: "Delete Member Record (Delete Button)" }
+        ]
+    },
+    {
+        key: "collections",
+        title: "💵 Collections Ledger (collections.html)",
+        actions: [
+            { key: "view", label: "View Collections Ledger" },
+            { key: "create", label: "Record New Collection (+ Button)" },
+            { key: "edit", label: "Edit Collection Record (Edit Button)" },
+            { key: "cash_tally", label: "Access Sunday Cash Tally Modal" },
+            { key: "verify", label: "Verify Collection Record (Admin / Verify Button)" },
+            { key: "delete", label: "Delete Collection Record (Delete Button)" }
+        ]
+    },
+    {
+        key: "expenses",
+        title: "💸 Expenses Vouchers (expenses.html)",
+        actions: [
+            { key: "view", label: "View Expenses List" },
+            { key: "create", label: "Create Expense Request (+ Button)" },
+            { key: "approve", label: "Approve / Disburse Expense (Approve Button)" },
+            { key: "delete", label: "Delete / Void Expense (Void Button)" }
+        ]
+    },
+    {
+        key: "reports",
+        title: "📊 Financial Reports (reports.html)",
+        actions: [
+            { key: "view", label: "View Financial Reports & Analytics" },
+            { key: "export_excel", label: "Export Multi-Sheet Excel Reports" },
+            { key: "print", label: "Print Financial Statements" }
+        ]
+    },
+    {
+        key: "audit",
+        title: "📜 System Audit Trail (audit.html)",
+        actions: [
+            { key: "view", label: "View Audit Stream & Change History" },
+            { key: "purge", label: "Purge System Audit Logs" }
+        ]
+    }
+];
+
+const configurableRoles = ["pastor", "treasurer", "secretary", "member"];
+
+async function loadPermissionMatrix() {
+    if (!isAdmin) return;
+    const card = document.getElementById("permissionMatrixCard");
+    if (card) card.classList.remove("hidden");
+
+    try {
+        const res = await fetch("/api/permissions", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        const matrix = json.permissions || {};
+
+        const tbody = document.getElementById("permissionMatrixBody");
+        if (!tbody) return;
+
+        let html = "";
+        permissionModules.forEach(mod => {
+            html += `
+                <tr class="bg-slate-100/70 border-y border-slate-200">
+                    <td colspan="5" class="py-2.5 px-4 font-bold text-navy text-xs uppercase tracking-wide">
+                        ${mod.title}
+                    </td>
+                </tr>
+            `;
+
+            mod.actions.forEach(act => {
+                html += `<tr class="hover:bg-slate-50 transition"><td class="py-2 px-4 font-medium text-slate-700">${act.label}</td>`;
+
+                configurableRoles.forEach(r => {
+                    const isChecked = Boolean(matrix[r] && matrix[r][mod.key] && matrix[r][mod.key][act.key]);
+                    html += `
+                        <td class="py-2 px-3 text-center">
+                            <input type="checkbox" 
+                                   name="perm_${r}_${mod.key}_${act.key}" 
+                                   class="perm-checkbox w-4 h-4 text-navy rounded border-slate-300 focus:ring-navy cursor-pointer"
+                                   ${isChecked ? 'checked' : ''}>
+                        </td>
+                    `;
+                });
+
+                html += `</tr>`;
+            });
+        });
+
+        tbody.innerHTML = html;
+
+    } catch (err) {
+        console.error("Failed to load permission matrix:", err);
+    }
+}
+
+document.getElementById("permissionMatrixForm")?.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    if (!isAdmin) return;
+
+    const saveBtn = document.getElementById("saveMatrixBtn");
+    const msg = document.getElementById("matrixSaveMsg");
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<span>Saving...</span>`;
+    }
+    if (msg) msg.textContent = "";
+
+    const matrix = {
+        pastor: { members: {}, collections: {}, expenses: {}, reports: {}, audit: {} },
+        treasurer: { members: {}, collections: {}, expenses: {}, reports: {}, audit: {} },
+        secretary: { members: {}, collections: {}, expenses: {}, reports: {}, audit: {} },
+        member: { members: {}, collections: {}, expenses: {}, reports: {}, audit: {} }
+    };
+
+    permissionModules.forEach(mod => {
+        mod.actions.forEach(act => {
+            configurableRoles.forEach(r => {
+                const el = document.querySelector(`input[name="perm_${r}_${mod.key}_${act.key}"]`);
+                if (el) {
+                    matrix[r][mod.key][act.key] = el.checked;
+                }
+            });
+        });
+    });
+
+    try {
+        const res = await fetch("/api/permissions", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ matrix })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to update permission matrix.");
+
+        if (msg) {
+            msg.className = "text-xs font-semibold text-emerald-600";
+            msg.textContent = "✓ Role & Action Permission Matrix updated successfully!";
+        }
+    } catch (err) {
+        if (msg) {
+            msg.className = "text-xs font-semibold text-red-600";
+            msg.textContent = err.message;
+        }
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = `<span>Save Permission Matrix</span>`;
+        }
     }
 });
 
