@@ -31,184 +31,113 @@
     <main class="flex-1 min-w-0 p-6 lg:p-8 page-content">
 
         <!-- TOPBAR -->
-        <div class="flex justify-between items-start mb-8">
+        <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-navy">Settings & System Roles</h1>
-                <p class="text-sm text-slate-500 mt-1">Manage system configuration, calculation formulas, and profile settings.</p>
+                <h1 class="text-2xl font-bold text-navy">Settings & Configuration</h1>
+                <p class="text-sm text-slate-500 mt-1">Manage organization profiles, role permission matrices, user credentials, and official manuals.</p>
             </div>
         </div>
 
-        <!-- CHURCH PROFILE CARD (WHITE-LABEL SETTINGS) -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-slate-100 gap-2">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">⛪</span>
-                        <h2 class="text-base font-bold text-navy">Church Organization Profile</h2>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-0.5">Configure church name, branding acronym, and auto-generated member ID prefix.</p>
-                </div>
-                <div id="adminBadgeContainer">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Admin Managed
-                    </span>
-                </div>
-            </div>
-
-            <form id="churchSettingsForm" class="space-y-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <div class="lg:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Church Full Name *</label>
-                        <input type="text" id="churchName" required placeholder="e.g. Maui United Methodist Church"
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Church Acronym / Short Name *</label>
-                        <input type="text" id="churchAcronym" required placeholder="e.g. MAUI UMC"
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Member ID Prefix *</label>
-                        <input type="text" id="memberIdPrefix" required maxlength="10" placeholder="e.g. MUMC"
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-mono uppercase outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                        <span class="text-[11px] text-slate-400 mt-1 block">New IDs: <span id="prefixPreview" class="font-mono text-navy font-semibold">MUMC-2026-0001</span></span>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Currency Symbol *</label>
-                        <input type="text" id="currencySymbol" required maxlength="5" placeholder="₱"
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Official Contact Phone</label>
-                        <input type="text" id="contactNumber" placeholder="e.g. +63 912 345 6789"
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                    </div>
-
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Official Church Email</label>
-                        <input type="email" id="churchEmail" placeholder="e.g. finance@mauiumc.org"
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                    </div>
-
-                    <div class="sm:col-span-2 lg:col-span-2">
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Church Physical Address</label>
-                        <input type="text" id="churchAddress" placeholder="e.g. Kahului, Maui, Hawaii / Manila, Philippines"
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <p id="churchSettingsMsg" class="text-xs font-medium text-slate-500"></p>
-                    <button type="submit" id="saveChurchBtn"
-                            class="px-5 py-2.5 bg-navy hover:bg-navy-light text-white text-xs font-semibold rounded-lg transition shadow-sm flex items-center gap-2">
-                        <span>Save Church Profile</span>
-                    </button>
-                </div>
-            </form>
+        <!-- SETTINGS TAB NAVIGATION BAR -->
+        <div class="flex items-center gap-2 border-b border-slate-200 pb-3 mb-6 overflow-x-auto">
+            <button type="button" id="tabBtnChurch" onclick="switchSettingsTab('church')"
+                    class="settings-tab-btn px-4 py-2 text-xs font-bold rounded-lg transition flex items-center gap-2 bg-navy text-white shadow-xs">
+                <span>⛪ Church Profile</span>
+            </button>
+            <button type="button" id="tabBtnMatrix" onclick="switchSettingsTab('matrix')"
+                    class="settings-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
+                <span>⚙️ Role Permissions Matrix</span>
+            </button>
+            <button type="button" id="tabBtnProfile" onclick="switchSettingsTab('profile')"
+                    class="settings-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
+                <span>👤 My Profile & Password</span>
+            </button>
+            <button type="button" id="tabBtnDocs" onclick="switchSettingsTab('docs')"
+                    class="settings-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">
+                <span>📚 System Toolkit & Manuals</span>
+            </button>
         </div>
 
-        <!-- SETTINGS GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <!-- USER PROFILE CARD -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <div class="mb-5 pb-4 border-b border-slate-100">
-                    <h2 class="text-base font-semibold text-navy">User Profile</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Current authenticated session account details.</p>
+        <!-- TAB 1: CHURCH PROFILE -->
+        <div id="tabContentChurch" class="tab-panel">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-slate-100 gap-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">⛪</span>
+                            <h2 class="text-base font-bold text-navy">Church Organization Profile</h2>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Configure church name, branding acronym, and auto-generated member ID prefix.</p>
+                    </div>
+                    <div id="adminBadgeContainer">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Admin Managed
+                        </span>
+                    </div>
                 </div>
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Full Name</label>
-                        <input type="text"
-                               id="profileName"
-                               disabled
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 font-sans outline-none cursor-not-allowed">
-                    </div>
+                <form id="churchSettingsForm" class="space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div class="lg:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Church Full Name *</label>
+                            <input type="text" id="churchName" required placeholder="e.g. Maui United Methodist Church"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Username / Member ID</label>
-                        <input type="text"
-                               id="profileUsername"
-                               disabled
-                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 font-sans outline-none cursor-not-allowed">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Assigned System Role</label>
                         <div>
-                            <span id="profileRole"
-                                  class="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold text-sm capitalize border border-blue-100">
-                                Admin
-                            </span>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Church Acronym / Short Name *</label>
+                            <input type="text" id="churchAcronym" required placeholder="e.g. MAUI UMC"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Member ID Prefix *</label>
+                            <input type="text" id="memberIdPrefix" required maxlength="10" placeholder="e.g. MUMC"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-mono uppercase outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                            <span class="text-[11px] text-slate-400 mt-1 block">New IDs: <span id="prefixPreview" class="font-mono text-navy font-semibold">MUMC-2026-0001</span></span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Currency Symbol *</label>
+                            <input type="text" id="currencySymbol" required maxlength="5" placeholder="₱"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Official Contact Phone</label>
+                            <input type="text" id="contactNumber" placeholder="e.g. +63 912 345 6789"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
+
+                        <div class="sm:col-span-2 lg:col-span-1">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Official Church Email</label>
+                            <input type="email" id="churchEmail" placeholder="e.g. finance@mauiumc.org"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
+
+                        <div class="sm:col-span-2 lg:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Church Physical Address</label>
+                            <input type="text" id="churchAddress" placeholder="e.g. Kahului, Maui, Hawaii / Manila, Philippines"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
                         </div>
                     </div>
 
-                    <div class="pt-5 mt-5 border-t border-slate-100">
-                        <h3 class="text-sm font-semibold text-navy mb-3">Update Password</h3>
-                        <form id="changePasswordForm" class="space-y-3.5">
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">Current Password</label>
-                                <input type="password" id="currentPassword" required placeholder="Enter current password"
-                                       class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">New Password</label>
-                                <input type="password" id="newPassword" required placeholder="Enter new password"
-                                       class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">Confirm New Password</label>
-                                <input type="password" id="confirmNewPassword" required placeholder="Confirm new password"
-                                       class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
-                            </div>
-                            <button type="submit"
-                                    class="w-full py-2 bg-navy hover:bg-navy-light text-white text-xs font-semibold rounded-lg transition shadow-sm">
-                                Change Password
-                            </button>
-                        </form>
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <p id="churchSettingsMsg" class="text-xs font-medium text-slate-500"></p>
+                        <button type="submit" id="saveChurchBtn"
+                                class="px-5 py-2.5 bg-navy hover:bg-navy-light text-white text-xs font-semibold rounded-lg transition shadow-sm flex items-center gap-2">
+                            <span>Save Church Profile</span>
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
+        </div>
 
-            <!-- RBAC OVERVIEW CARD -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <div class="mb-5 pb-4 border-b border-slate-100">
-                    <h2 class="text-base font-semibold text-navy">Role-Based Access Control</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Active permission policies governing the system modules.</p>
-                </div>
-
-                <div class="space-y-3 text-sm leading-relaxed text-slate-600">
-                    <div class="flex gap-3">
-                        <span class="inline-block mt-0.5 w-2 h-2 rounded-full bg-navy flex-shrink-0"></span>
-                        <p><strong class="text-navy font-semibold">Admin</strong> — Complete administrative, financial, and user management authority.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="inline-block mt-0.5 w-2 h-2 rounded-full bg-navy flex-shrink-0"></span>
-                        <p><strong class="text-navy font-semibold">Pastor</strong> — Pastoral oversight, financial summaries, expense approvals, and audit review.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="inline-block mt-0.5 w-2 h-2 rounded-full bg-navy flex-shrink-0"></span>
-                        <p><strong class="text-navy font-semibold">Treasurer</strong> — Collection ledger, fund calculation settings, expense disbursements, and reports.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="inline-block mt-0.5 w-2 h-2 rounded-full bg-navy flex-shrink-0"></span>
-                        <p><strong class="text-navy font-semibold">Secretary</strong> — Membership records, church directory, and tithes registration.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="inline-block mt-0.5 w-2 h-2 rounded-full bg-slate-400 flex-shrink-0"></span>
-                        <p><strong class="text-slate-600 font-semibold">Member</strong> — Access to personal Member Stewardship Portal for individual contribution tracking.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DYNAMIC ROLE & ACTION PERMISSION MATRIX CARD (ADMIN ONLY) -->
-            <div id="permissionMatrixCard" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:col-span-2 hidden">
+        <!-- TAB 2: PERMISSION MATRIX -->
+        <div id="tabContentMatrix" class="tab-panel hidden">
+            <!-- DYNAMIC ROLE & ACTION PERMISSION MATRIX CARD -->
+            <div id="permissionMatrixCard" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-slate-100 gap-2">
                     <div>
                         <div class="flex items-center gap-2">
@@ -251,19 +180,124 @@
                 </form>
             </div>
 
+            <!-- RBAC OVERVIEW CARD -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
+                <div class="mb-4 pb-3 border-b border-slate-100">
+                    <h2 class="text-base font-semibold text-navy">Role Scope Overview</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Summary of core responsibilities per system role.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs leading-relaxed">
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <strong class="text-navy font-bold block mb-1">Admin</strong>
+                        <p class="text-slate-600">Full administrative, financial, matrix, and user authority.</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <strong class="text-navy font-bold block mb-1">Pastor</strong>
+                        <p class="text-slate-600">Pastoral oversight, financial summaries, and expense approvals.</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <strong class="text-navy font-bold block mb-1">Treasurer</strong>
+                        <p class="text-slate-600">Collection ledger, fund formulas, disbursements, and reports.</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <strong class="text-navy font-bold block mb-1">Secretary</strong>
+                        <p class="text-slate-600">Membership records, church directory, and tithes entry.</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <strong class="text-slate-700 font-bold block mb-1">Member</strong>
+                        <p class="text-slate-600">Access to personal Member Stewardship Portal.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: USER PROFILE & PASSWORD -->
+        <div id="tabContentProfile" class="tab-panel hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- USER PROFILE CARD -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <div class="mb-5 pb-4 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-navy">Session Profile Details</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Current authenticated user account details.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Full Name</label>
+                            <input type="text"
+                                   id="profileName"
+                                   disabled
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 font-sans outline-none cursor-not-allowed">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Username / Member ID</label>
+                            <input type="text"
+                                   id="profileUsername"
+                                   disabled
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 font-sans outline-none cursor-not-allowed">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Assigned System Role</label>
+                            <div>
+                                <span id="profileRole"
+                                      class="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold text-sm capitalize border border-blue-100">
+                                    Admin
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UPDATE PASSWORD CARD -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                    <div class="mb-5 pb-4 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-navy">Account Security</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Update your secret login password.</p>
+                    </div>
+
+                    <form id="changePasswordForm" class="space-y-3.5">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">Current Password</label>
+                            <input type="password" id="currentPassword" required placeholder="Enter current password"
+                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">New Password</label>
+                            <input type="password" id="newPassword" required placeholder="Enter new password"
+                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">Confirm New Password</label>
+                            <input type="password" id="confirmNewPassword" required placeholder="Confirm new password"
+                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-1 focus:ring-navy">
+                        </div>
+                        <button type="submit"
+                                class="w-full py-2.5 bg-navy hover:bg-navy-light text-white text-xs font-semibold rounded-lg transition shadow-sm mt-2">
+                            Change Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: DOCUMENTATION & TOOLKIT -->
+        <div id="tabContentDocs" class="tab-panel hidden">
             <!-- SYSTEM DOCUMENTATION & STARTER TOOLKIT CARD -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:col-span-2">
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-slate-100 gap-2">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-xl">📚</span>
-                            <h2 class="text-base font-bold text-navy">System Documentation & Starter Toolkit</h2>
+                            <h2 class="text-base font-bold text-navy">System Operations Manual & Resources</h2>
                         </div>
                         <p class="text-xs text-slate-500 mt-0.5">Download official system operation manuals, user guides, and standardized data import templates.</p>
                     </div>
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        Official Resources
+                        Official Toolkit
                     </span>
                 </div>
 
@@ -275,7 +309,7 @@
                                 <div class="w-8 h-8 rounded-lg bg-navy/10 text-navy flex items-center justify-center font-bold text-base">📕</div>
                                 <div>
                                     <h3 class="text-sm font-bold text-navy">System Operations Manual (PDF)</h3>
-                                    <span class="text-[11px] text-slate-500 font-medium">Format: PDF / High-Res Printable Guide</span>
+                                    <span class="text-[11px] text-slate-500 font-medium">Format: PDF / Printable User Guide</span>
                                 </div>
                             </div>
                             <p class="text-xs text-slate-600 leading-relaxed mt-2">
@@ -320,13 +354,35 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
     </main>
 </div>
 
 <script>
+// ============================================================
+// TAB NAVIGATION LOGIC
+// ============================================================
+function switchSettingsTab(tabKey) {
+    const tabs = ['church', 'matrix', 'profile', 'docs'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+
+        if (t === tabKey) {
+            if (btn) {
+                btn.className = "settings-tab-btn px-4 py-2 text-xs font-bold rounded-lg transition flex items-center gap-2 bg-navy text-white shadow-xs";
+            }
+            if (content) content.classList.remove("hidden");
+        } else {
+            if (btn) {
+                btn.className = "settings-tab-btn px-4 py-2 text-xs font-medium rounded-lg transition flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50";
+            }
+            if (content) content.classList.add("hidden");
+        }
+    });
+}
+
 // Authentication check
 const token = sessionStorage.getItem("token");
 if (!token || token === "undefined" || token === "null") {
@@ -516,7 +572,11 @@ const permissionModules = [
 const configurableRoles = ["pastor", "treasurer", "secretary", "member"];
 
 async function loadPermissionMatrix() {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+        const matrixBtn = document.getElementById("tabBtnMatrix");
+        if (matrixBtn) matrixBtn.style.display = "none";
+        return;
+    }
     const card = document.getElementById("permissionMatrixCard");
     if (card) card.classList.remove("hidden");
 
