@@ -1366,3 +1366,45 @@ exports.exportCashTallyExcel = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// ============================================================
+// SIGNATORIES DROPDOWN API
+// ============================================================
+
+exports.getSignatories = async (req, res) => {
+    try {
+        const usersRes = await pool.query("SELECT id, username, role, full_name, name FROM users");
+        const membersRes = await pool.query("SELECT id, official_name, role FROM members");
+
+        const map = new Map();
+
+        usersRes.rows.forEach(u => {
+            const name = (u.full_name || u.name || u.username || "").trim();
+            if (name) map.set(name.toLowerCase(), { name, role: (u.role || 'Member').trim() });
+        });
+
+        membersRes.rows.forEach(m => {
+            const name = (m.official_name || "").trim();
+            if (name && !map.has(name.toLowerCase())) {
+                map.set(name.toLowerCase(), { name, role: (m.role || 'Member').trim() });
+            }
+        });
+
+        const allSignatories = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+        const counters = allSignatories;
+        const secretaries = allSignatories.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
+        const treasurers = allSignatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
+
+        res.json({
+            success: true,
+            counters,
+            secretaries,
+            treasurers,
+            allSignatories
+        });
+    } catch (err) {
+        console.error("GET SIGNATORIES ERROR:", err);
+        res.status(500).json({ error: err.message });
+    }
+};

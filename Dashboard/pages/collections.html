@@ -436,22 +436,28 @@
                 </div>
             </div>
 
-            <!-- Signatories Input -->
+            <!-- Signatories Input (Role-Filtered Registered Users/Members Dropdowns) -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Counter / Steward Name</label>
-                    <input type="text" id="tallyCounterName" placeholder="e.g. Bro. Juan Dela Cruz"
-                           class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-navy">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Counter / Steward *</label>
+                    <select id="tallyCounterName" required
+                            class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy cursor-pointer">
+                        <option value="">Select Registered Counter...</option>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Church Secretary Name</label>
-                    <input type="text" id="tallySecretaryName" placeholder="e.g. Sis. Maria Santos"
-                           class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-navy">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Church Secretary *</label>
+                    <select id="tallySecretaryName" required
+                            class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy cursor-pointer">
+                        <option value="">Select Secretary...</option>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Treasurer / Verifier Name</label>
-                    <input type="text" id="tallyTreasurerName" placeholder="e.g. Admin Treasurer"
-                           class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-navy">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Treasurer / Admin *</label>
+                    <select id="tallyTreasurerName" required
+                            class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy cursor-pointer">
+                        <option value="">Select Treasurer / Admin...</option>
+                    </select>
                 </div>
             </div>
 
@@ -2482,7 +2488,7 @@ function escapeHTML(value) {
    ========================================================= */
 let currentTallyLedgerAmount = 0;
 
-function openCashTallyModal() {
+async function openCashTallyModal() {
     const today = new Date();
     const lastSunday = new Date(today);
     lastSunday.setDate(today.getDate() - today.getDay());
@@ -2502,11 +2508,50 @@ function openCashTallyModal() {
     });
 
     document.getElementById("cashTallyModal").style.display = "flex";
+    await loadSignatoryDropdowns();
     fetchTallySummary();
 }
 
 function closeCashTallyModal() {
     document.getElementById("cashTallyModal").style.display = "none";
+}
+
+async function loadSignatoryDropdowns() {
+    try {
+        const res = await fetch("/api/collections/cash-tally/signatories", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        if (json.success) {
+            const counterSel = document.getElementById("tallyCounterName");
+            const secSel = document.getElementById("tallySecretaryName");
+            const tresSel = document.getElementById("tallyTreasurerName");
+
+            const prevCounter = counterSel?.value || "";
+            const prevSec = secSel?.value || "";
+            const prevTres = tresSel?.value || "";
+
+            if (counterSel) {
+                counterSel.innerHTML = `<option value="">Select Registered Counter...</option>` +
+                    json.counters.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+                if (prevCounter) counterSel.value = prevCounter;
+            }
+
+            if (secSel) {
+                secSel.innerHTML = `<option value="">Select Church Secretary...</option>` +
+                    json.secretaries.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+                if (prevSec) secSel.value = prevSec;
+            }
+
+            if (tresSel) {
+                tresSel.innerHTML = `<option value="">Select Treasurer / Admin...</option>` +
+                    json.treasurers.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+                if (prevTres) tresSel.value = prevTres;
+            }
+        }
+    } catch (e) {
+        console.error("Load signatory dropdowns error:", e);
+    }
 }
 
 async function fetchTallySummary() {
@@ -2540,9 +2585,15 @@ async function fetchTallySummary() {
                 document.getElementById("checksTotal").value = (Number(t.checks_total) || 0).toFixed(2);
                 document.getElementById("onlineTotal").value = (Number(t.online_total) || 0).toFixed(2);
                 document.getElementById("tallyServiceName").value = t.service_name || "Sunday Worship Service";
-                document.getElementById("tallyCounterName").value = t.counter_name || "";
-                document.getElementById("tallySecretaryName").value = t.secretary_name || "";
-                document.getElementById("tallyTreasurerName").value = t.treasurer_name || "";
+                
+                const counterSel = document.getElementById("tallyCounterName");
+                const secSel = document.getElementById("tallySecretaryName");
+                const tresSel = document.getElementById("tallyTreasurerName");
+
+                if (counterSel && t.counter_name) counterSel.value = t.counter_name;
+                if (secSel && t.secretary_name) secSel.value = t.secretary_name;
+                if (tresSel && t.treasurer_name) tresSel.value = t.treasurer_name;
+
                 if (t.variance_note) document.getElementById("tallyVarianceNote").value = t.variance_note;
             }
 

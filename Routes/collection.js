@@ -110,4 +110,11 @@ router.get(
     controller.exportCashTallyExcel
 );
 
+router.get(
+    "/cash-tally/signatories",
+    authMiddleware,
+    roleMiddleware("Admin", "Pastor", "Treasurer", "Secretary"),
+    controller.getSignatories
+);
+
 module.exports = router;
