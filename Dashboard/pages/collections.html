@@ -2683,12 +2683,33 @@ async function saveSundayCashTally() {
     }
 }
 
-function exportTallyExcel() {
+async function exportTallyExcel() {
     const startDate = document.getElementById("tallyStartDate").value;
     const endDate = document.getElementById("tallyEndDate").value;
+    const token = sessionStorage.getItem("token");
     if (!startDate || !endDate) return;
 
-    window.open(`/api/collections/cash-tally/export-excel?startDate=${startDate}&endDate=${endDate}`, '_blank');
+    try {
+        const url = `/api/collections/cash-tally/export-excel?startDate=${startDate}&endDate=${endDate}&token=${encodeURIComponent(token)}`;
+        const res = await fetch(url, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            throw new Error("Failed to export Excel file.");
+        }
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = `CFMMS_Sunday_Cash_Tally_${startDate}_to_${endDate}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+        console.error("Export Tally Excel Error:", e);
+        window.open(`/api/collections/cash-tally/export-excel?startDate=${startDate}&endDate=${endDate}&token=${encodeURIComponent(token)}`, '_blank');
+    }
 }
 
 loadMemberDropdown();
