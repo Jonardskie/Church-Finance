@@ -2518,36 +2518,62 @@ function closeCashTallyModal() {
 
 async function loadSignatoryDropdowns() {
     try {
-        const res = await fetch("/api/collections/cash-tally/signatories", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        const json = await res.json();
-        if (json.success) {
-            const counterSel = document.getElementById("tallyCounterName");
-            const secSel = document.getElementById("tallySecretaryName");
-            const tresSel = document.getElementById("tallyTreasurerName");
+        let json = null;
+        try {
+            json = await apiRequest("/api/collections/cash-tally/signatories");
+        } catch (err) {
+            console.warn("Signatories endpoint warning, falling back to /api/members:", err);
+        }
 
-            const prevCounter = counterSel?.value || "";
-            const prevSec = secSel?.value || "";
-            const prevTres = tresSel?.value || "";
+        let counters = [];
+        let secretaries = [];
+        let treasurers = [];
 
-            if (counterSel) {
-                counterSel.innerHTML = `<option value="">Select Registered Counter / Steward...</option>` +
-                    json.counters.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
-                if (prevCounter) counterSel.value = prevCounter;
-            }
+        if (json && json.success && Array.isArray(json.allSignatories)) {
+            counters = json.counters || json.allSignatories;
+            secretaries = json.secretaries || json.allSignatories;
+            treasurers = json.treasurers || json.allSignatories;
+        } else {
+            const members = await apiRequest("/api/members");
+            const all = (Array.isArray(members) ? members : []).map(m => ({
+                name: (m.official_name || `${m.first_name || ''} ${m.last_name || ''}`).trim(),
+                role: (m.role || 'Member').trim()
+            })).filter(m => m.name).sort((a, b) => a.name.localeCompare(b.name));
 
-            if (secSel) {
-                secSel.innerHTML = `<option value="">Select Church Secretary...</option>` +
-                    json.secretaries.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
-                if (prevSec) secSel.value = prevSec;
-            }
+            counters = all;
+            const secOff = all.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
+            const secOth = all.filter(s => !(/secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role)));
+            secretaries = [...secOff.map(s => ({ ...s, isOfficer: true })), ...secOth];
 
-            if (tresSel) {
-                tresSel.innerHTML = `<option value="">Select Treasurer / Admin...</option>` +
-                    json.treasurers.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
-                if (prevTres) tresSel.value = prevTres;
-            }
+            const tresOff = all.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
+            const tresOth = all.filter(s => !(/treasurer/i.test(s.role) || /admin/i.test(s.role)));
+            treasurers = [...tresOff.map(s => ({ ...s, isOfficer: true })), ...tresOth];
+        }
+
+        const counterSel = document.getElementById("tallyCounterName");
+        const secSel = document.getElementById("tallySecretaryName");
+        const tresSel = document.getElementById("tallyTreasurerName");
+
+        const prevCounter = counterSel?.value || "";
+        const prevSec = secSel?.value || "";
+        const prevTres = tresSel?.value || "";
+
+        if (counterSel) {
+            counterSel.innerHTML = `<option value="">Select Registered Counter / Steward...</option>` +
+                counters.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+            if (prevCounter) counterSel.value = prevCounter;
+        }
+
+        if (secSel) {
+            secSel.innerHTML = `<option value="">Select Church Secretary...</option>` +
+                secretaries.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+            if (prevSec) secSel.value = prevSec;
+        }
+
+        if (tresSel) {
+            tresSel.innerHTML = `<option value="">Select Treasurer / Admin...</option>` +
+                treasurers.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+            if (prevTres) tresSel.value = prevTres;
         }
     } catch (e) {
         console.error("Load signatory dropdowns error:", e);
@@ -2764,7 +2790,7 @@ async function exportTallyExcel() {
 }
 
 loadMemberDropdown();
-
+loadSignatoryDropdowns();
 loadCollectionsFromDB();
 
 </script>
