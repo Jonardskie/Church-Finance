@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFMMS - Official System Operations Manual & User Guide</title>
+    <link rel="icon" href="/images/logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { DEFAULT: '#1B365D', dark: '#0F2038', light: '#2A4D7E' }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            body {
+                background: #FFFFFF !important;
+                color: #0F172A !important;
+                font-size: 11pt !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .page-break {
+                page-break-before: always;
+                break-before: page;
+            }
+            .page-break-inside-avoid {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 15mm 15mm 15mm 15mm;
+            }
+            .print-shadow-none {
+                box-shadow: none !important;
+                border: 1px solid #E2E8F0 !important;
+            }
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased selection:bg-navy selection:text-white">
+
+<!-- FLOATING TOPBAR (HIDDEN ON PRINT) -->
+<header class="no-print sticky top-0 z-50 bg-navy/95 backdrop-blur-md text-white border-b border-navy-dark shadow-md px-4 lg:px-8 py-3.5 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <a href="settings.html" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-200 hover:text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <span>Back to Settings</span>
+        </a>
+        <div class="hidden sm:block h-5 w-px bg-white/20"></div>
+        <div class="hidden sm:block text-xs text-slate-300 font-medium">CFMMS System User Manual & Operations Guide</div>
+    </div>
+    <div class="flex items-center gap-2.5">
+        <button type="button" onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>Print / Save as PDF</span>
+        </button>
+    </div>
+</header>
+
+<!-- MANUAL DOCUMENT CONTAINER -->
+<main class="max-w-4xl mx-auto my-6 lg:my-10 bg-white rounded-2xl shadow-xl print-shadow-none overflow-hidden border border-slate-200">
+
+    <!-- ======================================================== -->
+    <!-- 1. EXECUTIVE COVER PAGE -->
+    <!-- ======================================================== -->
+    <section class="p-8 sm:p-14 lg:p-16 bg-gradient-to-br from-navy via-navy to-navy-dark text-white flex flex-col justify-between min-h-[720px] relative overflow-hidden">
+        <div class="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-white/5 blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+
+        <div>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl font-black text-amber-300 shadow-inner">
+                    ⛪
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest font-bold text-amber-300 block">Official System Documentation</span>
+                    <span class="text-sm font-semibold text-slate-200" id="coverChurchName">Church Financial Management & Membership System</span>
+                </div>
+            </div>
+
+            <div class="mt-12">
+                <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 rounded-full text-xs font-bold tracking-wide uppercase mb-4">
+                    Release Version 2.4 (2026 Edition)
+                </span>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
+                    Operations Manual & Comprehensive User Guide
+                </h1>
+                <p class="text-sm sm:text-base text-slate-300 mt-4 max-w-2xl leading-relaxed">
+                    A complete reference guide for Pastors, Treasurers, Church Secretaries, and System Administrators covering financial collections, disbursements, membership stewardship, and hardware setup.
+                </p>
+            </div>
+        </div>
+
+        <div class="pt-10 mt-12 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-slate-300">
+            <div>
+                <span class="text-slate-400 block font-medium uppercase tracking-wider text-[10px]">Prepared For</span>
+                <strong class="text-white font-semibold text-sm mt-0.5 block">Administrative & Finance Council</strong>
+            </div>
+            <div>
+                <span class="text-slate-400 block font-medium uppercase tracking-wider text-[10px]">Document Security</span>
+                <strong class="text-white font-semibold text-sm mt-0.5 block">Internal Operations Standard</strong>
+            </div>
+            <div>
+                <span class="text-slate-400 block font-medium uppercase tracking-wider text-[10px]">Last Updated</span>
+                <strong class="text-white font-semibold text-sm mt-0.5 block" id="coverDate">September 2026</strong>
+            </div>
+        </div>
+    </section>
+
+    <div class="p-8 sm:p-12 lg:p-14 space-y-12">
+
+        <!-- ======================================================== -->
+        <!-- 2. TABLE OF CONTENTS -->
+        <!-- ======================================================== -->
+        <section class="p-6 bg-slate-50 rounded-xl border border-slate-200 page-break-inside-avoid">
+            <h2 class="text-lg font-bold text-navy flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                <span>📑 Table of Contents</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2.5 text-xs">
+                <a href="#sec-overview" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>1. System Overview & Cloud Security</span>
+                    <span class="text-slate-400 font-mono">Sec. 1</span>
+                </a>
+                <a href="#sec-hardware" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>2. Hardware & Workstation Setup</span>
+                    <span class="text-slate-400 font-mono">Sec. 2</span>
+                </a>
+                <a href="#sec-rbac" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>3. Role Permissions & Access Control</span>
+                    <span class="text-slate-400 font-mono">Sec. 3</span>
+                </a>
+                <a href="#sec-dashboard" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>4. Executive Dashboard & Live Sync</span>
+                    <span class="text-slate-400 font-mono">Sec. 4</span>
+                </a>
+                <a href="#sec-collections" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>5. Collections & Batch Verification</span>
+                    <span class="text-slate-400 font-mono">Sec. 5</span>
+                </a>
+                <a href="#sec-expenses" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>6. Expenses, Vouchers & Approvals</span>
+                    <span class="text-slate-400 font-mono">Sec. 6</span>
+                </a>
+                <a href="#sec-members" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>7. Membership Directory & Stewardship</span>
+                    <span class="text-slate-400 font-mono">Sec. 7</span>
+                </a>
+                <a href="#sec-import" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>8. Bulk Member Excel Import Guide</span>
+                    <span class="text-slate-400 font-mono">Sec. 8</span>
+                </a>
+                <a href="#sec-reports" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>9. Financial Statements & Reporting</span>
+                    <span class="text-slate-400 font-mono">Sec. 9</span>
+                </a>
+                <a href="#sec-audit" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>10. Audit Trail & Activity Logging</span>
+                    <span class="text-slate-400 font-mono">Sec. 10</span>
+                </a>
+                <a href="#sec-shortcuts" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>11. Keyboard Shortcuts & Power Controls</span>
+                    <span class="text-slate-400 font-mono">Sec. 11</span>
+                </a>
+                <a href="#sec-troubleshoot" class="flex justify-between items-center hover:text-navy font-semibold text-slate-700 py-1 border-b border-slate-100">
+                    <span>12. Troubleshooting & FAQ</span>
+                    <span class="text-slate-400 font-mono">Sec. 12</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 1: SYSTEM OVERVIEW & SECURITY -->
+        <!-- ======================================================== -->
+        <section id="sec-overview" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">1</span>
+                <h2 class="text-xl font-bold text-navy">System Overview & Cloud Architecture</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                The <strong>Church Financial Management and Membership System (CFMMS)</strong> is an enterprise web platform specifically engineered for church administrations to maintain transparent, audited financial records and accurate member stewardship directories.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <span class="text-xs font-bold text-navy block">🔒 Serverless Postgres</span>
+                    <p class="text-[11px] text-slate-500 mt-1">Encrypted relational cloud database with point-in-time recovery and automated backups.</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <span class="text-xs font-bold text-emerald-700 block">🛡️ Role-Based Guard</span>
+                    <p class="text-[11px] text-slate-500 mt-1">Strict separation of duties prevents fraudulent self-verifications and unauthorized edits.</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <span class="text-xs font-bold text-blue-700 block">⚡ Real-Time Engine</span>
+                    <p class="text-[11px] text-slate-500 mt-1">Cross-tab broadcast channels and 15s background auto-sync keep financial KPIs synchronized.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 2: HARDWARE & WORKSTATION SETUP -->
+        <!-- ======================================================== -->
+        <section id="sec-hardware" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">2</span>
+                <h2 class="text-xl font-bold text-navy">Hardware & Computer Workstation Setup</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                For optimal speed and data entry ergonomics, church staff should configure their workstation hardware and browser settings as follows:
+            </p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+                    <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
+                        <tr>
+                            <th class="p-2.5 border-b border-slate-200">Hardware / Component</th>
+                            <th class="p-2.5 border-b border-slate-200">Recommended Spec</th>
+                            <th class="p-2.5 border-b border-slate-200">Best Practice Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-[11px]">
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Desktop / Laptop PC</td>
+                            <td class="p-2.5 text-slate-600">Windows 10/11, macOS, or ChromeOS with 4GB+ RAM</td>
+                            <td class="p-2.5 text-slate-600">Maintain a stable internet connection during Sunday collection logging.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Display Monitor</td>
+                            <td class="p-2.5 text-slate-600">1080p Full HD (1920x1080) or higher</td>
+                            <td class="p-2.5 text-slate-600">Allows simultaneous viewing of the Collections Ledger and Breakdown Cards side-by-side.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Keyboard & Number Pad</td>
+                            <td class="p-2.5 text-slate-600">Standard QWERTY with dedicated numeric keypad</td>
+                            <td class="p-2.5 text-slate-600">Speeds up cash entry; use <code class="font-mono text-navy font-bold">Ctrl+Enter</code> to submit instantly.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Document Printer</td>
+                            <td class="p-2.5 text-slate-600">Laser or Inkjet supporting A4/Letter format</td>
+                            <td class="p-2.5 text-slate-600">Set print margins to "Default" or "Minimum" when generating Financial Statements.</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Web Browser</td>
+                            <td class="p-2.5 text-slate-600">Google Chrome or Microsoft Edge (Latest version)</td>
+                            <td class="p-2.5 text-slate-600">Press <code class="font-mono text-navy">Ctrl +</code> or <code class="font-mono text-navy">Ctrl -</code> to adjust font size for comfortable reading.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 3: ROLE PERMISSIONS (RBAC) -->
+        <!-- ======================================================== -->
+        <section id="sec-rbac" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">3</span>
+                <h2 class="text-xl font-bold text-navy">Role-Based Access Control (RBAC) Matrix</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                CFMMS implements strict permission policies to ensure financial integrity. The table below details what each user role can view and execute:
+            </p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+                    <thead class="bg-navy text-white font-bold uppercase text-[10px]">
+                        <tr>
+                            <th class="p-2.5">System Module</th>
+                            <th class="p-2.5 text-center">Admin</th>
+                            <th class="p-2.5 text-center">Pastor</th>
+                            <th class="p-2.5 text-center">Treasurer</th>
+                            <th class="p-2.5 text-center">Secretary</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-[11px]">
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Executive Dashboard & KPI Charts</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Record New Collections</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-amber-600 font-semibold">✓ Pending Only</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Verify Collections (Single & Batch)</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full Admin</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Edit Verified Collections</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Admin Only</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Locked</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">File & Approve Expenses</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Approve</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Disburse</td>
+                            <td class="p-2.5 text-center text-slate-400">✗ None</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Membership Directory & Excel Import</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full Manage</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Generate & Print Financial Reports</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full Print</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">System Audit Trail & Settings</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View Logs</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 4: DASHBOARD & LIVE SYNC -->
+        <!-- ======================================================== -->
+        <section id="sec-dashboard" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">4</span>
+                <h2 class="text-xl font-bold text-navy">Executive Financial Dashboard & Live Sync</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                The Dashboard (<code class="font-mono text-navy font-semibold">index.html</code>) is the central nerve center of the church finance platform:
+            </p>
+            <ul class="list-disc list-inside text-xs text-slate-600 space-y-1.5 pl-2">
+                <li><strong>5 Executive Metric Cards (KPIs):</strong> Monitors Total Membership, Monthly Inflows, Operating Disbursements, Net Operating Cashflow (Surplus/Deficit), and Allocated Reserves (Pastor's Personal Savings + District Apportionment).</li>
+                <li><strong>Glow Highlight on Update:</strong> When a user enters data in another room or tab, the dashboard KPI numbers pulse green to highlight changes.</li>
+                <li><strong>4 Real-Time Analytics Charts:</strong> 6-Month Cashflow trend line, Fund Volume Share doughnut, Payment Channel breakdown, and Demographics active ratio.</li>
+                <li><strong>Live Synchronization:</strong> Background auto-polling updates the metrics every 15 seconds without requiring a manual page refresh.</li>
+            </ul>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 5: COLLECTIONS & BATCH VERIFICATION -->
+        <!-- ======================================================== -->
+        <section id="sec-collections" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">5</span>
+                <h2 class="text-xl font-bold text-navy">Collections Management & Batch Verification</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Collections represent all Sunday Tithes, General Offerings, Pledges, Building Funds, and Love Gifts received by the church.
+            </p>
+            <div class="space-y-3 text-xs text-slate-700">
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy font-bold block mb-1">Step 1: Recording a Collection</strong>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-600">
+                        <li>Click <strong>"+ Record Collection"</strong> or press <code class="font-mono bg-white px-1.5 py-0.5 rounded border">Ctrl + Enter</code>.</li>
+                        <li>Search and select the member name (or choose "Anonymous / Visitor").</li>
+                        <li>Enter the total cash or check amount. The system automatically computes deductions (e.g. 10% Pastor's Savings, 10% Apportionment, 80% Net General Fund).</li>
+                        <li>Click <strong>"Save Collection"</strong>. If entered by a Secretary, status defaults to <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-semibold text-[10px]">Pending (For Review)</span>.</li>
+                    </ol>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy font-bold block mb-1">Step 2: Admin Batch Verification</strong>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-600">
+                        <li>Admin navigates to the <strong>"Pending Review"</strong> status tab.</li>
+                        <li>Select individual checkboxes or click the <strong>Header Checkbox</strong> to select all pending records.</li>
+                        <li>The <strong>Batch Verification Toolbar</strong> expands above the table showing the <em>Total Reconciled Amount</em>.</li>
+                        <li>Cross-check against the physical counting sheet and click <strong>"✓ Verify Selected (N)"</strong>. All items transition to <span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold text-[10px]">Verified</span> instantly.</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 6: EXPENSES & VOUCHERS -->
+        <!-- ======================================================== -->
+        <section id="sec-expenses" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">6</span>
+                <h2 class="text-xl font-bold text-navy">Expense Disbursements & Voucher Approvals</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                All church expenditures (Utilities, Pastor Honorarium, Ministry Outreaches, Building Maintenance) must be documented through sequential Expense Vouchers.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy block mb-1">Filing an Expense Voucher</strong>
+                    <p class="text-slate-600 text-[11px] leading-relaxed">
+                        Specify Payee Name, Account Category, Disbursement Method (Cash, Check #, Bank Transfer), and attached official receipt description.
+                    </p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy block mb-1">Audited Void Workflow</strong>
+                    <p class="text-slate-600 text-[11px] leading-relaxed">
+                        Vouchers cannot simply be deleted. Voiding requires entering an official audit reason (e.g., "Duplicate check issued") which is permanently logged in the Audit Trail.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 7: MEMBERSHIP DIRECTORY & STEWARDSHIP -->
+        <!-- ======================================================== -->
+        <section id="sec-members" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">7</span>
+                <h2 class="text-xl font-bold text-navy">Membership Directory & Stewardship Records</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                The Membership Module (<code class="font-mono text-navy font-semibold">members.html</code>) tracks all church adherents, contact directories, family relationships, and individual contribution histories.
+            </p>
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
+                <div class="font-semibold text-navy">🌟 Key Membership Features:</div>
+                <ul class="list-disc list-inside text-slate-600 text-[11px] space-y-1 pl-2">
+                    <li><strong>Standardized Name Capitalization:</strong> Auto-formats into <code class="font-mono bg-white px-1 py-0.5 border rounded">FIRST M.I. LAST</code> (e.g. <em>JUAN D. DELA CRUZ</em>) for clean government & financial reporting.</li>
+                    <li><strong>Nicknames & Aliases Linking:</strong> Map informal donor aliases (e.g. <em>"Kuya Johnny"</em> $\rightarrow$ <em>JONARD SANTOCILDES</em>) so collection auto-complete matches immediately.</li>
+                    <li><strong>Family Linkages:</strong> Group households together (Head of Household, Spouse, Children).</li>
+                    <li><strong>Individual Stewardship History:</strong> Click "View Ledger" on any member to see their entire giving journey across all years.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 8: BULK MEMBER IMPORT GUIDE -->
+        <!-- ======================================================== -->
+        <section id="sec-import" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">8</span>
+                <h2 class="text-xl font-bold text-navy">Bulk Member Excel Import (.xlsx) Guide</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                You can import hundreds of church members in seconds using the official standardized template (<code class="font-mono text-navy font-semibold">CFMMS_Member_Import_Template.xlsx</code>).
+            </p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+                    <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
+                        <tr>
+                            <th class="p-2.5 border-b border-slate-200">Excel Column</th>
+                            <th class="p-2.5 border-b border-slate-200">Required?</th>
+                            <th class="p-2.5 border-b border-slate-200">Format / Example</th>
+                            <th class="p-2.5 border-b border-slate-200">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-[11px]">
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">first_name</td>
+                            <td class="p-2 text-emerald-600 font-bold">YES</td>
+                            <td class="p-2 text-slate-600">Juan</td>
+                            <td class="p-2 text-slate-500">Member's given name</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">middle_name</td>
+                            <td class="p-2 text-slate-400">Optional</td>
+                            <td class="p-2 text-slate-600">Dalisay</td>
+                            <td class="p-2 text-slate-500">Middle name or initial</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">last_name</td>
+                            <td class="p-2 text-emerald-600 font-bold">YES</td>
+                            <td class="p-2 text-slate-600">Dela Cruz</td>
+                            <td class="p-2 text-slate-500">Surname / Family name</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">gender</td>
+                            <td class="p-2 text-slate-400">Optional</td>
+                            <td class="p-2 text-slate-600">Male / Female</td>
+                            <td class="p-2 text-slate-500">Used for demographic ratios</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">dob</td>
+                            <td class="p-2 text-slate-400">Optional</td>
+                            <td class="p-2 text-slate-600 font-mono">1985-06-15</td>
+                            <td class="p-2 text-slate-500">Standard YYYY-MM-DD format</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">contact_number</td>
+                            <td class="p-2 text-slate-400">Optional</td>
+                            <td class="p-2 text-slate-600">+63 917 123 4567</td>
+                            <td class="p-2 text-slate-500">Mobile or telephone</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">address</td>
+                            <td class="p-2 text-slate-400">Optional</td>
+                            <td class="p-2 text-slate-600">Barangay 1, Manila</td>
+                            <td class="p-2 text-slate-500">Residential address</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">marital_status</td>
+                            <td class="p-2 text-slate-400">Optional</td>
+                            <td class="p-2 text-slate-600">Single / Married / Widowed</td>
+                            <td class="p-2 text-slate-500">Civil status</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-mono font-semibold text-navy">status</td>
+                            <td class="p-2 text-slate-400">Optional</td>
+                            <td class="p-2 text-slate-600">Active / Inactive</td>
+                            <td class="p-2 text-slate-500">Defaults to Active</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800">
+                💡 <strong>Tip:</strong> Download the pre-formatted Excel template from <em>Settings $\rightarrow$ Download Member Import Template (.xlsx)</em>.
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 9: FINANCIAL REPORTS & AUDIT -->
+        <!-- ======================================================== -->
+        <section id="sec-reports" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">9</span>
+                <h2 class="text-xl font-bold text-navy">Financial Statements, Reports & Audit Trail</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                The Financial Reports engine (<code class="font-mono text-navy font-semibold">reports.html</code>) generates official accounting statements suitable for Church Council review, District Conferences, and annual donor tax receipts:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy block mb-1">Monthly Statement of Financial Flow</strong>
+                    <p class="text-slate-600 text-[11px]">Summarizes all incoming collections, outgoing vouchers, net operating surplus/deficit, and ending cash balances.</p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy block mb-1">Exporting & Printing</strong>
+                    <p class="text-slate-600 text-[11px]">One-click export to formatted Excel workbooks or high-resolution printable PDF statements with official church letterheads.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 10: KEYBOARD SHORTCUTS -->
+        <!-- ======================================================== -->
+        <section id="sec-shortcuts" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">10</span>
+                <h2 class="text-xl font-bold text-navy">Power Keyboard Shortcuts & Controls</h2>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Boost your Sunday data entry speed with built-in hotkeys:
+            </p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
+                    <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
+                        <tr>
+                            <th class="p-2.5 border-b border-slate-200">Shortcut Combination</th>
+                            <th class="p-2.5 border-b border-slate-200">Action Triggered</th>
+                            <th class="p-2.5 border-b border-slate-200">Where Active</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-[11px]">
+                        <tr>
+                            <td class="p-2.5 font-mono font-bold text-navy bg-slate-50/50">Ctrl + Enter / Cmd + Enter</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Instant Form Save & Submit</td>
+                            <td class="p-2.5 text-slate-600">Collection Modal, Expense Modal, Member Modal</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-mono font-bold text-navy bg-slate-50/50">Escape (Esc)</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Close Active Modal Window</td>
+                            <td class="p-2.5 text-slate-600">All Modals & Popups</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-mono font-bold text-navy bg-slate-50/50">Tab / Shift + Tab</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Move Between Input Fields</td>
+                            <td class="p-2.5 text-slate-600">All Forms & Grid Rows</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-mono font-bold text-navy bg-slate-50/50">Ctrl + P / Cmd + P</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Print Official Receipt or Ledger</td>
+                            <td class="p-2.5 text-slate-600">Reports, Receipts, and Directory Pages</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- CHAPTER 11: TROUBLESHOOTING & FAQ -->
+        <!-- ======================================================== -->
+        <section id="sec-troubleshoot" class="space-y-4 page-break-inside-avoid">
+            <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
+                <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">11</span>
+                <h2 class="text-xl font-bold text-navy">Troubleshooting & Frequently Asked Questions</h2>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy block mb-1">Q: A Secretary recorded a wrong amount that is already verified. How to correct?</strong>
+                    <p class="text-slate-600 text-[11px] leading-relaxed">
+                        Only an <strong>Admin</strong> has the authority to edit or re-verify locked records. The Admin can open the Edit Collection modal, adjust the figure, and save. All corrections are permanently audited with the Admin's timestamp.
+                    </p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy block mb-1">Q: New collections entered on another computer are not showing immediately.</strong>
+                    <p class="text-slate-600 text-[11px] leading-relaxed">
+                        The Real-Time Sync engine automatically pulls changes every 15 seconds. You can also click the <strong>"Sync Now"</strong> button at the top right to force an instant database refresh.
+                    </p>
+                </div>
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy block mb-1">Q: How to reset forgotten passwords?</strong>
+                    <p class="text-slate-600 text-[11px] leading-relaxed">
+                        An Admin can navigate to <em>Settings $\rightarrow$ User Management</em> to securely assign a temporary password for any church staff member.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- DOCUMENT FOOTER -->
+    <footer class="p-6 bg-slate-100 border-t border-slate-200 text-center text-xs text-slate-500 font-medium">
+        <span>© 2026 CFMMS Church Financial Management & Membership System · All Rights Reserved.</span>
+    </footer>
+
+</main>
+
+<script>
+    // Populate dynamic church name & current date
+    const churchName = sessionStorage.getItem("church_name") || "Maui United Methodist Church";
+    const coverChurch = document.getElementById("coverChurchName");
+    if (coverChurch) coverChurch.textContent = `${churchName} · CFMMS Platform`;
+
+    const coverDate = document.getElementById("coverDate");
+    if (coverDate) {
+        const d = new Date();
+        coverDate.textContent = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+</script>
+
+</body>
+</html>

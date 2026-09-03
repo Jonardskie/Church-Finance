@@ -207,6 +207,76 @@
                 </div>
             </div>
 
+            <!-- SYSTEM DOCUMENTATION & STARTER TOOLKIT CARD -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:col-span-2">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-5 border-b border-slate-100 gap-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">📚</span>
+                            <h2 class="text-base font-bold text-navy">System Documentation & Starter Toolkit</h2>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">Download official system operation manuals, user guides, and standardized data import templates.</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        Official Resources
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- PDF MANUAL CARD -->
+                    <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between hover:border-slate-300 transition">
+                        <div>
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-navy/10 text-navy flex items-center justify-center font-bold text-base">📕</div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-navy">System Operations Manual (PDF)</h3>
+                                    <span class="text-[11px] text-slate-500 font-medium">Format: PDF / High-Res Printable Guide</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                                Complete 12-chapter guide covering System Architecture, Computer Hardware Setup, RBAC Security, Collection Batch Verification, Expense Vouchers, Member Directory, and Keyboard Hotkeys.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2.5 mt-5 pt-3 border-t border-slate-200/60">
+                            <a href="manual.html" target="_blank"
+                               class="flex-1 py-2 px-3 bg-navy hover:bg-navy-light text-white text-xs font-semibold rounded-lg transition shadow-sm flex items-center justify-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                <span>View Guide</span>
+                            </a>
+                            <button type="button" onclick="downloadPdfManual()"
+                                    class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <span>Download PDF</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- EXCEL TEMPLATE CARD -->
+                    <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between hover:border-slate-300 transition">
+                        <div>
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-base">📊</div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-navy">Member Import Template (.xlsx)</h3>
+                                    <span class="text-[11px] text-slate-500 font-medium">Format: Microsoft Excel Workbook</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mt-2">
+                                Pre-formatted Excel workbook with column headers (<code class="font-mono text-navy">first_name</code>, <code class="font-mono text-navy">last_name</code>, <code class="font-mono text-navy">gender</code>, <code class="font-mono text-navy">dob</code>, etc.), sample member rows, and instructions sheet for bulk directory upload.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2.5 mt-5 pt-3 border-t border-slate-200/60">
+                            <a href="../downloads/CFMMS_Member_Import_Template.xlsx" download="CFMMS_Member_Import_Template.xlsx"
+                               class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm flex items-center justify-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <span>Download Excel Template (.xlsx)</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </main>
@@ -376,6 +446,15 @@ document.getElementById("changePasswordForm").addEventListener("submit", async f
         alert(err.message);
     }
 });
+
+function downloadPdfManual() {
+    const win = window.open('manual.html', '_blank');
+    if (win) {
+        win.addEventListener('load', () => {
+            setTimeout(() => { win.print(); }, 500);
+        });
+    }
+}
 </script>
 <script src="../js/sidebar.js"></script>
 </body>
