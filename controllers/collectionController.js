@@ -1393,8 +1393,15 @@ exports.getSignatories = async (req, res) => {
         const allSignatories = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
 
         const counters = allSignatories;
-        const secretaries = allSignatories.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
-        const treasurers = allSignatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
+
+        // Officers first, then all members
+        const secretaryOfficers = allSignatories.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
+        const secretaryOthers = allSignatories.filter(s => !(/secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role)));
+        const secretaries = [...secretaryOfficers.map(s => ({ ...s, isOfficer: true })), ...secretaryOthers];
+
+        const treasurerOfficers = allSignatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
+        const treasurerOthers = allSignatories.filter(s => !(/treasurer/i.test(s.role) || /admin/i.test(s.role)));
+        const treasurers = [...treasurerOfficers.map(s => ({ ...s, isOfficer: true })), ...treasurerOthers];
 
         res.json({
             success: true,

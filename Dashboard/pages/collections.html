@@ -2532,20 +2532,20 @@ async function loadSignatoryDropdowns() {
             const prevTres = tresSel?.value || "";
 
             if (counterSel) {
-                counterSel.innerHTML = `<option value="">Select Registered Counter...</option>` +
+                counterSel.innerHTML = `<option value="">Select Registered Counter / Steward...</option>` +
                     json.counters.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
                 if (prevCounter) counterSel.value = prevCounter;
             }
 
             if (secSel) {
                 secSel.innerHTML = `<option value="">Select Church Secretary...</option>` +
-                    json.secretaries.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+                    json.secretaries.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
                 if (prevSec) secSel.value = prevSec;
             }
 
             if (tresSel) {
                 tresSel.innerHTML = `<option value="">Select Treasurer / Admin...</option>` +
-                    json.treasurers.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
+                    json.treasurers.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
                 if (prevTres) tresSel.value = prevTres;
             }
         }
