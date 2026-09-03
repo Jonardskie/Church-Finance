@@ -269,78 +269,95 @@
         <section id="sec-rbac" class="space-y-4 page-break-inside-avoid">
             <div class="flex items-center gap-2.5 pb-2 border-b-2 border-navy">
                 <span class="text-sm font-black text-white bg-navy px-2.5 py-0.5 rounded">3</span>
-                <h2 class="text-xl font-bold text-navy">Role-Based Access Control (RBAC) Matrix</h2>
+                <h2 class="text-xl font-bold text-navy">Role-Based Access Control (RBAC) & Dynamic Action Permission Matrix</h2>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
-                CFMMS implements strict permission policies to ensure financial integrity. The table below details what each user role can view and execute:
+                CFMMS implements dual-layer permission security to ensure financial integrity. Beyond baseline role policies, the <strong>Admin</strong> can dynamically customize exact action permissions (view, add, edit, verify, delete, cash tally, export) for each role in <em>Settings $\rightarrow$ ⚙️ Role Permissions Matrix</em>.
             </p>
+
+            <div class="p-3.5 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900 space-y-1 mb-3">
+                <strong class="font-bold flex items-center gap-1.5 text-purple-950">⚙️ Dynamic Admin Permission Controls:</strong>
+                <p class="text-[11px] leading-relaxed text-purple-800">
+                    The Admin can turn specific feature buttons on or off for any role. When disabled, the button is automatically hidden from the user's screen AND blocked on the server with <code class="font-mono bg-purple-100 px-1 py-0.5 rounded text-purple-900 font-bold">HTTP 403 Forbidden</code>.
+                </p>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
                     <thead class="bg-navy text-white font-bold uppercase text-[10px]">
                         <tr>
-                            <th class="p-2.5">System Module</th>
+                            <th class="p-2.5">System Module & Action</th>
                             <th class="p-2.5 text-center">Admin</th>
                             <th class="p-2.5 text-center">Pastor</th>
                             <th class="p-2.5 text-center">Treasurer</th>
                             <th class="p-2.5 text-center">Secretary</th>
+                            <th class="p-2.5 text-center">Member</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-[11px]">
                         <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">Executive Dashboard & KPI Charts</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Members Directory (View / Add / Edit / Delete)</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
-                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View</td>
-                        </tr>
-                        <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">Record New Collections</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
-                            <td class="p-2.5 text-center text-slate-400">—</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
-                            <td class="p-2.5 text-center text-amber-600 font-semibold">✓ Pending Only</td>
-                        </tr>
-                        <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">Verify Collections (Single & Batch)</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full Admin</td>
-                            <td class="p-2.5 text-center text-slate-400">—</td>
-                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">Configurable</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">Configurable</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">Configurable</td>
                             <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
                         </tr>
                         <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">Edit Verified Collections</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Admin Only</td>
-                            <td class="p-2.5 text-center text-slate-400">—</td>
-                            <td class="p-2.5 text-center text-slate-400">—</td>
-                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Locked</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Record New Collections (+ Button)</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">Configurable</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-amber-600 font-semibold">✓ Pending Only</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
                         </tr>
                         <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">File & Approve Expenses</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Sunday Cash Count & Reconciliation Tally</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">Configurable</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Verify Collections (Single & Batch)</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Master Admin</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Edit Collection Record</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Any Record</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">Configurable</td>
+                            <td class="p-2.5 text-center text-blue-600 font-medium">Configurable</td>
+                            <td class="p-2.5 text-center text-amber-600 font-semibold">✓ Pending Only</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2.5 font-semibold text-slate-800">Expenses (Create / Approve / Disburse / Void)</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Approve</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Disburse</td>
                             <td class="p-2.5 text-center text-slate-400">✗ None</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
                         </tr>
                         <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">Membership Directory & Excel Import</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
-                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View</td>
-                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full Manage</td>
-                        </tr>
-                        <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">Generate & Print Financial Reports</td>
+                            <td class="p-2.5 font-semibold text-slate-800">Financial Reports & Multi-Sheet Excel Exports</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
                             <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full Print</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
                         </tr>
                         <tr>
-                            <td class="p-2.5 font-semibold text-slate-800">System Audit Trail & Settings</td>
-                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Full</td>
-                            <td class="p-2.5 text-center text-blue-600 font-medium">✓ View Logs</td>
+                            <td class="p-2.5 font-semibold text-slate-800">System Settings & Matrix Management</td>
+                            <td class="p-2.5 text-center text-emerald-600 font-bold">✓ Admin Master</td>
                             <td class="p-2.5 text-center text-slate-400">—</td>
                             <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-slate-400">—</td>
+                            <td class="p-2.5 text-center text-red-500 font-bold">✗ Blocked</td>
                         </tr>
                     </tbody>
                 </table>
@@ -389,12 +406,35 @@
                 </div>
 
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <strong class="text-navy font-bold block mb-1">Step 2: Admin Batch Verification</strong>
+                    <strong class="text-navy font-bold block mb-1">Step 2: Admin Batch Verification & Secretary Edit Locks</strong>
                     <ol class="list-decimal list-inside space-y-1 text-slate-600">
                         <li>Admin navigates to the <strong>"Pending Review"</strong> status tab.</li>
                         <li>Select individual checkboxes or click the <strong>Header Checkbox</strong> to select all pending records.</li>
                         <li>The <strong>Batch Verification Toolbar</strong> expands above the table showing the <em>Total Reconciled Amount</em>.</li>
                         <li>Cross-check against the physical counting sheet and click <strong>"✓ Verify Selected (N)"</strong>. All items transition to <span class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold text-[10px]">Verified</span> instantly.</li>
+                        <li><em>Secretary Lock Rule:</em> Secretaries may edit collection records while status is <span class="text-amber-800 bg-amber-100 px-1 rounded">Pending</span>. Once <span class="text-emerald-800 bg-emerald-100 px-1 rounded">Verified</span>, records become locked from Secretary edits.</li>
+                    </ol>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <strong class="text-navy font-bold block mb-1">Step 3: Sunday Cash Count & Reconciliation Tally Statement</strong>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-600">
+                        <li>Click <strong>"💵 Sunday Cash Tally"</strong> button on the Collections page or Financial Reports section.</li>
+                        <li>Enter currency denomination counts (₱1,000, ₱500, ₱200, ₱100, ₱50, ₱20 banknotes, coins, loose coins, checks, and GCash/online total).</li>
+                        <li>The system automatically reconciles physical cash vs. envelope ledger totals:
+                            <ul class="list-disc list-inside pl-4 text-[11px] text-slate-500 my-1">
+                                <li><span class="text-emerald-700 font-bold">TALLY_MATCH:</span> Physical cash count exactly matches envelope ledger totals.</li>
+                                <li><span class="text-red-700 font-bold">VARIANCE_DETECTED:</span> Discrepancy detected; requires entering a mandatory audit note.</li>
+                            </ul>
+                        </li>
+                        <li>Select official signatories from strict role-filtered dropdowns:
+                            <ul class="list-disc list-inside pl-4 text-[11px] text-slate-500 my-1">
+                                <li><strong>Counter / Steward:</strong> Strictly users with role <code class="font-mono text-navy">Secretary</code>.</li>
+                                <li><strong>Finance Secretary:</strong> Strictly users with role <code class="font-mono text-navy">Secretary</code>.</li>
+                                <li><strong>Treasurer / Admin:</strong> Strictly users with role <code class="font-mono text-navy">Treasurer</code> or <code class="font-mono text-navy">Admin</code>.</li>
+                            </ul>
+                        </li>
+                        <li>Click <strong>"Save Cash Count & Reconciliation Statement"</strong>. The statement is automatically included as Sheet 4 in Excel exports!</li>
                     </ol>
                 </div>
             </div>
