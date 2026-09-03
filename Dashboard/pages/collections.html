@@ -2478,6 +2478,10 @@ function escapeHTML(value) {
         );
 }
 
+const escapeHtml = typeof escapeHTML === "function" ? escapeHTML : function(v) {
+    return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+};
+
 
 /* =========================================================
    19. START COLLECTIONS PAGE
@@ -2598,7 +2602,7 @@ async function loadSignatoryDropdowns() {
 
         let counterHtml = `<option value="">Select Registered Counter / Steward...</option>`;
         signatories.forEach(s => {
-            counterHtml += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+            counterHtml += `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         counterSel.innerHTML = counterHtml;
 
@@ -2607,10 +2611,10 @@ async function loadSignatoryDropdowns() {
 
         let secHtml = `<option value="">Select Church Secretary...</option>`;
         secOfficers.forEach(s => {
-            secHtml += `<option value="${escapeHtml(s.name)}">⭐ ${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+            secHtml += `<option value="${escapeHTML(s.name)}">⭐ ${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         secOthers.forEach(s => {
-            secHtml += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+            secHtml += `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         secSel.innerHTML = secHtml;
 
@@ -2619,10 +2623,10 @@ async function loadSignatoryDropdowns() {
 
         let tresHtml = `<option value="">Select Treasurer / Admin...</option>`;
         tresOfficers.forEach(s => {
-            tresHtml += `<option value="${escapeHtml(s.name)}">⭐ ${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+            tresHtml += `<option value="${escapeHTML(s.name)}">⭐ ${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         tresOthers.forEach(s => {
-            tresHtml += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+            tresHtml += `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         tresSel.innerHTML = tresHtml;
 
