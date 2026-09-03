@@ -1280,9 +1280,9 @@ exports.exportCashTallyExcel = async (req, res) => {
     try {
         // Fetch collections for date range
         const colRes = await pool.query(
-            `SELECT c.receipt_no, c.date, c.member_name AS giver_name, COALESCE(ct.type_name, c.type, 'General Fund') AS category, c.payment_method, c.amount, c.status
+            `SELECT c.receipt_no, c.date, c.member_name AS giver_name, COALESCE(ct.name, c.type, c.fund_category, 'General Fund') AS category, c.payment_method, c.amount, c.status
              FROM collections c
-             LEFT JOIN collection_types ct ON c.collection_type_id = ct.collection_type_id
+             LEFT JOIN collection_types ct ON c.collection_type_id = ct.id
              WHERE c.date >= $1 AND c.date <= $2 AND LOWER(c.status) != 'voided'
              ORDER BY c.date DESC, c.id DESC`,
             [startDate, endDate]
