@@ -436,20 +436,20 @@
                 </div>
             </div>
 
-            <!-- Signatories Input (Role-Filtered Registered Users/Members Dropdowns) -->
+            <!-- Signatories Input (Strict Role-Filtered Dropdowns) -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <div>
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Counter / Steward *</label>
                     <select id="tallyCounterName" required
                             class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy cursor-pointer">
-                        <option value="">Select Registered Counter...</option>
+                        <option value="">Select Counter (Secretary)...</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Church Secretary *</label>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Finance Secretary *</label>
                     <select id="tallySecretaryName" required
                             class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-sans outline-none focus:border-navy cursor-pointer">
-                        <option value="">Select Secretary...</option>
+                        <option value="">Select Finance Secretary...</option>
                     </select>
                 </div>
                 <div>
@@ -2600,32 +2600,23 @@ async function loadSignatoryDropdowns() {
 
         signatories.sort((a, b) => a.name.localeCompare(b.name));
 
-        let counterHtml = `<option value="">Select Registered Counter / Steward...</option>`;
-        signatories.forEach(s => {
+        const secMembers = signatories.filter(s => /secretary/i.test(s.role));
+        const tresMembers = signatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
+
+        let counterHtml = `<option value="">Select Counter (Secretary)...</option>`;
+        secMembers.forEach(s => {
             counterHtml += `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         counterSel.innerHTML = counterHtml;
 
-        const secOfficers = signatories.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
-        const secOthers = signatories.filter(s => !(/secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role)));
-
-        let secHtml = `<option value="">Select Church Secretary...</option>`;
-        secOfficers.forEach(s => {
-            secHtml += `<option value="${escapeHTML(s.name)}">⭐ ${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
-        });
-        secOthers.forEach(s => {
+        let secHtml = `<option value="">Select Finance Secretary...</option>`;
+        secMembers.forEach(s => {
             secHtml += `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         secSel.innerHTML = secHtml;
 
-        const tresOfficers = signatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
-        const tresOthers = signatories.filter(s => !(/treasurer/i.test(s.role) || /admin/i.test(s.role)));
-
         let tresHtml = `<option value="">Select Treasurer / Admin...</option>`;
-        tresOfficers.forEach(s => {
-            tresHtml += `<option value="${escapeHTML(s.name)}">⭐ ${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
-        });
-        tresOthers.forEach(s => {
+        tresMembers.forEach(s => {
             tresHtml += `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)} (${escapeHTML(s.role)})</option>`;
         });
         tresSel.innerHTML = tresHtml;

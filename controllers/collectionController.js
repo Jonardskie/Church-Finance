@@ -1347,7 +1347,7 @@ exports.exportCashTallyExcel = async (req, res) => {
             [""],
             ["SIGNATORIES & APPROVALS"],
             ["Prepared / Counted by (Steward):", tally.counter_name || "___________________"],
-            ["Recorded by (Church Secretary):", tally.secretary_name || "___________________"],
+            ["Recorded by (Finance Secretary):", tally.secretary_name || "___________________"],
             ["Verified by (Treasurer / Admin):", tally.treasurer_name || "___________________"]
         ];
 
@@ -1392,16 +1392,13 @@ exports.getSignatories = async (req, res) => {
 
         const allSignatories = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
 
-        const counters = allSignatories;
+        // Strict Filtering:
+        // Counter & Finance Secretary: ONLY Secretary role
+        const counters = allSignatories.filter(s => /secretary/i.test(s.role));
+        const secretaries = allSignatories.filter(s => /secretary/i.test(s.role));
 
-        // Officers first, then all members
-        const secretaryOfficers = allSignatories.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
-        const secretaryOthers = allSignatories.filter(s => !(/secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role)));
-        const secretaries = [...secretaryOfficers.map(s => ({ ...s, isOfficer: true })), ...secretaryOthers];
-
-        const treasurerOfficers = allSignatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
-        const treasurerOthers = allSignatories.filter(s => !(/treasurer/i.test(s.role) || /admin/i.test(s.role)));
-        const treasurers = [...treasurerOfficers.map(s => ({ ...s, isOfficer: true })), ...treasurerOthers];
+        // Treasurer / Admin: ONLY Treasurer or Admin role
+        const treasurers = allSignatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
 
         res.json({
             success: true,

@@ -1951,7 +1951,7 @@ exports.exportExcel = async (
         sigTitlesRow.values = [
             "Prepared / Counted by (Steward)",
             "",
-            "Recorded by (Church Secretary)",
+            "Recorded by (Finance Secretary)",
             "Verified by (Treasurer / Admin)"
         ];
         sigTitlesRow.height = 18;
