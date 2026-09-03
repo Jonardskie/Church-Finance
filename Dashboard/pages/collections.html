@@ -2516,67 +2516,122 @@ function closeCashTallyModal() {
     document.getElementById("cashTallyModal").style.display = "none";
 }
 
+function selectDropdownValue(selectEl, targetName) {
+    if (!selectEl || !targetName || !targetName.trim()) return;
+    const cleanTarget = targetName.trim().toLowerCase();
+
+    for (let i = 0; i < selectEl.options.length; i++) {
+        if (selectEl.options[i].value.trim().toLowerCase() === cleanTarget) {
+            selectEl.selectedIndex = i;
+            return;
+        }
+    }
+    for (let i = 0; i < selectEl.options.length; i++) {
+        const val = selectEl.options[i].value.trim().toLowerCase();
+        if (val && (val.includes(cleanTarget) || cleanTarget.includes(val))) {
+            selectEl.selectedIndex = i;
+            return;
+        }
+    }
+
+    const opt = document.createElement("option");
+    opt.value = targetName;
+    opt.innerText = `${targetName} (Saved Record)`;
+    opt.selected = true;
+    selectEl.appendChild(opt);
+    selectEl.value = targetName;
+}
+
 async function loadSignatoryDropdowns() {
     try {
-        let json = null;
-        try {
-            json = await apiRequest("/api/collections/cash-tally/signatories");
-        } catch (err) {
-            console.warn("Signatories endpoint warning, falling back to /api/members:", err);
-        }
-
-        let counters = [];
-        let secretaries = [];
-        let treasurers = [];
-
-        if (json && json.success && Array.isArray(json.allSignatories)) {
-            counters = json.counters || json.allSignatories;
-            secretaries = json.secretaries || json.allSignatories;
-            treasurers = json.treasurers || json.allSignatories;
-        } else {
-            const members = await apiRequest("/api/members");
-            const all = (Array.isArray(members) ? members : []).map(m => ({
-                name: (m.official_name || `${m.first_name || ''} ${m.last_name || ''}`).trim(),
-                role: (m.role || 'Member').trim()
-            })).filter(m => m.name).sort((a, b) => a.name.localeCompare(b.name));
-
-            counters = all;
-            const secOff = all.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
-            const secOth = all.filter(s => !(/secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role)));
-            secretaries = [...secOff.map(s => ({ ...s, isOfficer: true })), ...secOth];
-
-            const tresOff = all.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
-            const tresOth = all.filter(s => !(/treasurer/i.test(s.role) || /admin/i.test(s.role)));
-            treasurers = [...tresOff.map(s => ({ ...s, isOfficer: true })), ...tresOth];
-        }
-
         const counterSel = document.getElementById("tallyCounterName");
         const secSel = document.getElementById("tallySecretaryName");
         const tresSel = document.getElementById("tallyTreasurerName");
 
-        const prevCounter = counterSel?.value || "";
-        const prevSec = secSel?.value || "";
-        const prevTres = tresSel?.value || "";
+        if (!counterSel || !secSel || !tresSel) return;
 
-        if (counterSel) {
-            counterSel.innerHTML = `<option value="">Select Registered Counter / Steward...</option>` +
-                counters.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
-            if (prevCounter) counterSel.value = prevCounter;
+        const prevCounter = counterSel.value;
+        const prevSec = secSel.value;
+        const prevTres = tresSel.value;
+
+        let signatories = [];
+
+        try {
+            const res = await fetch("/api/collections/cash-tally/signatories", {
+                headers: { "Authorization": "Bearer " + sessionStorage.getItem("token") }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.allSignatories) && data.allSignatories.length > 0) {
+                    signatories = data.allSignatories;
+                }
+            }
+        } catch (e) {
+            console.warn("Signatories API warning:", e);
         }
 
-        if (secSel) {
-            secSel.innerHTML = `<option value="">Select Church Secretary...</option>` +
-                secretaries.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
-            if (prevSec) secSel.value = prevSec;
+        if (signatories.length === 0) {
+            try {
+                const res = await fetch("/api/members", {
+                    headers: { "Authorization": "Bearer " + sessionStorage.getItem("token") }
+                });
+                if (res.ok) {
+                    const members = await res.json();
+                    if (Array.isArray(members)) {
+                        signatories = members.map(m => ({
+                            name: (m.official_name || `${m.first_name || ''} ${m.last_name || ''}`).trim(),
+                            role: (m.role || 'Member').trim()
+                        })).filter(m => m.name);
+                    }
+                }
+            } catch (e) {
+                console.error("Members API fallback error:", e);
+            }
         }
 
-        if (tresSel) {
-            tresSel.innerHTML = `<option value="">Select Treasurer / Admin...</option>` +
-                treasurers.map(s => `<option value="${escapeHtml(s.name)}">${s.isOfficer ? '⭐ ' : ''}${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`).join("");
-            if (prevTres) tresSel.value = prevTres;
+        if (signatories.length === 0) {
+            console.warn("No signatories or members found from API.");
+            return;
         }
-    } catch (e) {
-        console.error("Load signatory dropdowns error:", e);
+
+        signatories.sort((a, b) => a.name.localeCompare(b.name));
+
+        let counterHtml = `<option value="">Select Registered Counter / Steward...</option>`;
+        signatories.forEach(s => {
+            counterHtml += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+        });
+        counterSel.innerHTML = counterHtml;
+
+        const secOfficers = signatories.filter(s => /secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role));
+        const secOthers = signatories.filter(s => !(/secretary/i.test(s.role) || /admin/i.test(s.role) || /pastor/i.test(s.role)));
+
+        let secHtml = `<option value="">Select Church Secretary...</option>`;
+        secOfficers.forEach(s => {
+            secHtml += `<option value="${escapeHtml(s.name)}">⭐ ${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+        });
+        secOthers.forEach(s => {
+            secHtml += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+        });
+        secSel.innerHTML = secHtml;
+
+        const tresOfficers = signatories.filter(s => /treasurer/i.test(s.role) || /admin/i.test(s.role));
+        const tresOthers = signatories.filter(s => !(/treasurer/i.test(s.role) || /admin/i.test(s.role)));
+
+        let tresHtml = `<option value="">Select Treasurer / Admin...</option>`;
+        tresOfficers.forEach(s => {
+            tresHtml += `<option value="${escapeHtml(s.name)}">⭐ ${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+        });
+        tresOthers.forEach(s => {
+            tresHtml += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${escapeHtml(s.role)})</option>`;
+        });
+        tresSel.innerHTML = tresHtml;
+
+        if (prevCounter) selectDropdownValue(counterSel, prevCounter);
+        if (prevSec) selectDropdownValue(secSel, prevSec);
+        if (prevTres) selectDropdownValue(tresSel, prevTres);
+
+    } catch (err) {
+        console.error("Critical error in loadSignatoryDropdowns:", err);
     }
 }
 
@@ -2616,9 +2671,9 @@ async function fetchTallySummary() {
                 const secSel = document.getElementById("tallySecretaryName");
                 const tresSel = document.getElementById("tallyTreasurerName");
 
-                if (counterSel && t.counter_name) counterSel.value = t.counter_name;
-                if (secSel && t.secretary_name) secSel.value = t.secretary_name;
-                if (tresSel && t.treasurer_name) tresSel.value = t.treasurer_name;
+                if (counterSel && t.counter_name) selectDropdownValue(counterSel, t.counter_name);
+                if (secSel && t.secretary_name) selectDropdownValue(secSel, t.secretary_name);
+                if (tresSel && t.treasurer_name) selectDropdownValue(tresSel, t.treasurer_name);
 
                 if (t.variance_note) document.getElementById("tallyVarianceNote").value = t.variance_note;
             }
