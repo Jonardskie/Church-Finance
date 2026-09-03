@@ -232,9 +232,18 @@ if (settingsRoutes) {
 
 const dashboardPath = path.join(__dirname, "Dashboard");
 const pagesPath = path.join(__dirname, "Dashboard", "pages");
+const downloadsPath = path.join(__dirname, "Dashboard", "downloads");
 
 app.use(express.static(dashboardPath));
 app.use(express.static(pagesPath));
+app.use("/downloads", express.static(downloadsPath));
+
+app.get("/downloads/:file", (req, res, next) => {
+    const filePath = path.join(downloadsPath, req.params.file);
+    res.sendFile(filePath, (err) => {
+        if (err) next();
+    });
+});
 
 // Root redirect to login
 app.get("/", (req, res) => {
