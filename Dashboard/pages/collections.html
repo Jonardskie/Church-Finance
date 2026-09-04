@@ -971,9 +971,10 @@ async function loadMemberDropdown() {
 
 
         memberOptions = [
-            { id: "GUEST", name: "Guest" },
+            { id: "ANONYMOUS", name: "Anonymous (Loose Offering)" },
+            { id: "GUEST", name: "Guest (Visitor)" },
             ...members
-                .filter(member => member.status === "Active")
+                .filter(member => member.status === "Active" && member.member_id !== "GUEST" && member.official_name !== "ANONYMOUS" && member.official_name !== "GUEST")
                 .map(member => ({
                     id: member.member_id,
                     name: `${member.official_name} (${member.member_id})`
