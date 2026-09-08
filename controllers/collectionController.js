@@ -169,19 +169,31 @@ exports.createCollection = async (req, res) => {
             if (!Number.isFinite(numericAmt) || numericAmt <= 0) {
                 throw new Error("A valid collection amount is required for each item.");
             }
-            // Get accounting config for this type
-            const cfgResult = await client.query(
-                `SELECT * FROM collection_calculations WHERE LOWER(collection_type_name) = LOWER($1) AND active = TRUE LIMIT 1`,
+            // Get accounting config for this type (check collection_types table first)
+            let psType = "NONE", psRate = 0, apportionmentType = "NONE", apportionmentRate = 0;
+            const typeConfigResult = await client.query(
+                `SELECT * FROM collection_types WHERE LOWER(name) = LOWER($1) LIMIT 1`,
                 [entryType]
             );
-            let cfg = cfgResult.rows[0];
-            if (!cfg) {
-                cfg = { ps_type: "NONE", ps_rate: 0, apportionment_type: "NONE", apportionment_rate: 0 };
+            if (typeConfigResult.rows.length > 0) {
+                const typeCfg = typeConfigResult.rows[0];
+                psType = normalizeCalculationType(typeCfg.ps_calculation_type);
+                psRate = Number(typeCfg.ps_rate) || 0;
+                apportionmentType = normalizeCalculationType(typeCfg.apportionment_calculation_type);
+                apportionmentRate = Number(typeCfg.apportionment_rate) || 0;
+            } else {
+                const cfgResult = await client.query(
+                    `SELECT * FROM collection_calculations WHERE LOWER(collection_type_name) = LOWER($1) AND active = TRUE LIMIT 1`,
+                    [entryType]
+                );
+                let cfg = cfgResult.rows[0];
+                if (cfg) {
+                    psType = normalizeCalculationType(cfg.ps_type);
+                    psRate = Number(cfg.ps_rate) || 0;
+                    apportionmentType = normalizeCalculationType(cfg.apportionment_type);
+                    apportionmentRate = Number(cfg.apportionment_rate) || 0;
+                }
             }
-            const psType = normalizeCalculationType(cfg.ps_type);
-            const psRate = Number(cfg.ps_rate) || 0;
-            const apportionmentType = normalizeCalculationType(cfg.apportionment_type);
-            const apportionmentRate = Number(cfg.apportionment_rate) || 0;
             const psAmount = calculateAccounting(numericAmt, psType, psRate);
             const apportionmentAmount = calculateAccounting(numericAmt, apportionmentType, apportionmentRate);
 

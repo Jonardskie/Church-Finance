@@ -1,6 +1,56 @@
-// File: controllers/collectionTypeController.js
-
 const pool = require("../config/db");
+
+// ============================================================
+// HELPER: SYNC CALCULATIONS & PROPAGATE TO ALL COLLECTIONS
+// ============================================================
+async function syncCalculationsAndCollections(client, collectionTypeId, typeName, psCalcType, psRate, appCalcType, appRate) {
+    const trimmedName = String(typeName || "").trim();
+    const psTypeUpper = String(psCalcType || "none").toUpperCase();
+    const appTypeUpper = String(appCalcType || "none").toUpperCase();
+    const psRateNum = Number(psRate || 0);
+    const appRateNum = Number(appRate || 0);
+
+    // 1. Sync collection_calculations table if present
+    try {
+        await client.query(`
+            INSERT INTO collection_calculations (collection_type_id, collection_type_name, ps_type, ps_rate, apportionment_type, apportionment_rate, active, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, TRUE, NOW())
+            ON CONFLICT (collection_type_id) DO UPDATE SET
+                collection_type_name = EXCLUDED.collection_type_name,
+                ps_type = EXCLUDED.ps_type,
+                ps_rate = EXCLUDED.ps_rate,
+                apportionment_type = EXCLUDED.apportionment_type,
+                apportionment_rate = EXCLUDED.apportionment_rate,
+                active = TRUE,
+                updated_at = NOW()
+        `, [collectionTypeId, trimmedName, psTypeUpper, psRateNum, appTypeUpper, appRateNum]);
+    } catch (e) {
+        console.log("collection_calculations sync warning:", e.message);
+    }
+
+    // 2. Propagate new rates & recalculate ps_amount and apportionment_amount for ALL existing collections of this type
+    const updateColsResult = await client.query(`
+        UPDATE collections
+        SET
+            ps_type = $1::text,
+            ps_rate = $2::numeric,
+            ps_amount = CASE
+                WHEN $1::text = 'PERCENTAGE' THEN ROUND((amount::numeric * $2::numeric / 100.0), 2)
+                WHEN $1::text = 'FIXED' THEN $2::numeric
+                ELSE 0
+            END,
+            apportionment_type = $3::text,
+            apportionment_rate = $4::numeric,
+            apportionment_amount = CASE
+                WHEN $3::text = 'PERCENTAGE' THEN ROUND((amount::numeric * $4::numeric / 100.0), 2)
+                WHEN $3::text = 'FIXED' THEN $4::numeric
+                ELSE 0
+            END
+        WHERE LOWER(type) = LOWER($5::text)
+    `, [psTypeUpper, psRateNum, appTypeUpper, appRateNum, trimmedName]);
+
+    console.log(`✅ Propagated updated percentage to ${updateColsResult.rowCount} existing collection record(s) for "${trimmedName}" (PS: ${psRateNum}% [${psTypeUpper}], Apportionment: ${appRateNum}% [${appTypeUpper}]).`);
+}
 
 
 // ============================================================
@@ -187,10 +237,24 @@ exports.createType = async (req, res) => {
             ]
         );
 
+        const newType = result.rows[0];
 
-        res.status(201).json(
-            result.rows[0]
-        );
+        // Propagate calculations to existing collections & sync calculations table
+        try {
+            await syncCalculationsAndCollections(
+                pool,
+                newType.id,
+                newType.name,
+                newType.ps_calculation_type,
+                newType.ps_rate,
+                newType.apportionment_calculation_type,
+                newType.apportionment_rate
+            );
+        } catch (syncErr) {
+            console.error("Sync error in createType:", syncErr);
+        }
+
+        res.status(201).json(newType);
 
     } catch (err) {
 
@@ -360,10 +424,24 @@ exports.updateType = async (req, res) => {
 
         }
 
+        const updatedType = result.rows[0];
 
-        res.json(
-            result.rows[0]
-        );
+        // Propagate updated percentages & rates to ALL existing collection records
+        try {
+            await syncCalculationsAndCollections(
+                pool,
+                updatedType.id,
+                updatedType.name,
+                updatedType.ps_calculation_type,
+                updatedType.ps_rate,
+                updatedType.apportionment_calculation_type,
+                updatedType.apportionment_rate
+            );
+        } catch (syncErr) {
+            console.error("Sync error in updateType:", syncErr);
+        }
+
+        res.json(updatedType);
 
     } catch (err) {
 
