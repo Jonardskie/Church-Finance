@@ -1841,35 +1841,28 @@ async function exportPPTX() {
 
     // Church Header Title
     finalSlide.addText("MAUI UNITED METHODIST CHURCH", {
-        x: 0.8, y: 0.8, w: 11.7, h: 0.5,
-        fontSize: 22, bold: true, color: goldColor,
-        fontFace: "Arial", align: "center"
-    });
-
-    // Date Range Subtitle
-    finalSlide.addText(`Period: ${dateString(from)} to ${dateString(to)}`, {
-        x: 0.8, y: 1.4, w: 11.7, h: 0.4,
-        fontSize: 16, color: "A4BCD4",
-        fontFace: "Arial", align: "center"
+        x: 1.5, y: 0.8, w: 11.7, h: 0.6,
+        fontSize: 28, bold: true, color: goldColor,
+        fontFace: "Arial", 
     });
 
     // Centerpiece Container Box (Dark Navy Card with Gold Border)
     finalSlide.addShape(pptx.ShapeType.rect, {
-        x: 1.8, y: 2.2, w: 9.7, h: 3.6,
+        x: 1.3, y: 2.2, w: 7, h: 3,
         fill: { color: navyDark },
         line: { color: goldColor, pt: 3 }
     });
 
     // "GRAND TOTAL" Label inside card
     finalSlide.addText("GRAND TOTAL", {
-        x: 1.8, y: 2.6, w: 9.7, h: 0.6,
+        x: .2, y: 2.6, w: 9.7, h: 0.6,
         fontSize: 32, bold: true, color: goldColor,
         fontFace: "Arial", align: "center"
     });
 
     // Large Grand Total Amount (e.g. ₱500,000.00)
     finalSlide.addText(money(grandTotalAmount), {
-        x: 1.8, y: 3.4, w: 9.7, h: 1.8,
+        x: .2, y: 3.4, w: 9.7, h: 1.8,
         fontSize: 54, bold: true, color: textWhite,
         fontFace: "Arial", align: "center", valign: "middle"
     });
@@ -1879,12 +1872,7 @@ async function exportPPTX() {
         x: 0.5, y: 6.2, w: 12.3, h: 0.06, fill: { color: goldColor }
     });
 
-    // Footer
-    finalSlide.addText("Maui UMC Finance Committee • Confidential", {
-        x: 0.8, y: 6.4, w: 11.7, h: 0.4,
-        fontSize: 12, italic: true, color: "888888",
-        fontFace: "Arial", align: "center"
-    });
+
 
     // Save presentation
     pptx.writeFile({ fileName: `MUMC_Financial_Report_${from}_to_${to}.pptx` });
