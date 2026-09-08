@@ -113,34 +113,41 @@ function getDates() {
 // DEFAULT DATE RANGE
 // ============================================================
 
-function setDefaultDates() {
+// ============================================================
+// DATE RANGE PRESETS & DEFAULT DATES
+// ============================================================
 
+function setDateRangePreset(preset = "recent_week") {
     const now = new Date();
 
-    const year = now.getFullYear();
+    const getFormattedDate = (d) => {
+        const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 10);
+    };
 
-    const fromDate =
-        document.getElementById("fromDate");
+    const fromDateInput = document.getElementById("fromDate");
+    const toDateInput = document.getElementById("toDate");
 
-    const toDate =
-        document.getElementById("toDate");
+    if (!fromDateInput || !toDateInput) return;
 
-    if (fromDate) {
-        fromDate.value = `${year}-01-01`;
+    toDateInput.value = getFormattedDate(now);
+
+    if (preset === "recent_week" || preset === "default") {
+        // Default to Recent Week (7 days ago to today)
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        fromDateInput.value = getFormattedDate(sevenDaysAgo);
+    } else if (preset === "this_month") {
+        // First day of current month
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        fromDateInput.value = getFormattedDate(firstDayOfMonth);
+    } else if (preset === "this_year") {
+        // First day of current year
+        fromDateInput.value = `${now.getFullYear()}-01-01`;
     }
+}
 
-    if (toDate) {
-
-        // Local Philippine date instead of UTC date
-        const localDate =
-            new Date(
-                now.getTime() -
-                now.getTimezoneOffset() * 60000
-            );
-
-        toDate.value =
-            localDate.toISOString().slice(0, 10);
-    }
+function setDefaultDates() {
+    setDateRangePreset("recent_week");
 }
 
 

@@ -89,6 +89,15 @@
             </div>
 
             <div class="flex flex-col gap-1 w-full sm:w-auto">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Quick Preset</label>
+                <div class="flex items-center gap-1.5 h-10">
+                    <button type="button" onclick="setDateRangePreset('recent_week'); loadReports();" class="h-10 px-2.5 bg-slate-100 hover:bg-navy hover:text-white text-slate-700 rounded-lg text-xs font-semibold transition-all">Recent Week</button>
+                    <button type="button" onclick="setDateRangePreset('this_month'); loadReports();" class="h-10 px-2.5 bg-slate-100 hover:bg-navy hover:text-white text-slate-700 rounded-lg text-xs font-semibold transition-all">This Month</button>
+                    <button type="button" onclick="setDateRangePreset('this_year'); loadReports();" class="h-10 px-2.5 bg-slate-100 hover:bg-navy hover:text-white text-slate-700 rounded-lg text-xs font-semibold transition-all">This Year</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1 w-full sm:w-auto">
                 <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Status</label>
                 <select id="statusFilter"
                         class="h-10 px-3 border border-slate-200 rounded-lg text-sm bg-white font-sans outline-none focus:border-navy focus:ring-2 focus:ring-navy/10">
