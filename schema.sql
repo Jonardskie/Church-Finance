@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS collections (
     target TEXT,
     payment_method VARCHAR(50) DEFAULT 'CASH',
     reference_no VARCHAR(100),
+    remark TEXT,
     amount NUMERIC NOT NULL,
     status VARCHAR(50) DEFAULT 'verified',
     collection_type_id INTEGER REFERENCES collection_types(id) ON DELETE SET NULL,

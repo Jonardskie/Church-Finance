@@ -1573,6 +1573,7 @@ function renderCollectionsTable() {
                     ${escapeHTML(
                         item.fund_category || "N/A"
                     )}
+                    ${item.remark ? `<div class="text-[10px] text-slate-400 font-normal italic mt-0.5 truncate max-w-[150px]" title="${escapeHTML(item.remark)}">💬 ${escapeHTML(item.remark)}</div>` : ''}
                 </td>
 
                 <td class="text-amount">
@@ -1772,6 +1773,7 @@ if (collectionForm) {
                                 member_name:    memberName,
                                 type:           item.type,
                                 fund:           item.fund,
+                                remark:         item.remark,
                                 amount:         item.amount,
                                 status,
                                 payment_method: paymentMethod,
@@ -2388,7 +2390,7 @@ async function openEditModal(id) {
     addItemRow({
         type:   record.type        || "",
         fund:   record.fund_category || "",
-        remark: "",
+        remark: record.remark      || "",
         amount: record.amount      || 0
     });
     updateTotal();

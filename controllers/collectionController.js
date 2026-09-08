@@ -145,6 +145,7 @@ exports.createCollection = async (req, res) => {
             payment_method,
             reference_no,
             target,
+            remark,
             // New fields for multi-item support
             items,
             // Fallback legacy fields
@@ -161,7 +162,7 @@ exports.createCollection = async (req, res) => {
 
         // Helper to insert a single collection entry (reused for each item)
         const insertEntry = async (entry) => {
-            const { type: entryType, amount: entryAmount } = entry;
+            const { type: entryType, amount: entryAmount, remark: entryRemark } = entry;
             if (!entryType) {
                 throw new Error("Collection type is required for each item.");
             }
@@ -200,14 +201,14 @@ exports.createCollection = async (req, res) => {
             const insertResult = await client.query(
                 `INSERT INTO collections (
                     date, collection_date, member_id, member_name, type, fund_category, amount, status,
-                    payment_method, reference_no, target,
+                    payment_method, reference_no, target, remark,
                     ps_type, ps_rate, ps_amount,
                     apportionment_type, apportionment_rate, apportionment_amount
                 ) VALUES (
                     $1, $1, $2, $3, $4, $5, $6, $7,
-                    $8, $9, $10,
-                    $11, $12, $13,
-                    $14, $15, $16
+                    $8, $9, $10, $11,
+                    $12, $13, $14,
+                    $15, $16, $17
                 ) RETURNING *`,
                 [
                     date,
@@ -220,6 +221,7 @@ exports.createCollection = async (req, res) => {
                     payment_method || "CASH",
                     reference_no || null,
                     target || fund || entryType,
+                    entryRemark || null,
                     psType,
                     psRate,
                     psAmount,
@@ -345,6 +347,7 @@ exports.createCollection = async (req, res) => {
                 payment_method,
                 reference_no,
                 target,
+                remark,
 
                 ps_type,
                 ps_rate,
@@ -368,14 +371,15 @@ exports.createCollection = async (req, res) => {
                 $8,
                 $9,
                 $10,
-
                 $11,
+
                 $12,
                 $13,
-
                 $14,
+
                 $15,
-                $16
+                $16,
+                $17
             )
             RETURNING *
             `,
@@ -391,6 +395,7 @@ exports.createCollection = async (req, res) => {
                 payment_method || "CASH",
                 reference_no || null,
                 target || fund || type,
+                remark || null,
 
                 psType,
                 psRate,
@@ -598,7 +603,7 @@ exports.verifyBatchCollections = async (req, res) => {
 // UPDATE COLLECTION (EDIT)
 exports.updateCollection = async (req, res) => {
     const { id } = req.params;
-    const { date, member_id, member_name, type, amount, status, payment_method, reference_no, target, fund } = req.body;
+    const { date, member_id, member_name, type, amount, status, payment_method, reference_no, target, fund, remark } = req.body;
 
     // Basic validation
     if (!date) return res.status(400).json({ error: "Collection date is required." });
@@ -662,13 +667,14 @@ exports.updateCollection = async (req, res) => {
                 payment_method = $8,
                 reference_no = $9,
                 target = $10,
-                ps_type = $11,
-                ps_rate = $12,
-                ps_amount = $13,
-                apportionment_type = $14,
-                apportionment_rate = $15,
-                apportionment_amount = $16
-             WHERE id = $17 RETURNING *`,
+                remark = $11,
+                ps_type = $12,
+                ps_rate = $13,
+                ps_amount = $14,
+                apportionment_type = $15,
+                apportionment_rate = $16,
+                apportionment_amount = $17
+             WHERE id = $18 RETURNING *`,
             [
                 date,
                 member_id || null,
@@ -680,6 +686,7 @@ exports.updateCollection = async (req, res) => {
                 payment_method || "CASH",
                 reference_no || null,
                 target || fund || type,
+                remark || null,
                 psType,
                 psRate,
                 psAmount,
