@@ -1761,7 +1761,7 @@ async function exportPPTX() {
 
             // Slide header (navy top banner)
             slide.addShape(pptx.ShapeType.rect, {
-                x: 0.0, y: 0.0, w: 13.3, h: 1.2, fill: { color: navyDark }
+                x: 0.0, y: 0.0, w: 10.0, h: 1.2, fill: { color: navyDark }
             });
 
             // Collection Type Name (appends page info if paginated)
@@ -1772,14 +1772,14 @@ async function exportPPTX() {
 
             slide.addText(pageTitle, {
                 x: 0.5, y: 0.3, w: 5.0, h: 0.6,
-                fontSize: 20, bold: true, color: textWhite,
+                fontSize: 25, bold: true, color: textWhite,
                 fontFace: "Arial", valign: "middle"
             });
 
             // Total Amount value (positioned close to the collection type name on the left)
             slide.addText(`Total: ${money(itemTotalAmount)}`, {
                 x: 5.7, y: 0.3, w: 5.0, h: 0.6,
-                fontSize: 20, bold: true, color: goldColor,
+                fontSize: 25, bold: true, color: goldColor,
                 align: "left", fontFace: "Arial", valign: "middle"
             });
 
@@ -1791,16 +1791,16 @@ async function exportPPTX() {
             // Table headers and data rows for breakdown (Only Member and Amount to fit cleanly)
             const tableBody = [
                 [
-                    { text: "Member", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 11, fontFace: "Arial" } },
-                    { text: "Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 11, align: "right", fontFace: "Arial" } }
+                    { text: "Member", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 15, fontFace: "Arial" } },
+                    { text: "Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 15, align: "right", fontFace: "Arial" } }
                 ]
             ];
 
             // Fill page rows
             pageRows.forEach(row => {
                 tableBody.push([
-                    { text: String(row.donor || row.member_name || "GUEST"), options: { fontSize: 11, bold: true, fontFace: "Arial" } },
-                    { text: money(row.amount), options: { fontSize: 11, bold: true, align: "right", fontFace: "Arial" } }
+                    { text: String(row.donor || row.member_name || "GUEST"), options: { fontSize: 15, bold: true, fontFace: "Arial" } },
+                    { text: money(row.amount), options: { fontSize: 20, bold: true, align: "right", fontFace: "Arial" } }
                 ]);
             });
 
@@ -1815,8 +1815,8 @@ async function exportPPTX() {
                 // Add breakdown table matching headers alignment exactly
                 slide.addTable(tableBody, {
                     x: 0.5,
-                    y: 1.8,
-                    colW: [4.5, 2.0],
+                    y: 1.4,
+                    colW: [7, 2.0],
                     border: { pt: 0.5, color: "E2E8F0" },
                     rowH: 0.35,
                     valign: "middle"
