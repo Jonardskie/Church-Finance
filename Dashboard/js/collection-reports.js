@@ -1848,43 +1848,31 @@ async function exportPPTX() {
     });
 
     let grandTotalAmount = 0;
-    let grandTotalPS = 0;
-    let grandTotalApportionment = 0;
 
     const grandTableBody = [
         [
-            { text: "Collection Category", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 13, fontFace: "Arial" } },
-            { text: "Total Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 13, align: "right", fontFace: "Arial" } },
-            { text: "Personal Savings (PS)", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 13, align: "right", fontFace: "Arial" } },
-            { text: "Apportionment", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 13, align: "right", fontFace: "Arial" } }
+            { text: "Collection Category", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 14, fontFace: "Arial" } },
+            { text: "Total Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 14, align: "right", fontFace: "Arial" } }
         ]
     ];
 
     summaryRows.forEach(item => {
         const amt = Number(item.amount) || 0;
-        const ps = Number(item.ps_amount) || 0;
-        const app = Number(item.apportionment_amount) || 0;
 
         if (amt > 0) {
             grandTotalAmount += amt;
-            grandTotalPS += ps;
-            grandTotalApportionment += app;
 
             grandTableBody.push([
-                { text: String(item.item || item.collection_type || "UNSPECIFIED").toUpperCase(), options: { fontSize: 12, bold: true, fontFace: "Arial" } },
-                { text: money(amt), options: { fontSize: 12, bold: true, align: "right", fontFace: "Arial" } },
-                { text: money(ps), options: { fontSize: 12, align: "right", fontFace: "Arial" } },
-                { text: money(app), options: { fontSize: 12, align: "right", fontFace: "Arial" } }
+                { text: String(item.item || item.collection_type || "UNSPECIFIED").toUpperCase(), options: { fontSize: 13, bold: true, fontFace: "Arial" } },
+                { text: money(amt), options: { fontSize: 13, bold: true, align: "right", fontFace: "Arial" } }
             ]);
         }
     });
 
     // Add Grand Total summary row at bottom of table
     grandTableBody.push([
-        { text: "GRAND TOTAL", options: { fill: "F1F5F9", color: navyPrimary, bold: true, fontSize: 13, fontFace: "Arial" } },
-        { text: money(grandTotalAmount), options: { fill: "F1F5F9", color: "059669", bold: true, fontSize: 13, align: "right", fontFace: "Arial" } },
-        { text: money(grandTotalPS), options: { fill: "F1F5F9", color: navyPrimary, bold: true, fontSize: 13, align: "right", fontFace: "Arial" } },
-        { text: money(grandTotalApportionment), options: { fill: "F1F5F9", color: "7C3AED", bold: true, fontSize: 13, align: "right", fontFace: "Arial" } }
+        { text: "GRAND TOTAL", options: { fill: "F1F5F9", color: navyPrimary, bold: true, fontSize: 15, fontFace: "Arial" } },
+        { text: money(grandTotalAmount), options: { fill: "F1F5F9", color: "059669", bold: true, fontSize: 15, align: "right", fontFace: "Arial" } }
     ]);
 
     // Right header total
@@ -1898,9 +1886,9 @@ async function exportPPTX() {
     finalSlide.addTable(grandTableBody, {
         x: 0.5,
         y: 1.6,
-        colW: [4.5, 2.6, 2.6, 2.6],
+        colW: [7.3, 5.0],
         border: { pt: 0.5, color: "CBD5E1" },
-        rowH: 0.38,
+        rowH: 0.40,
         valign: "middle"
     });
 
