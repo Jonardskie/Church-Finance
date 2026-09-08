@@ -1748,12 +1748,13 @@ async function exportPPTX() {
         });
 
         // Paged slide generation to fit table cleanly inside slide limits without overlapping
-        const rowsPerSlide = 10;
-        const totalSlides = Math.ceil(matches.length / rowsPerSlide) || 1;
+        // Maximum 10 rows per table including header row (1 Header Row + 9 Data Rows = 10 Total Rows)
+        const maxDataRowsPerSlide = 9;
+        const totalSlides = Math.ceil(matches.length / maxDataRowsPerSlide) || 1;
 
         for (let i = 0; i < totalSlides; i++) {
-            const start = i * rowsPerSlide;
-            const end = start + rowsPerSlide;
+            const start = i * maxDataRowsPerSlide;
+            const end = start + maxDataRowsPerSlide;
             const pageRows = matches.slice(start, end);
 
             // Add a slide for this page segment
@@ -1761,7 +1762,7 @@ async function exportPPTX() {
 
             // Slide header (navy top banner)
             slide.addShape(pptx.ShapeType.rect, {
-                x: 0.0, y: 0.0, w: 10.0, h: 1.2, fill: { color: navyDark }
+                x: 0.0, y: 0.0, w: 13.3, h: 1.2, fill: { color: navyDark }
             });
 
             // Collection Type Name (appends page info if paginated)
