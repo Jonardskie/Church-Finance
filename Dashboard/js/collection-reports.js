@@ -1715,181 +1715,68 @@ async function exportPPTX() {
     });
 
     // ========================================================
-    // NEXT PAGES: ONE SLIDE PER COLLECTION TYPE
+    // SLIDE 2: EXECUTIVE GRAND TOTAL AMOUNT SLIDE
     // ========================================================
-    const detailRows = Array.isArray(currentDetailData)
-        ? currentDetailData
-        : Array.isArray(currentDetailData?.rows)
-            ? currentDetailData.rows
-            : [];
-
     const summaryRows = Array.isArray(currentSummaryData)
         ? currentSummaryData
         : Array.isArray(currentSummaryData?.rows)
             ? currentSummaryData.rows
             : [];
 
-    if (summaryRows.length === 0) {
-        alert("No collection types to export.");
-        return;
-    }
-
-    // Loop through each collection type that has contributions
-    summaryRows.forEach(summaryItem => {
-        const itemTypeName = summaryItem.item || summaryItem.collection_type || "UNSPECIFIED";
-        const itemTotalAmount = Number(summaryItem.amount) || 0;
-
-        if (itemTotalAmount <= 0) return; // Skip items with no amount
-
-        // Filter detail records matching this collection type
-        const matches = detailRows.filter(row => {
-            const rowType = row.type || row.item || "UNSPECIFIED";
-            return rowType.trim().toLowerCase() === itemTypeName.trim().toLowerCase();
-        });
-
-        // Paged slide generation to fit table cleanly inside slide limits without overlapping
-        // Maximum 10 rows per table including header row (1 Header Row + 9 Data Rows = 10 Total Rows)
-        const maxDataRowsPerSlide = 9;
-        const totalSlides = Math.ceil(matches.length / maxDataRowsPerSlide) || 1;
-
-        for (let i = 0; i < totalSlides; i++) {
-            const start = i * maxDataRowsPerSlide;
-            const end = start + maxDataRowsPerSlide;
-            const pageRows = matches.slice(start, end);
-
-            // Add a slide for this page segment
-            const slide = pptx.addSlide();
-
-            // Slide header (navy top banner)
-            slide.addShape(pptx.ShapeType.rect, {
-                x: 0.0, y: 0.0, w: 13.3, h: 1.2, fill: { color: navyDark }
-            });
-
-            // Collection Type Name (appends page info if paginated)
-            let pageTitle = itemTypeName.toUpperCase();
-            if (totalSlides > 1) {
-                pageTitle += ` (${i + 1}/${totalSlides})`;
-            }
-
-            slide.addText(pageTitle, {
-                x: 0.5, y: 0.3, w: 5.0, h: 0.6,
-                fontSize: 25, bold: true, color: textWhite,
-                fontFace: "Arial", valign: "middle"
-            });
-
-            // Total Amount value (positioned close to the collection type name on the left)
-            slide.addText(`Total: ${money(itemTotalAmount)}`, {
-                x: 5.7, y: 0.3, w: 5.0, h: 0.6,
-                fontSize: 25, bold: true, color: goldColor,
-                align: "left", fontFace: "Arial", valign: "middle"
-            });
-
-            // Subtitle line / divider
-            slide.addShape(pptx.ShapeType.rect, {
-                x: 0.5, y: 1.4, w: 12.3, h: 0.02, fill: { color: "CCCCCC" }
-            });
-
-            // Table headers and data rows for breakdown (Only Member and Amount to fit cleanly)
-            const tableBody = [
-                [
-                    { text: "Member", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 15, fontFace: "Arial" } },
-                    { text: "Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 15, align: "right", fontFace: "Arial" } }
-                ]
-            ];
-
-            // Fill page rows
-            pageRows.forEach(row => {
-                tableBody.push([
-                    { text: String(row.donor || row.member_name || "GUEST"), options: { fontSize: 15, bold: true, fontFace: "Arial" } },
-                    { text: money(row.amount), options: { fontSize: 20, bold: true, align: "right", fontFace: "Arial" } }
-                ]);
-            });
-
-            if (tableBody.length === 1) {
-                // No details found
-                slide.addText("No donor breakdown records found for this collection type.", {
-                    x: 0.5, y: 2.0, w: 12.3, h: 1.0,
-                    fontSize: 14, italic: true, color: textMuted,
-                    fontFace: "Arial"
-                });
-            } else {
-                // Add breakdown table matching headers alignment exactly
-                slide.addTable(tableBody, {
-                    x: 0.5,
-                    y: 1.4,
-                    colW: [7, 2.0],
-                    border: { pt: 0.5, color: "E2E8F0" },
-                    rowH: 0.35,
-                    valign: "middle"
-                });
-            }
-        }
+    let grandTotalAmount = 0;
+    summaryRows.forEach(item => {
+        grandTotalAmount += Number(item.amount) || 0;
     });
 
-    // ========================================================
-    // FINAL SLIDE: GRAND TOTAL SUMMARY
-    // ========================================================
-    const finalSlide = pptx.addSlide();
+    const totalSlide = pptx.addSlide();
 
-    // Slide header (navy top banner)
-    finalSlide.addShape(pptx.ShapeType.rect, {
+    // Solid dark navy header banner
+    totalSlide.addShape(pptx.ShapeType.rect, {
         x: 0.0, y: 0.0, w: 13.3, h: 1.2, fill: { color: navyDark }
     });
 
-    finalSlide.addText("GRAND TOTAL SUMMARY", {
-        x: 0.5, y: 0.3, w: 6.0, h: 0.6,
+    totalSlide.addText("GRAND TOTAL COLLECTIONS", {
+        x: 0.5, y: 0.3, w: 12.3, h: 0.6,
         fontSize: 24, bold: true, color: goldColor,
         fontFace: "Arial", valign: "middle"
     });
 
-    // Subtitle divider
-    finalSlide.addShape(pptx.ShapeType.rect, {
+    // Divider bar
+    totalSlide.addShape(pptx.ShapeType.rect, {
         x: 0.5, y: 1.4, w: 12.3, h: 0.02, fill: { color: "CCCCCC" }
     });
 
-    let grandTotalAmount = 0;
-
-    const grandTableBody = [
-        [
-            { text: "Collection Category", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 14, fontFace: "Arial" } },
-            { text: "Total Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 14, align: "right", fontFace: "Arial" } }
-        ]
-    ];
-
-    summaryRows.forEach(item => {
-        const amt = Number(item.amount) || 0;
-
-        if (amt > 0) {
-            grandTotalAmount += amt;
-
-            grandTableBody.push([
-                { text: String(item.item || item.collection_type || "UNSPECIFIED").toUpperCase(), options: { fontSize: 13, bold: true, fontFace: "Arial" } },
-                { text: money(amt), options: { fontSize: 13, bold: true, align: "right", fontFace: "Arial" } }
-            ]);
-        }
+    // Big Executive KPI Box for Grand Total Amount
+    totalSlide.addShape(pptx.ShapeType.roundRect, {
+        x: 1.5, y: 2.2, w: 10.3, h: 3.5,
+        fill: { color: "F8FAFC" },
+        line: { color: "CBD5E1", width: 1.5 },
+        rectRadius: 0.2
     });
 
-    // Add Grand Total summary row at bottom of table
-    grandTableBody.push([
-        { text: "GRAND TOTAL", options: { fill: "F1F5F9", color: navyPrimary, bold: true, fontSize: 15, fontFace: "Arial" } },
-        { text: money(grandTotalAmount), options: { fill: "F1F5F9", color: "059669", bold: true, fontSize: 15, align: "right", fontFace: "Arial" } }
-    ]);
-
-    // Right header total
-    finalSlide.addText(`Grand Total: ${money(grandTotalAmount)}`, {
-        x: 6.5, y: 0.3, w: 6.3, h: 0.6,
-        fontSize: 22, bold: true, color: textWhite,
-        align: "right", fontFace: "Arial", valign: "middle"
+    totalSlide.addText("TOTAL OVERALL COLLECTIONS", {
+        x: 2.0, y: 2.7, w: 9.3, h: 0.5,
+        fontSize: 18, bold: true, color: navyPrimary,
+        align: "center", fontFace: "Arial"
     });
 
-    // Render Grand Summary Table
-    finalSlide.addTable(grandTableBody, {
-        x: 0.5,
-        y: 1.6,
-        colW: [7.3, 5.0],
-        border: { pt: 0.5, color: "CBD5E1" },
-        rowH: 0.40,
-        valign: "middle"
+    totalSlide.addText(money(grandTotalAmount), {
+        x: 2.0, y: 3.4, w: 9.3, h: 1.2,
+        fontSize: 54, bold: true, color: "059669",
+        align: "center", fontFace: "Arial"
+    });
+
+    totalSlide.addText(`Collection Period: ${dateString(from)} to ${dateString(to)}`, {
+        x: 2.0, y: 4.8, w: 9.3, h: 0.4,
+        fontSize: 14, italic: true, color: textMuted,
+        align: "center", fontFace: "Arial"
+    });
+
+    // Footer
+    totalSlide.addText("Maui UMC Finance Committee • Official Verified Statement", {
+        x: 0.8, y: 6.3, w: 11.7, h: 0.4,
+        fontSize: 11, italic: true, color: "888888",
+        fontFace: "Arial"
     });
 
     // Save presentation
