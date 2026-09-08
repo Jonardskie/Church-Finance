@@ -1827,69 +1827,63 @@ async function exportPPTX() {
     });
 
     // ========================================================
-    // FINAL SLIDE: GRAND TOTAL SUMMARY
+    // FINAL SLIDE: GRAND TOTAL ONLY
     // ========================================================
     const finalSlide = pptx.addSlide();
+    finalSlide.background = { color: navyPrimary };
 
-    // Slide header (navy top banner)
-    finalSlide.addShape(pptx.ShapeType.rect, {
-        x: 0.0, y: 0.0, w: 13.3, h: 1.2, fill: { color: navyDark }
-    });
-
-    finalSlide.addText("GRAND TOTAL SUMMARY", {
-        x: 0.5, y: 0.3, w: 6.0, h: 0.6,
-        fontSize: 24, bold: true, color: goldColor,
-        fontFace: "Arial", valign: "middle"
-    });
-
-    // Subtitle divider
-    finalSlide.addShape(pptx.ShapeType.rect, {
-        x: 0.5, y: 1.4, w: 12.3, h: 0.02, fill: { color: "CCCCCC" }
-    });
-
+    // Compute Grand Total sum across all summary items
     let grandTotalAmount = 0;
-
-    const grandTableBody = [
-        [
-            { text: "Collection Category", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 14, fontFace: "Arial" } },
-            { text: "Total Amount", options: { fill: navyPrimary, color: textWhite, bold: true, fontSize: 14, align: "right", fontFace: "Arial" } }
-        ]
-    ];
-
     summaryRows.forEach(item => {
         const amt = Number(item.amount) || 0;
-
-        if (amt > 0) {
-            grandTotalAmount += amt;
-
-            grandTableBody.push([
-                { text: String(item.item || item.collection_type || "UNSPECIFIED").toUpperCase(), options: { fontSize: 13, bold: true, fontFace: "Arial" } },
-                { text: money(amt), options: { fontSize: 13, bold: true, align: "right", fontFace: "Arial" } }
-            ]);
-        }
+        if (amt > 0) grandTotalAmount += amt;
     });
 
-    // Add Grand Total summary row at bottom of table
-    grandTableBody.push([
-        { text: "GRAND TOTAL", options: { fill: "F1F5F9", color: navyPrimary, bold: true, fontSize: 15, fontFace: "Arial" } },
-        { text: money(grandTotalAmount), options: { fill: "F1F5F9", color: "059669", bold: true, fontSize: 15, align: "right", fontFace: "Arial" } }
-    ]);
-
-    // Right header total
-    finalSlide.addText(`Grand Total: ${money(grandTotalAmount)}`, {
-        x: 6.5, y: 0.3, w: 6.3, h: 0.6,
-        fontSize: 22, bold: true, color: textWhite,
-        align: "right", fontFace: "Arial", valign: "middle"
+    // Church Header Title
+    finalSlide.addText("MAUI UNITED METHODIST CHURCH", {
+        x: 0.8, y: 0.8, w: 11.7, h: 0.5,
+        fontSize: 22, bold: true, color: goldColor,
+        fontFace: "Arial", align: "center"
     });
 
-    // Render Grand Summary Table
-    finalSlide.addTable(grandTableBody, {
-        x: 0.5,
-        y: 1.6,
-        colW: [7.3, 5.0],
-        border: { pt: 0.5, color: "CBD5E1" },
-        rowH: 0.40,
-        valign: "middle"
+    // Date Range Subtitle
+    finalSlide.addText(`Period: ${dateString(from)} to ${dateString(to)}`, {
+        x: 0.8, y: 1.4, w: 11.7, h: 0.4,
+        fontSize: 16, color: "A4BCD4",
+        fontFace: "Arial", align: "center"
+    });
+
+    // Centerpiece Container Box (Dark Navy Card with Gold Border)
+    finalSlide.addShape(pptx.ShapeType.rect, {
+        x: 1.8, y: 2.2, w: 9.7, h: 3.6,
+        fill: { color: navyDark },
+        line: { color: goldColor, pt: 3 }
+    });
+
+    // "GRAND TOTAL" Label inside card
+    finalSlide.addText("GRAND TOTAL", {
+        x: 1.8, y: 2.6, w: 9.7, h: 0.6,
+        fontSize: 32, bold: true, color: goldColor,
+        fontFace: "Arial", align: "center"
+    });
+
+    // Large Grand Total Amount (e.g. ₱500,000.00)
+    finalSlide.addText(money(grandTotalAmount), {
+        x: 1.8, y: 3.4, w: 9.7, h: 1.8,
+        fontSize: 54, bold: true, color: textWhite,
+        fontFace: "Arial", align: "center", valign: "middle"
+    });
+
+    // Decorative Gold Accent Line at bottom
+    finalSlide.addShape(pptx.ShapeType.rect, {
+        x: 0.5, y: 6.2, w: 12.3, h: 0.06, fill: { color: goldColor }
+    });
+
+    // Footer
+    finalSlide.addText("Maui UMC Finance Committee • Confidential", {
+        x: 0.8, y: 6.4, w: 11.7, h: 0.4,
+        fontSize: 12, italic: true, color: "888888",
+        fontFace: "Arial", align: "center"
     });
 
     // Save presentation
