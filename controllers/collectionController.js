@@ -17,8 +17,9 @@ function clean(value) {
 function getCurrentUser(req) {
     return {
         username:
-            clean(req.user?.username) ||
             clean(req.user?.name) ||
+            clean(req.user?.full_name) ||
+            clean(req.user?.username) ||
             clean(req.user?.email) ||
             "Admin",
         role:

@@ -71,14 +71,22 @@ exports.getAuditLogs = async (req, res) => {
 
         const result = await pool.query(`
             SELECT
-                id,
-                user_name,
-                action_type,
-                table_name,
-                details,
-                created_at
-            FROM audit_logs
-            ORDER BY created_at DESC
+                a.id,
+                COALESCE(
+                    NULLIF(TRIM(u.name), ''),
+                    NULLIF(TRIM(u.full_name), ''),
+                    NULLIF(TRIM(a.user_name), ''),
+                    'System User'
+                ) AS user_name,
+                a.action_type,
+                a.table_name,
+                a.details,
+                a.created_at
+            FROM audit_logs a
+            LEFT JOIN users u ON LOWER(TRIM(a.user_name)) = LOWER(TRIM(u.username))
+                              OR LOWER(TRIM(a.user_name)) = LOWER(TRIM(u.name))
+                              OR LOWER(TRIM(a.user_name)) = LOWER(TRIM(u.full_name))
+            ORDER BY a.created_at DESC
         `);
 
 

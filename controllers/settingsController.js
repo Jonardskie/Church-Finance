@@ -100,7 +100,7 @@ exports.updateChurchSettings = async (req, res) => {
 
         // Record in audit log
         try {
-            const userName = (req.user && req.user.username) || "admin";
+            const userName = (req.user && (req.user.name || req.user.full_name || req.user.username)) || "admin";
             await pool.query(
                 `INSERT INTO audit_logs (user_name, action_type, table_name, details, created_at)
                  VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,

@@ -274,6 +274,7 @@ exports.collectionSummary = async (req, res) => {
 
 
                 FROM collections c
+                LEFT JOIN collection_types ct ON LOWER(TRIM(c.type)) = LOWER(TRIM(ct.name))
 
 
                 WHERE ${where}
@@ -286,10 +287,13 @@ exports.collectionSummary = async (req, res) => {
                             ''
                         ),
                         'UNSPECIFIED'
-                    )
+                    ),
+                    ct.display_order,
+                    ct.id
 
 
                 ORDER BY
+                    COALESCE(ct.display_order, 999) ASC,
                     item ASC
                 `,
                 values
@@ -564,12 +568,15 @@ exports.collectionDetail = async (req, res) => {
 
 
                 FROM collections c
+                LEFT JOIN collection_types ct ON LOWER(TRIM(c.type)) = LOWER(TRIM(ct.name))
 
 
                 WHERE ${where}
 
 
                 ORDER BY
+
+                    COALESCE(ct.display_order, 999) ASC,
 
                     COALESCE(
                         NULLIF(TRIM(c.type), ''),
@@ -882,6 +889,7 @@ exports.exportExcel = async (
 
 
                 FROM collections c
+                LEFT JOIN collection_types ct ON LOWER(TRIM(c.type)) = LOWER(TRIM(ct.name))
 
 
                 WHERE ${where}
@@ -895,10 +903,13 @@ exports.exportExcel = async (
                             ''
                         ),
                         'UNSPECIFIED'
-                    )
+                    ),
+                    ct.display_order,
+                    ct.id
 
 
                 ORDER BY
+                    COALESCE(ct.display_order, 999) ASC,
                     item ASC
                 `,
                 values
@@ -1041,12 +1052,15 @@ exports.exportExcel = async (
 
 
                 FROM collections c
+                LEFT JOIN collection_types ct ON LOWER(TRIM(c.type)) = LOWER(TRIM(ct.name))
 
 
                 WHERE ${where}
 
 
                 ORDER BY
+
+                    COALESCE(ct.display_order, 999) ASC,
 
                     COALESCE(
                         NULLIF(TRIM(c.type), ''),
@@ -1466,10 +1480,23 @@ exports.exportExcel = async (
             fgColor: { argb: "FFF8FAFC" } // Soft Slate accent
         };
 
+        const typeOrderMap = {};
+        try {
+            const ctRes = await pool.query('SELECT name, display_order FROM collection_types');
+            ctRes.rows.forEach(r => {
+                if (r.name) typeOrderMap[r.name.trim().toUpperCase()] = Number(r.display_order) || 999;
+            });
+        } catch (e) {}
+
         let dCurrRow = 7;
         let globalIdx = 0;
 
-        Object.keys(groupedDetail).sort().forEach(typeKey => {
+        Object.keys(groupedDetail).sort((a, b) => {
+            const orderA = typeOrderMap[a.trim().toUpperCase()] ?? 999;
+            const orderB = typeOrderMap[b.trim().toUpperCase()] ?? 999;
+            if (orderA !== orderB) return orderA - orderB;
+            return a.localeCompare(b);
+        }).forEach(typeKey => {
             const groupRows = groupedDetail[typeKey];
             const groupTotalAmount = groupRows.reduce((acc, r) => acc + (Number(r["Amount"]) || 0), 0);
             const groupTotalPS = groupRows.reduce((acc, r) => acc + (Number(r["PS"]) || 0), 0);

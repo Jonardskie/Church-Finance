@@ -523,7 +523,7 @@ exports.reorderTypes = async (req, res) => {
             }
         }
 
-        const username = req.user?.username || "Admin";
+        const username = req.user?.name || req.user?.full_name || req.user?.username || "Admin";
         await client.query(
             "INSERT INTO audit_logs (user_name, action_type, table_name, details) VALUES ($1, $2, $3, $4)",
             [username, "REORDER_COLLECTION_TYPES", "collection_types", `Reordered ${order.length} collection types.`]

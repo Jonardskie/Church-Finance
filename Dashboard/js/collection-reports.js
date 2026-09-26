@@ -17,6 +17,46 @@ if (!token) {
 let currentDetailData = null;
 let currentSummaryData = null;
 
+const DEFAULT_COLLECTION_ORDER = [
+    "TITHES",
+    "PLEDGES",
+    "SUNDAY SCHOOL OFFERING",
+    "BUILDING FUND OFFERING",
+    "BUILDING FUND WITH PS",
+    "THANKSGIVING OFFERING",
+    "DIVINE SERVICE OFFERING",
+    "DIVINE SERVICE WITH PS",
+    "LORD'S ACRE",
+    "HARVEST FESTIVAL OFFERING",
+    "HILLTOP WC TITHES",
+    "JUNIOR WORSHIP",
+    "UMM ORG. SHARE",
+    "WSCS ORG. SHARE",
+    "UMYAF ORG. SHARE",
+    "UMYF ORG. SHARE",
+    "MEMORIAL OFFERING",
+    "MORNING WATCH OFFERING",
+    "FAMILY WEEK OFFERING",
+    "CHRISTMAS PROG. SERVICE",
+    "MY BIRTHDAY GIFT TO JESUS",
+    "EVERYBODY'S BIRTHDAY",
+    "NEW YEAR'S EVE OFFERING",
+    "GOOD FRIDAY OFFERING",
+    "YOUTH SUNDAY OFFERING",
+    "CASH DONATION",
+    "IN-KIND DONATION",
+    "REGISTRATION",
+    "10% RETENTION FROM SPECIAL OFFERING",
+    "WEDDING FEE",
+    "MISCELLANEOUS INCOME"
+];
+
+function getCollectionTypeSortOrder(name) {
+    const cleanName = String(name || "").trim().toUpperCase();
+    const idx = DEFAULT_COLLECTION_ORDER.indexOf(cleanName);
+    return idx !== -1 ? idx : 999;
+}
+
 
 // ============================================================
 // API HELPERS
@@ -887,7 +927,12 @@ function renderDetail(report) {
     let grandPS = 0;
     let grandApp = 0;
 
-    Object.keys(grouped).sort().forEach(typeKey => {
+    Object.keys(grouped).sort((a, b) => {
+        const orderA = getCollectionTypeSortOrder(a);
+        const orderB = getCollectionTypeSortOrder(b);
+        if (orderA !== orderB) return orderA - orderB;
+        return a.localeCompare(b);
+    }).forEach(typeKey => {
         const groupRows = grouped[typeKey];
         const groupAmount = groupRows.reduce((sum, r) => sum + number(r.amount), 0);
         const groupPS = groupRows.reduce((sum, r) => sum + number(r.ps_amount ?? r.ps), 0);
@@ -1733,6 +1778,12 @@ async function exportPPTX() {
         alert("No collection types to export.");
         return;
     }
+
+    summaryRows.sort((a, b) => {
+        const typeA = a.item || a.collection_type || "";
+        const typeB = b.item || b.collection_type || "";
+        return getCollectionTypeSortOrder(typeA) - getCollectionTypeSortOrder(typeB);
+    });
 
     // Loop through each collection type that has contributions
     summaryRows.forEach(summaryItem => {
