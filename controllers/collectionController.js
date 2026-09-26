@@ -984,7 +984,7 @@ exports.getMyContributions = async (req, res) => {
                 c.receipt_no,
                 COALESCE(c.collection_date, c.date)::date AS date,
                 c.member_id,
-                c.member_name,
+                COALESCE(NULLIF(TRIM(m.official_name), ''), c.member_name) AS member_name,
                 c.type,
                 c.fund_category,
                 c.amount,
@@ -993,6 +993,7 @@ exports.getMyContributions = async (req, res) => {
                 c.status,
                 c.target
             FROM collections c
+            LEFT JOIN members m ON LOWER(TRIM(c.member_id)) = LOWER(TRIM(m.member_id))
             WHERE (
                 (c.member_id IS NOT NULL AND LOWER(TRIM(c.member_id)) = LOWER(TRIM($1)))
                 OR (c.member_name IS NOT NULL AND LOWER(TRIM(c.member_name)) = LOWER(TRIM($2)))

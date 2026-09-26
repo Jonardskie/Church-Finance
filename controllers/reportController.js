@@ -435,6 +435,7 @@ exports.collectionDetail = async (req, res) => {
 
 
                     COALESCE(
+                        NULLIF(TRIM(m.official_name), ''),
                         NULLIF(
                             TRIM(
                                 c.member_name
@@ -569,6 +570,7 @@ exports.collectionDetail = async (req, res) => {
 
                 FROM collections c
                 LEFT JOIN collection_types ct ON LOWER(TRIM(c.type)) = LOWER(TRIM(ct.name))
+                LEFT JOIN members m ON LOWER(TRIM(c.member_id)) = LOWER(TRIM(m.member_id))
 
 
                 WHERE ${where}
@@ -935,6 +937,7 @@ exports.exportExcel = async (
 
 
                     COALESCE(
+                        NULLIF(TRIM(m.official_name), ''),
                         NULLIF(
                             TRIM(
                                 c.member_name
@@ -1053,6 +1056,7 @@ exports.exportExcel = async (
 
                 FROM collections c
                 LEFT JOIN collection_types ct ON LOWER(TRIM(c.type)) = LOWER(TRIM(ct.name))
+                LEFT JOIN members m ON LOWER(TRIM(c.member_id)) = LOWER(TRIM(m.member_id))
 
 
                 WHERE ${where}
@@ -2165,16 +2169,17 @@ exports.getDashboardSummary = async (req, res) => {
         // 7. Recent Transactions (Latest 5 Collections & Latest 5 Expenses)
         const recentCollectionsPromise = pool.query(`
             SELECT 
-                id,
-                receipt_no,
-                COALESCE(collection_date, date) AS date,
-                COALESCE(member_name, 'Guest') AS giver_name,
-                COALESCE(NULLIF(TRIM(fund_category), ''), type, 'General Fund') AS category,
-                COALESCE(payment_method, 'CASH') AS method,
-                amount::numeric,
-                COALESCE(status, 'Verified') AS status
-            FROM collections
-            ORDER BY COALESCE(collection_date, date) DESC, id DESC
+                c.id,
+                c.receipt_no,
+                COALESCE(c.collection_date, c.date) AS date,
+                COALESCE(NULLIF(TRIM(m.official_name), ''), NULLIF(TRIM(c.member_name), ''), 'Guest') AS giver_name,
+                COALESCE(NULLIF(TRIM(c.fund_category), ''), c.type, 'General Fund') AS category,
+                COALESCE(c.payment_method, 'CASH') AS method,
+                c.amount::numeric,
+                COALESCE(c.status, 'Verified') AS status
+            FROM collections c
+            LEFT JOIN members m ON LOWER(TRIM(c.member_id)) = LOWER(TRIM(m.member_id))
+            ORDER BY COALESCE(c.collection_date, c.date) DESC, c.id DESC
             LIMIT 5;
         `);
 

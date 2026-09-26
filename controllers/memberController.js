@@ -651,6 +651,22 @@ exports.updateMember = async (req, res) => {
             }
         }
 
+        // ==========================================
+        // ALWAYS SYNC PAST COLLECTIONS MEMBER_NAME
+        // ==========================================
+        try {
+            await pool.query(
+                `UPDATE collections
+                 SET member_name = $1
+                 WHERE (member_id IS NOT NULL AND LOWER(TRIM(member_id)) = LOWER(TRIM($2)))
+                    OR (member_id IS NOT NULL AND LOWER(TRIM(member_id)) = LOWER(TRIM($3)))
+                    OR (member_name IS NOT NULL AND LOWER(TRIM(member_name)) = LOWER(TRIM($4)))`,
+                [finalOfficialName, existingMember.member_id, memberLoginId, existingMember.official_name]
+            );
+        } catch (colSyncErr) {
+            console.error("Error syncing collections member_name:", colSyncErr.message);
+        }
+
         res.json({
             message: "Updated successfully"
         });
